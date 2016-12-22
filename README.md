@@ -1,2 +1,4 @@
 # hk_node
-Arduino node
+This is an Arduino nano project
+
+//TODO
