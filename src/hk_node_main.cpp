@@ -27,6 +27,12 @@ void setupBody()
     // initialize digital pin LED_BUILTIN as an output.
     Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(AlPin1, OUTPUT);
+    pinMode(AlPin2, OUTPUT);
+    pinMode(AlPin3, OUTPUT);
+    pinMode(AlPin4, OUTPUT);
+    pinMode(buttonPin, INPUT);
+    
     initAllFunctions();
     setupDoWhatYouShouldTab();
     Serial.println("hello world");
@@ -37,6 +43,14 @@ void setupBody()
         digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
         delay(20);                       // wait for a second
     }
+
+    for (AlertReason i = 0; i < 16; i++)
+    {
+        alert(i, true);
+    }
+
+
+    
 }
 
 void loopBody() 
@@ -58,7 +72,7 @@ void loopBody()
     }
     else
     {
-        alert(AlertReason_unknownWakeUp);
+        alert(AlertReason_unknownWakeUp, true);
         Serial.println("unknowns wakeup: ");
         Serial.println(wkReason, HEX );
     }
@@ -74,54 +88,53 @@ WakeUpReason getWKReason(void)
     return WakeUpReason_serial;
 }
 
-void alert(register AlertReason reason)
+void alert(register AlertReason reason, bool hold)
 {
-    if (AlertReason_unknownWakeUp == reason )
-    {  
-        int pwm =10;
-        for ( pwm = 10; pwm <= 90; pwm +=5)
-        {
-            digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-            delay(100-pwm);                       // wait for a second
-            digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-            delay(pwm);                       // wait for a second
-        }
-
-        for (; pwm >= 10; pwm -=5)
-        {
-            digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-            delay(100-pwm);                       // wait for a second
-            digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-            delay(pwm);                       // wait for a second
-        }
-    }
-    else if (AlertReason_serialChar == reason)
-    {  
-        for (int i = 0; i < 5; i++)
-        {
-            digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-            delay(50);                       // wait for a second
-            digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-            delay(50);                       // wait for a second
-        }
-    }
-    else if (AlertReason_serialSend == reason)
-    {  
-        for (int i = 0; i < 2; i++)
-        {
-            digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-            delay(400);                       // wait for a second
-            digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-            delay(400);                       // wait for a second
-        }
-    }
-    else 
-    {
-        digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-        delay(1000);                       // wait for a second
-        digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-        delay(1000);                       // wait for a second
-    }
+      switch (reason)
+      {
+            case 14:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
+            case 13:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
+            case 12:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); break; 
+            case 11:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
+            case 10:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
+            case 9 :  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
+            case 8 :  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); break; 
+            case 7 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
+            case 6 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
+            case 5 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
+            case 4 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); break; 
+            case 3 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
+            case 2 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
+            case 1 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
+             
+            default:
+            case 15:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
+          
+       }
+       if (hold)
+       {
+           volatile char buttonState = 1;
+           while (  buttonState ) 
+           {
+                digitalWrite(LED_BUILTIN, LOW);
+                delay(10);             
+                digitalWrite(LED_BUILTIN, HIGH);
+                delay(50);             
+                buttonState = digitalRead(buttonPin);
+           }
+           delay(10);
+           while (  !buttonState ) 
+           {
+                digitalWrite(LED_BUILTIN, LOW);
+                delay(50);             
+                digitalWrite(LED_BUILTIN, HIGH);
+                delay(10);             
+                buttonState = digitalRead(buttonPin);
+           }
+           delay(10);
+           digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); 
+         
+      }
 }
 
 //------------------------------------------------------------------

@@ -32,7 +32,7 @@ void respondSerial(void)
     
     while (Serial.available() > 0)
     {
-        alert(AlertReason_serialChar);
+        alert(AlertReason_serialChar,true);
         command[commandIt++] = Serial.read();
         if (commandIt >= NUM_ELS(command))
         {
@@ -71,7 +71,7 @@ void respondSerial(void)
             command[2] = 'K';
             command[3] = '\n';
         }
-        alert(AlertReason_serialSend);
+        alert(AlertReason_serialSend, false);
         written = Serial.write(command,NUM_ELS(command));
     }
 }

@@ -33,11 +33,23 @@ typedef  unsigned char WakeUpReason;
 WakeUpReason getWKReason(void);
 //--------------------------------------------------
 typedef  unsigned char AlertReason;
-#define AlertReason_unknownWakeUp  'w'
-#define AlertReason_serialSend 's'
-#define AlertReason_serialChar 'c'
+enum EAlertPins
+{
+   AlPin1 = 8,
+   AlPin2 = 7,
+   AlPin3 = 6,
+   AlPin4 = 5,
 
-void alert(register AlertReason reason);
+   buttonPin = 3
+};
+enum EAlertReasons
+{
+    AlertReason_unknownWakeUp = 8,
+    AlertReason_serialSend  = 1,
+    AlertReason_serialChar  = 2
+};
+
+void alert(register AlertReason reason, bool hold);
 //--------------------------------------------------
 typedef void (*DoWhatYouShould)(void);
 #define MaxDoWhatYouShould 8
