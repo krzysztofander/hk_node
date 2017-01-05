@@ -47,7 +47,10 @@ enum EAlertReasons
     AlertReason_unknownWakeUp = 8,
     AlertReason_serialSend  = 1,
     AlertReason_serialChar  = 2,
-    AlertReason_serialwriteProblem = 3
+    AlertReason_serialwriteProblem = 3,
+    AlertReason_serialReadProblem = 4,
+    AlertReason_intervalSet = 5
+
 };
 
 void alert(register AlertReason reason, bool hold);
@@ -64,7 +67,7 @@ typedef signed short TempMeasurement;
 
 TempMeasurement getSingleTempMeasurement(void);
 void initMeasureTemperature(void);
-
+void setUpTemperatureMeasurementInterval(unsigned short interval);
 void measureTemperature(void);
 #define maxMeasurements  64
 #define TempMeasurement_invalid (((TempMeasurement )1) << ((sizeof(TempMeasurement) * 8) -1))
@@ -79,12 +82,14 @@ enum ECommandsConsts
     command_subIdPos1 = 1,
     command_subIdPos2 = 2,
 
-    commandMaxDataSize = 8,
 
+    commandCharDataSize = 8,
     commandEOLSizeOnRecieve = 1, //how many characters to expect on end of line
+    
+    commandMaxDataSize = commandCharDataSize +  commandEOLSizeOnRecieve
 
 };
-
+#define commandEOLSignOnRecieve '\n'
 extern const char  commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
 
 

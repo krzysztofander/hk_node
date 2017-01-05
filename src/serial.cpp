@@ -24,23 +24,49 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 extern const char  commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
 
-
-void readData(char count, char (&inOutData)[commandMaxDataSize])
+unsigned short dataToUnsignedShort(char offset,const char (&inData)[commandMaxDataSize])
 {
-    char dataIt = 0;
-    while (Serial.available() > 0 && dataIt < count)
+    if (offset + sizeof(unsigned short) > commandMaxDataSize)
     {
-        inOutData[dataIt++] = Serial.read();
-      
+        return 0xBADA;
+    }
+
+    return *((unsigned short *)(&(inData[offset])));
+}
+
+//@Brief Reads given ammount of data or up to end of line 
+//@returs Characters read
+char readData(char count, char (&inOutData)[commandMaxDataSize ])
+{
+    char dataCnt = 0;
+    while (Serial.available() > 0 && dataCnt < count)
+    {
+        
+        inOutData[dataCnt] = Serial.read();
+        //todo - remove that:
+        alert(AlertReason_serialChar,true);
+
+        if (inOutData[dataCnt++] == commandEOLSignOnRecieve)
+        {
+            break;
+        }
+    }
+    return dataCnt;
+}
+
+void consume (count)
+{
+  
+    while (Serial.available() > 0 && count)
+    {
+       Serial.read();
+       count--;
         //todo - remove that:
         alert(AlertReason_serialChar,true);
     }
 }
 
-void consume (char (&inOutData)[commandMaxDataSize])
-{
-    readData(0, inOutData);
-}
+
 
 //------------------------------------------------------------------
 // @brief Response for D (debug) function  
@@ -52,11 +78,14 @@ inline char command_D(char (&inOutCommand)[commandSize], char (&inOutData)[comma
     switch (inOutCommand[command_subIdPos1])
     {
     case 'E': //echo 
-       
+        //Ignore inOutCommand[command_subIdPos2] 
+
         //Response:
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
           inOutCommand[command_subIdPos1] = 'R';
         //inOutCommand[command_subIdPos2] = as is
+
+        //expectine EOL, but if anything else then it will just get eaten
         consume(commandEOLSizeOnRecieve);
         break;
     default:  //unknown 'D' command
@@ -66,7 +95,7 @@ inline char command_D(char (&inOutCommand)[commandSize], char (&inOutData)[comma
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
         inOutCommand[command_subIdPos1] = 'u';
         inOutCommand[command_subIdPos2] =  'n';
-        consume(commandEOLSizeOnRecieve);
+        read = readData(commandMaxDataSize /*up to EOL*/, inOutData);
         break;
     }
     return 0;  //no data set...
@@ -75,35 +104,41 @@ inline char command_D(char (&inOutCommand)[commandSize], char (&inOutData)[comma
 
 //------------------------------------------------------------------
 // @brief Response for C (configuration) request function  
+// @Returns Size od data on inOutData table
 
 inline char command_C(char (&inOutCommand)[commandSize], char (&inOutData)[commandMaxDataSize])
 {
     (void)inOutData;
-
+    char read;
     switch (inOutCommand[command_subIdPos1])
     {
     case 'T': //configure temperature
-        
-        if (inOutCommand[command_subIdPos2] = 'T')
+        if (inOutCommand[command_subIdPos2] = 'M')
         {
             //CTC
             //Expecting setting in uint16
-            
-            //Response:
-              //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-        inOutCommand[command_subIdPos1] = 'R';
-        //inOutCommand[command_subIdPos2] = as is
-        consume(commandEOLSizeOnRecieve);
-        break;
-    default:  //unknown 'D' command
+            read = readData(commandMaxDataSize /*up to EOL*/, inOutData);
+            if (read != 4 + commandEOLSizeOnRecieve )
+            {
+                alert(AlertReason_serialReadProblem, true);
+            }
+           
+            setUpTemperatureMeasurementInterval(dataToShort(0, inOutData));
+            //todo actually read that and respond accordingly
 
-              //Response:
-
-              //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-        inOutCommand[command_subIdPos1] = 'u';
+            return 4;
+            //Response is same as command...
+        }
+        read = readData(commandMaxDataSize /*up to EOL or to exhaution*/, inOutData);
+        inOutCommand[command_subIdPos2] = 'u';
+        return 0;
+     
+    default:  //unknown 'C' command
+        //Response:
+        read = readData(commandMaxDataSize /*up to EOL or to exchaution*/, inOutData);
+        inOutCommand[command_subIdPos1] =  'u';
         inOutCommand[command_subIdPos2] =  'n';
-        consume(commandEOLSizeOnRecieve);
-        break;
+        return 0;
     }
     return 0;  //no data set...
 
@@ -117,8 +152,8 @@ void respondSerial(void)
     
     static char command[commandSize];
     static char commandIt = 0;
-    static char data[commandMaxDataSize + commandEOLSizeOnRecieve];
-    static char dataIt = 0;
+    static char data[commandMaxDataSize];
+    char dataCnt = 0;
 
     
     while (Serial.available() > 0)
@@ -145,13 +180,19 @@ void respondSerial(void)
         switch (command[commandIdentifierPos])
         {
         case 'D':
-            dataIt = command_D(command, data);
+            dataCnt = command_D(command, data);
             break;
+        case 'C':
+            dataCnt = command_C(command, data);
+            break;
+
         default :
             command[commandIdentifierPos]   = 'U';
             command[command_subIdPos1] = 'N';
             command[command_subIdPos2] = 'K';
-            dataIt = 0;
+            readData(commandMaxDataSize /*up to EOL or to exhaution*/, data);
+
+            dataCnt = 0;
         }
         
         //todo - remove that:
@@ -159,14 +200,14 @@ void respondSerial(void)
        
         //write command then variable number of data then end of line sequence.
         written = Serial.write(command,NUM_ELS(command));
-        if (dataIt)
+        if (dataCnt)
         {
-            written += Serial.write(data, dataIt);
+            written += Serial.write(data, dataCnt);
         }
         written = Serial.write(commandEOLOnResponceSequence,NUM_ELS(commandEOLOnResponceSequence));
 
         //check
-        if (written != NUM_ELS(command)+ dataIt + commandEOLOnResponceSequence)
+        if (written != NUM_ELS(command)+ dataCnt + commandEOLOnResponceSequence)
         {
             alert(AlertReason_serialwriteProblem, true);
         }
