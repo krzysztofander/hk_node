@@ -46,7 +46,8 @@ enum EAlertReasons
 {
     AlertReason_unknownWakeUp = 8,
     AlertReason_serialSend  = 1,
-    AlertReason_serialChar  = 2
+    AlertReason_serialChar  = 2,
+    AlertReason_serialwriteProblem = 3
 };
 
 void alert(register AlertReason reason, bool hold);
@@ -70,6 +71,22 @@ void measureTemperature(void);
 extern TempMeasurement g_tempMeasurements[maxMeasurements];
 extern unsigned short g_lastTempMeasurementIt;
 //-------------------------------------------------
+enum ECommandsConsts
+{
+    commandSize = 3,
+
+    commandIdentifierPos = 0,
+    command_subIdPos1 = 1,
+    command_subIdPos2 = 2,
+
+    commandMaxDataSize = 8,
+
+    commandEOLSizeOnRecieve = 1, //how many characters to expect on end of line
+
+};
+
+extern const char  commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
+
 
 void respondSerial(void);
 

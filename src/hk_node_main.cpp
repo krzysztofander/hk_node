@@ -23,9 +23,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void setupBody() 
 {
-    // put your setup code here, to run once:
-    // initialize digital pin LED_BUILTIN as an output.
-    Serial.begin(9600);
+    // test
+
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(AlPin1, OUTPUT);
     pinMode(AlPin2, OUTPUT);
@@ -33,9 +32,6 @@ void setupBody()
     pinMode(AlPin4, OUTPUT);
     pinMode(buttonPin, INPUT);
     
-    initAllFunctions();
-    setupDoWhatYouShouldTab();
-    Serial.println("hello world");
     for (int i = 0; i < 10; i++)
     {
         digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -49,6 +45,12 @@ void setupBody()
         alert(i, true);
     }
 
+    Serial.begin(9600);
+    Serial.println("hello world");
+    //end of test
+
+    initAllFunctions();
+    setupDoWhatYouShouldTab();
 
     
 }
@@ -68,7 +70,7 @@ void loopBody()
     else if (wkReason == WakeUpReason_serial)
     {
         setNextSleep(getRemainingSleepTime());
-        respondSerial();
+            ();
     }
     else
     {
@@ -138,11 +140,16 @@ void alert(register AlertReason reason, bool hold)
 }
 
 //------------------------------------------------------------------
+// The tab conatins functions pointers that gets executed every time
+// system wakes up for the action
+// This is not for the wakeup from serial, etc.
 DoWhatYouShould g_doWhatYouShouldTab[MaxDoWhatYouShould];
 
 void initAllFunctions(void)
 {
     initMeasureTemperature();
+    //...
+
 }
 void setupDoWhatYouShouldTab(void)
 {
@@ -151,6 +158,8 @@ void setupDoWhatYouShouldTab(void)
         g_doWhatYouShouldTab[i] = 0;
     }
     g_doWhatYouShouldTab[0] = measureTemperature;
+    //...
+
 }
 
 void doWhatYouShould(void)
