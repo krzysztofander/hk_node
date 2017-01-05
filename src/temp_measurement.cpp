@@ -32,6 +32,12 @@ void initMeasureTemperature(void)
     }
 }
 
+void setUpTemperatureMeasurementInterval(unsigned short interval)
+{
+   //TODO - really set somethig up
+    alert(AlertReason_intervalSet, true);
+}
+
 TempMeasurement getSingleTempMeasurement(void)
 {
     //TODO - make it correct
