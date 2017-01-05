@@ -54,7 +54,7 @@ char readData(char count, char (&inOutData)[commandMaxDataSize ])
     return dataCnt;
 }
 
-void consume (count)
+void consume (char count)
 {
   
     while (Serial.available() > 0 && count)
@@ -95,7 +95,7 @@ inline char command_D(char (&inOutCommand)[commandSize], char (&inOutData)[comma
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
         inOutCommand[command_subIdPos1] = 'u';
         inOutCommand[command_subIdPos2] =  'n';
-        read = readData(commandMaxDataSize /*up to EOL*/, inOutData);
+        readData(commandMaxDataSize /*up to EOL*/, inOutData);
         break;
     }
     return 0;  //no data set...
@@ -123,7 +123,7 @@ inline char command_C(char (&inOutCommand)[commandSize], char (&inOutData)[comma
                 alert(AlertReason_serialReadProblem, true);
             }
            
-            setUpTemperatureMeasurementInterval(dataToShort(0, inOutData));
+            setUpTemperatureMeasurementInterval(dataToUnsignedShort(0, inOutData));
             //todo actually read that and respond accordingly
 
             return 4;
@@ -204,10 +204,10 @@ void respondSerial(void)
         {
             written += Serial.write(data, dataCnt);
         }
-        written = Serial.write(commandEOLOnResponceSequence,NUM_ELS(commandEOLOnResponceSequence));
+        written += Serial.write(commandEOLOnResponceSequence,NUM_ELS(commandEOLOnResponceSequence));
 
         //check
-        if (written != NUM_ELS(command)+ dataCnt + commandEOLOnResponceSequence)
+        if (written != NUM_ELS(command)+ dataCnt + NUM_ELS(commandEOLOnResponceSequence))
         {
             alert(AlertReason_serialwriteProblem, true);
         }

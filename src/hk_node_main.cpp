@@ -70,7 +70,7 @@ void loopBody()
     else if (wkReason == WakeUpReason_serial)
     {
         setNextSleep(getRemainingSleepTime());
-            ();
+        respondSerial();
     }
     else
     {
