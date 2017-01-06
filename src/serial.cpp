@@ -18,27 +18,28 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-
-#include "hk_node.h"
 #include <Arduino.h>
+#include "hk_node.h"
+#include "executor.h"
 
-extern const char  commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
 
-unsigned short dataToUnsignedShort(char offset,const char (&inData)[commandMaxDataSize])
+extern const uint8_t  commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
+
+uint16_t dataToUnsignedShort(uint8_t offset,const uint8_t (&inData)[commandMaxDataSize])
 {
-    if (offset + sizeof(unsigned short) > commandMaxDataSize)
+    if (offset + sizeof(uint16_t) > commandMaxDataSize)
     {
         return 0xBADA;
     }
 
-    return *((unsigned short *)(&(inData[offset])));
+    return *((uint16_t *)(&(inData[offset])));
 }
 
 //@Brief Reads given ammount of data or up to end of line 
 //@returs Characters read
-char readData(char count, char (&inOutData)[commandMaxDataSize ])
+uint8_t readData(uint8_t count, uint8_t (&inOutData)[commandMaxDataSize ])
 {
-    char dataCnt = 0;
+    uint8_t dataCnt = 0;
     while (Serial.available() > 0 && dataCnt < count)
     {
         
@@ -54,7 +55,7 @@ char readData(char count, char (&inOutData)[commandMaxDataSize ])
     return dataCnt;
 }
 
-void consume (char count)
+void consume (uint8_t count)
 {
   
     while (Serial.available() > 0 && count)
@@ -71,7 +72,7 @@ void consume (char count)
 //------------------------------------------------------------------
 // @brief Response for D (debug) function  
 
-inline char command_D(char (&inOutCommand)[commandSize], char (&inOutData)[commandMaxDataSize])
+inline uint8_t command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize])
 {
     (void)inOutData;
 
@@ -106,10 +107,10 @@ inline char command_D(char (&inOutCommand)[commandSize], char (&inOutData)[comma
 // @brief Response for C (configuration) request function  
 // @Returns Size od data on inOutData table
 
-inline char command_C(char (&inOutCommand)[commandSize], char (&inOutData)[commandMaxDataSize])
+inline uint8_t command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize])
 {
     (void)inOutData;
-    char read;
+    uint8_t read;
     switch (inOutCommand[command_subIdPos1])
     {
     case 'T': //configure temperature
@@ -122,8 +123,8 @@ inline char command_C(char (&inOutCommand)[commandSize], char (&inOutData)[comma
             {
                 alert(AlertReason_serialReadProblem, true);
             }
-           
-            setUpTemperatureMeasurementInterval(dataToUnsignedShort(0, inOutData));
+            uint16_t tempMeasmntInterval =  dataToUnsignedShort(0, inOutData);
+            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, tempMeasmntInterval);
             //todo actually read that and respond accordingly
 
             return 4;
@@ -150,10 +151,10 @@ inline char command_C(char (&inOutCommand)[commandSize], char (&inOutData)[comma
 void respondSerial(void)
 {
     
-    static char command[commandSize];
-    static char commandIt = 0;
-    static char data[commandMaxDataSize];
-    char dataCnt = 0;
+    static uint8_t command[commandSize];
+    static uint8_t commandIt = 0;
+    static uint8_t data[commandMaxDataSize];
+    uint8_t dataCnt = 0;
 
     
     while (Serial.available() > 0)
@@ -166,15 +167,17 @@ void respondSerial(void)
             break;
         }
     }
-
+    alert(AlertReason_Step1, true);
     
     //do not do anything untill we got full command
     if (commandIt >= NUM_ELS(command))
     {
         //have full command
         commandIt = 0;
-        char written = 0;
-
+        uint8_t written = 0;
+      
+        //debug 
+        alert(AlertReason_serialSend, true);
         
 
         switch (command[commandIdentifierPos])
@@ -196,7 +199,7 @@ void respondSerial(void)
         }
         
         //todo - remove that:
-        alert(AlertReason_serialSend, false);
+        alert(AlertReason_serialSend, true);
        
         //write command then variable number of data then end of line sequence.
         written = Serial.write(command,NUM_ELS(command));

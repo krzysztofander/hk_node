@@ -18,25 +18,20 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-
+#include <Arduino.h>
 #include "hk_node.h"
 //------------------------------------------------------------------
-unsigned short g_lastTempMeasurementIT =  NUM_ELS(g_tempMeasurements);
+uint16_t g_lastTempMeasurementIT =  NUM_ELS(g_tempMeasurements);
 TempMeasurement g_tempMeasurements[maxMeasurements];
 void initMeasureTemperature(void)
 {
     
-    for (unsigned short i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
+    for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
     {
         g_tempMeasurements[i] = TempMeasurement_invalid;
     }
 }
 
-void setUpTemperatureMeasurementInterval(unsigned short interval)
-{
-   //TODO - really set somethig up
-    alert(AlertReason_intervalSet, true);
-}
 
 TempMeasurement getSingleTempMeasurement(void)
 {
@@ -47,6 +42,7 @@ TempMeasurement getSingleTempMeasurement(void)
 
 void measureTemperature(void)
 {
+    alert(AlertReason_ExecutorCalled, false);
     //bring up pointer to front if needed
     if (g_lastTempMeasurementIT >= NUM_ELS(g_tempMeasurements) -1 )
     {

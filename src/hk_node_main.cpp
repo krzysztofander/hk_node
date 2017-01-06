@@ -17,9 +17,11 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-
-#include "hk_node.h"
 #include <Arduino.h>
+#include "hk_node.h"
+#include "executor.h"
+
+
 
 void setupBody() 
 {
@@ -39,18 +41,12 @@ void setupBody()
         digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
         delay(20);                       // wait for a second
     }
-
-    for (AlertReason i = 0; i < 16; i++)
-    {
-        alert(i, true);
-    }
-
-    Serial.begin(9600);
-    Serial.println("hello world");
+    alert(14, true);
+    
     //end of test
+    printf("heloo world\n");
 
     initAllFunctions();
-    setupDoWhatYouShouldTab();
 
     
 }
@@ -59,36 +55,40 @@ void loopBody()
 {
     //just woke up
 
-    //check reason
-    WakeUpReason wkReason = getWKReason();
-    //do actions
-    if (wkReason == WakeUpReason_timeout)
+    alert(AlertReason_Step1, true);
+    uint16_t timeSlept = Sleeper::howMuchDidWeSleep();
+    Executor::adjustToElapsedTime(timeSlept);
+
+    respondSerial();  //if this was serial, handle that
+    alert(AlertReason_Step2, true);
+    //now execute what needs to be executed...
+    uint8_t executor = Executor::giveExecutorToCall();
+    alert(AlertReason_Step3, true);
+    if (executor < (uint8_t) Executor::executorsNumber)
     {
-        setNextSleep(getDefaultSleepTime());
-        doWhatYouShould();
-    }
-    else if (wkReason == WakeUpReason_serial)
-    {
-        setNextSleep(getRemainingSleepTime());
-        respondSerial();
+        //alert(AlertReason_Step2, true);
+        Executor::rescheduleExecutor(executor);
+        //execute the executor now... 
+        //alert(AlertReason_Step3, true);
+
+        ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+        //alert(AlertReason_Step2, true);
+
+        f();
+        //alert(AlertReason_Step3, true);
     }
     else
     {
-        alert(AlertReason_unknownWakeUp, true);
-        Serial.println("unknowns wakeup: ");
-        Serial.println(wkReason, HEX );
+        //nothing to call, it might have been from serial
     }
 
-    //go to sleep
+    Sleeper::setNextSleep(Executor::getNextSleepTime());
 
+    //go to sleep
+    Sleeper::gotToSleep(); //if its set to 0 it wont...
 }
 //------------------------------------------------------------------
 
-WakeUpReason getWKReason(void)
-{
-    //todo - fix that
-    return WakeUpReason_serial;
-}
 
 void alert(register AlertReason reason, bool hold)
 {
@@ -115,7 +115,7 @@ void alert(register AlertReason reason, bool hold)
        }
        if (hold)
        {
-           volatile char buttonState = 1;
+           volatile uint8_t buttonState = 1;
            while (  buttonState ) 
            {
                 digitalWrite(LED_BUILTIN, LOW);
@@ -139,50 +139,35 @@ void alert(register AlertReason reason, bool hold)
       }
 }
 
-//------------------------------------------------------------------
-// The tab conatins functions pointers that gets executed every time
-// system wakes up for the action
-// This is not for the wakeup from serial, etc.
-DoWhatYouShould g_doWhatYouShouldTab[MaxDoWhatYouShould];
+//---------------------------------------------------------------
 
 void initAllFunctions(void)
 {
     initMeasureTemperature();
-    //...
+    Executor::init();
 
-}
-void setupDoWhatYouShouldTab(void)
-{
-    for (unsigned char i = 0; i < NUM_ELS(g_doWhatYouShouldTab) ; i++)
-    {
-        g_doWhatYouShouldTab[i] = 0;
-    }
-    g_doWhatYouShouldTab[0] = measureTemperature;
+    //Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 100, measureTemperature);
     //...
 
 }
 
-void doWhatYouShould(void)
+//---------------------------------------------------------------
+Sleeper::SleepTime Sleeper::g_sleepTime = 0;
+void Sleeper::setNextSleep(Sleeper::SleepTime  st)
 {
-    unsigned char i = 0;
-    while (g_doWhatYouShouldTab[i] != 0 && i < NUM_ELS(g_doWhatYouShouldTab)  )
+    g_sleepTime = st;
+}
+Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
+{
+    return 0; //todo Fix THAT
+}
+
+void Sleeper::gotToSleep(void)
+{
+    if (g_sleepTime > 0)
     {
-        g_doWhatYouShouldTab[i]();
+        //do go to power saving now
     }
 }
 
-SleepTime getRemainingSleepTime(void)
-{
-    return 0;
-}
-
-SleepTime getDefaultSleepTime(void)
-{
-    return 0;
-}
-
-void setNextSleep(SleepTime  st)
-{
-
-}
 
