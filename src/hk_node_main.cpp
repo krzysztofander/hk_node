@@ -26,7 +26,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void setupBody() 
 {
     // test
-
+    Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(AlPin1, OUTPUT);
     pinMode(AlPin2, OUTPUT);
@@ -44,7 +44,7 @@ void setupBody()
     alert(14, true);
     
     //end of test
-    printf("heloo world\n");
+    Serial.println("hello world");
 
     initAllFunctions();
 
