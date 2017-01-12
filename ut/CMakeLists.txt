@@ -7,7 +7,7 @@ project (unit_tests)
 
     
     #We do not need gmock (for now). Overwriting with FORCE
-    set (BUILD_GMOCK OFF CACHE BOOL "Builds gmock" FORCE)
+    set (BUILD_GMOCK ON CACHE BOOL "Builds gmock" FORCE)
     #but we do need gtest in all cases
     set (BUILD_GTEST ON  CACHE BOOL "Builds gtest" FORCE)
    
@@ -40,25 +40,24 @@ project (unit_tests)
         ./
         ${TOP}/hk_node/src
         ${TOP}/googletest/googletest/include/
+        ${TOP}/googletest/googlemock/include/
     )
 
 
    set(SERIAL_SOURCES
         ${TOP}/hk_node/src/serial.cpp
         serial_ut.cc
-            Arduino.h
-         ${TOP}/hk_node/src/hk_node.h
+        Arduino.h
+        ${TOP}/hk_node/src/hk_node.h
+        ${TOP}/hk_node/src/serial.h
     )
 
-    set(SERIAL_HEADERS
-        Arduino.h
-         ${TOP}/hk_node/src/hk_node.h
-    )
 
     set(SERIAL_UT_LIBS
             gtest_main
+            gmock_main
         )
 
 
-    add_test_executable(serial_ut "${SERIAL_UT_LIBS}" "${SERIAL_SOURCES}" "${SERIAL_HEADERS}"  )
+    add_test_executable(serial_ut "${SERIAL_UT_LIBS}" "${SERIAL_SOURCES}" )
     

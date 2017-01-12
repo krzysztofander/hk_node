@@ -77,28 +77,6 @@ void measureTemperature(void);
 extern TempMeasurement g_tempMeasurements[maxMeasurements];
 extern uint16_t g_lastTempMeasurementIt;
 //-------------------------------------------------
-enum ECommandsConsts
-{
-    commandSize = 3,
-
-    commandIdentifierPos = 0,
-    command_subIdPos1 = 1,
-    command_subIdPos2 = 2,
-
-
-    commanduint8_tDataSize = 8,
-    commandEOLSizeOnRecieve = 1, //how many uint8_tacters to expect on end of line
-    
-    commandMaxDataSize = commanduint8_tDataSize +  commandEOLSizeOnRecieve
-
-};
-#define commandEOLSignOnRecieve '\n'
-extern const uint8_t  commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
-
-
-void respondSerial(void);
-
-
 //--------------------------------------------------
 class Sleeper
 {

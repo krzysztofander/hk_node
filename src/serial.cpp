@@ -21,58 +21,59 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "executor.h"
+#include "serial.h"
 
 
-extern const uint8_t  commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
+const uint8_t  HKComm::commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
 
-uint16_t dataToUnsignedShort(uint8_t offset,const uint8_t (&inData)[commandMaxDataSize])
+//@Brief parses the ASCII and fills the pointer with value
+//@Returns 0 if ok, 
+uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet)
 {
-    if (offset + sizeof(uint16_t) > commandMaxDataSize)
+    if (givenChar >= '0' && givenChar <= '9')
     {
-        return 0xBADA;
+        *valToSet = givenChar - '0';
+        return 0;
     }
-
-    return *((uint16_t *)(&(inData[offset])));
+    else if (givenChar >= 'a' && givenChar <= 'f')
+    {
+        givenChar -= 'a' + 10;
+        *valToSet = givenChar;
+        return 0;
+    }
+    return 1;
 }
 
-//@Brief Reads given ammount of data or up to end of line 
-//@returs Characters read
-uint8_t readData(uint8_t count, uint8_t (&inOutData)[commandMaxDataSize ])
+//@Brief parses the ASCII and fills the pointer with value
+//@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
+uint8_t HKComm::dataToUnsignedShort(uint8_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
 {
-    uint8_t dataCnt = 0;
-    while (Serial.available() > 0 && dataCnt < count)
+    if (offset < commandMaxDataSize - sizeof(uint16_t) * 2 - 1)
     {
-        
-        inOutData[dataCnt] = Serial.read();
-        //todo - remove that:
-        alert(AlertReason_serialChar,true);
-
-        if (inOutData[dataCnt++] == commandEOLSignOnRecieve)
+        for (uint8_t i = 0; i < sizeof(uint16_t) * 2; i++)
         {
-            break;
+            uint8_t v;
+            uint8_t r = charToUnsigned(inData[offset + i], &v);
+            if (!!r)
+            {
+                return serialErr_IncorrectNumberFormat;
+            }
+            retVal <<= 4; //bits per digit
+            retVal |= (uint16_t)v;
         }
+        return 0;
     }
-    return dataCnt;
-}
-
-void consume (uint8_t count)
-{
-  
-    while (Serial.available() > 0 && count)
+    else
     {
-       Serial.read();
-       count--;
-        //todo - remove that:
-        alert(AlertReason_serialChar,true);
+        return serialErr_General;
     }
 }
-
 
 
 //------------------------------------------------------------------
 // @brief Response for D (debug) function  
 
-inline uint8_t command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize])
+uint8_t HKComm::command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint8_t & dataSize)
 {
     (void)inOutData;
 
@@ -80,142 +81,222 @@ inline uint8_t command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutDa
     {
     case 'E': //echo 
         //Ignore inOutCommand[command_subIdPos2] 
-
         //Response:
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
           inOutCommand[command_subIdPos1] = 'R';
         //inOutCommand[command_subIdPos2] = as is
-
-        //expectine EOL, but if anything else then it will just get eaten
-        consume(commandEOLSizeOnRecieve);
         break;
     default:  //unknown 'D' command
-        
         //Response:
-
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
         inOutCommand[command_subIdPos1] = 'u';
         inOutCommand[command_subIdPos2] =  'n';
-        readData(commandMaxDataSize /*up to EOL*/, inOutData);
         break;
     }
-    return 0;  //no data set...
+    dataSize = 0;
+    return serialErr_None;  //no data set...
     
 }
 
 //------------------------------------------------------------------
 // @brief Response for C (configuration) request function  
-// @Returns Size od data on inOutData table
+// @Returns 0 ok, 1 or above - serial error
 
-inline uint8_t command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize])
+uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint8_t & dataSize)
 {
     (void)inOutData;
-    uint8_t read;
     switch (inOutCommand[command_subIdPos1])
     {
     case 'T': //configure temperature
         if (inOutCommand[command_subIdPos2] = 'M')
         {
             //CTC
-            //Expecting setting in uint16
-            read = readData(commandMaxDataSize /*up to EOL*/, inOutData);
-            if (read != 4 + commandEOLSizeOnRecieve )
+
+            //check for size correctness
+            if (dataSize <= sizeof(short) * 2 + NUM_ELS(commandEOLOnResponceSequence))
             {
-                alert(AlertReason_serialReadProblem, true);
+                return serialErr_NumberToShort;
             }
-            uint16_t tempMeasmntInterval =  dataToUnsignedShort(0, inOutData);
+
+            uint16_t tempMeasmntInterval;
+            uint8_t e = dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
+
+            if (e != serialErr_None)
+            {
+                return serialErr_IncorrectNumberFormat;
+            }
+
             Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, tempMeasmntInterval);
+            //Response is same as command...
             //todo actually read that and respond accordingly
 
-            return 4;
-            //Response is same as command...
+                //not touch data
+                //set size to number of elements in data.
+            dataSize = sizeof(short) * 2;
+            return serialErr_None;
         }
-        read = readData(commandMaxDataSize /*up to EOL or to exhaution*/, inOutData);
         inOutCommand[command_subIdPos2] = 'u';
-        return 0;
+        dataSize = 0;
+        dataSize = serialErr_None;
      
     default:  //unknown 'C' command
         //Response:
-        read = readData(commandMaxDataSize /*up to EOL or to exchaution*/, inOutData);
         inOutCommand[command_subIdPos1] =  'u';
         inOutCommand[command_subIdPos2] =  'n';
-        return 0;
+        dataSize = 0;
+        return serialErr_None;
     }
-    return 0;  //no data set...
 
 }
 
 
+
 //------------------------------------------------------------------
+
+uint8_t HKComm::g_SerialState = serialState_ReadCommand;
+uint8_t HKComm::g_command[HKComm::commandSize];
+uint8_t HKComm::g_data[HKComm::commandMaxDataSize];
+uint8_t HKComm::g_dataIt = 0;
+
+uint8_t HKComm::g_serialError = serialErr_None;
+
 // @brief Main function responding to serial data
-void respondSerial(void)
+// @returns True if switched state and shall be called immediately.
+
+uint8_t  HKComm::respondSerial(void)
 {
-    
-    static uint8_t command[commandSize];
-    static uint8_t commandIt = 0;
-    static uint8_t data[commandMaxDataSize];
-    uint8_t dataCnt = 0;
-
-    
-    while (Serial.available() > 0)
+    switch (g_SerialState)
     {
-        //todo - remove that:
-        alert(AlertReason_serialChar,true);
-        command[commandIt++] = Serial.read();
-        if (commandIt >= NUM_ELS(command))
+        case serialState_ReadCommand:
         {
+            // read whole command first.
+            if (Serial.available() >=  NUM_ELS(g_command))
+            {
+                for (uint8_t commandIt = 0; commandIt  < NUM_ELS(g_command); commandIt ++)
+                {
+                    g_command[commandIt] = Serial.read();
+                    //in case of error here...
+                    if (g_command[commandIt] == commandEOLSignOnRecieve)
+                    {
+                        g_serialError = serialErr_eolInCommand;
+                        g_SerialState =  serialState_Error;
+                        return true;
+                    }
+                }
+                g_serialError = serialErr_None;
+                //all ok, switch to data
+                g_SerialState = serialState_ReadData;
+                g_dataIt = 0;
+                return 1;
+            }
             break;
         }
+
+        case serialState_ReadData:
+        {
+            if (Serial.available() >= 1)
+            {
+                //read up to end of line or to error
+                g_data[g_dataIt] = Serial.read();
+                if (g_data[g_dataIt] == commandEOLSignOnRecieve)
+                {
+                    //found end of line
+                    g_SerialState =  serialState_Action;
+                    return 1;
+                }
+                else
+                {   
+                    
+                    if (g_dataIt >= NUM_ELS(g_data))
+                    {
+                        //lost end of line and have a buffer full already. It must be an error
+                        g_serialError = serialErr_noEolFound;
+                        g_SerialState =  serialState_Error;
+                        return 1;
+                    }
+                    else
+                    {
+                        //still place and did not recieve the end of line yet. Keep gathering
+                        g_dataIt++;
+                    }
+                }
+            }
+            break;
+        }
+        case serialState_Action:
+        {
+            //command  and data recieved. Handle that...
+            //TODO remove this state.
+           
+            switch (g_command[commandIdentifierPos])
+            {
+            case 'D':
+                g_serialError = command_D(g_command, g_data, g_dataIt);
+                break;
+            case 'C':
+                g_serialError = command_C(g_command, g_data, g_dataIt);
+                break;
+            default :
+                g_serialError  = serialErr_General;
+            }
+
+            if (g_serialError == serialErr_None)
+            {
+                //we have response command and response data in buffers. 
+
+                g_SerialState = serialState_Respond;
+            }
+            else
+            {
+                g_SerialState = serialState_Error;
+            }
+            return 1;
+            break;
+        }
+        case serialState_Respond:
+        {
+
+            //write command then variable number of data then end of line sequence.
+            uint8_t written = Serial.write(g_command,NUM_ELS(g_command));
+            if (g_dataIt)
+            {
+                written += Serial.write(g_data, g_dataIt);
+            }
+            written += Serial.write(commandEOLOnResponceSequence,NUM_ELS(commandEOLOnResponceSequence));
+
+            //check if ammount written matches to what was expected
+            if (written != NUM_ELS(g_command)+ g_dataIt + NUM_ELS(commandEOLOnResponceSequence))
+            {
+                g_serialError = serialErr_WriteFail;
+                g_SerialState = serialState_Error;
+            }
+            else
+            {
+                g_SerialState = serialState_ReadData;
+            }
+            return 1;
+            break;
+        }
+        default:
+        case serialState_Error:
+        {
+            //flush all...
+            alert(AlertReason_serialReadProblem, true);
+            alert(g_serialError, true);
+
+            //todo - do some recovery instead of moving to read straight away
+
+            //while (Serial.available() > 0)
+            //{
+            //    Serial.read();
+            //}
+            g_serialError = serialErr_None;
+            g_dataIt = 0;
+            break;
+        }
+
     }
-    alert(AlertReason_Step1, true);
-    
-    //do not do anything untill we got full command
-    if (commandIt >= NUM_ELS(command))
-    {
-        //have full command
-        commandIt = 0;
-        uint8_t written = 0;
-      
-        //debug 
-        alert(AlertReason_serialSend, true);
-        
-
-        switch (command[commandIdentifierPos])
-        {
-        case 'D':
-            dataCnt = command_D(command, data);
-            break;
-        case 'C':
-            dataCnt = command_C(command, data);
-            break;
-
-        default :
-            command[commandIdentifierPos]   = 'U';
-            command[command_subIdPos1] = 'N';
-            command[command_subIdPos2] = 'K';
-            readData(commandMaxDataSize /*up to EOL or to exhaution*/, data);
-
-            dataCnt = 0;
-        }
-        
-        //todo - remove that:
-        alert(AlertReason_serialSend, true);
-       
-        //write command then variable number of data then end of line sequence.
-        written = Serial.write(command,NUM_ELS(command));
-        if (dataCnt)
-        {
-            written += Serial.write(data, dataCnt);
-        }
-        written += Serial.write(commandEOLOnResponceSequence,NUM_ELS(commandEOLOnResponceSequence));
-
-        //check
-        if (written != NUM_ELS(command)+ dataCnt + NUM_ELS(commandEOLOnResponceSequence))
-        {
-            alert(AlertReason_serialwriteProblem, true);
-        }
-
-    }
+    return 0;
 }
 
 
