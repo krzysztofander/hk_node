@@ -26,6 +26,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKComm
 {
 public:
+    static const uint8_t commandEOLSignOnRecieve  = '\n';
+    static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
+
 
     enum ECommandsConsts
     {
@@ -37,13 +40,11 @@ public:
 
 
         command_DataSize = 8,
-        commandEOLSizeOnRecieve = 1, //how many uint8_tacters to expect on end of line
+        commandEOLSizeOnRecieve = sizeof(commandEOLSignOnRecieve), //how many uint8_tacters to expect on end of line
 
         commandMaxDataSize = command_DataSize + commandEOLSizeOnRecieve
 
     };
-    static const uint8_t commandEOLSignOnRecieve  = '\n';
-    static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
 
     enum ESerialState
     {
@@ -59,15 +60,15 @@ public:
     {
         serialErr_None,
 
-        serialErr_General,
+        serialErr_Assert = 1,           // some assertion triggered
 
-        serialErr_IncorrectNumberFormat,
-        serialErr_NumberToShort, 
+        serialErr_IncorrectNumberFormat = 2,  //format of the number from serial is incorrect. 
+        serialErr_NumberToShort =3 ,    //a number recieved from serial is to short. Recieved EOL to early
 
-        serialErr_eolInCommand,
-        serialErr_noEolFound,
-
-        serialErr_WriteFail,
+        serialErr_eolInCommand =4 ,
+        serialErr_noEolFound = 5,
+        serialErr_UnknownCommand =6,   //a command recieved is not recognized
+        serialErr_WriteFail = 7,     //a number of bytes written is not same as expected
 
     };
 

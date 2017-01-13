@@ -30,25 +30,25 @@ const uint8_t  HKComm::commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequen
 //@Returns 0 if ok, 
 uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet)
 {
-    if (givenChar >= '0' && givenChar <= '9')
+    if (givenChar >= uint8_t('0') && givenChar <= uint8_t('9') )
     {
-        *valToSet = givenChar - '0';
+        *valToSet = givenChar - uint8_t('0');
         return 0;
     }
-    else if (givenChar >= 'a' && givenChar <= 'f')
+    else if (givenChar >= uint8_t('a') && givenChar <= uint8_t('f'))
     {
-        givenChar -= 'a' + 10;
+        givenChar -= (uint8_t('a') - uint8_t(10));
         *valToSet = givenChar;
-        return 0;
+        return uint8_t(0);
     }
-    return 1;
+    return uint8_t(1);
 }
 
 //@Brief parses the ASCII and fills the pointer with value
 //@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
 uint8_t HKComm::dataToUnsignedShort(uint8_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
 {
-    if (offset < commandMaxDataSize - sizeof(uint16_t) * 2 - 1)
+    if (offset <= commandMaxDataSize - sizeof(uint16_t) * 2 - commandEOLSizeOnRecieve)
     {
         for (uint8_t i = 0; i < sizeof(uint16_t) * 2; i++)
         {
@@ -65,7 +65,7 @@ uint8_t HKComm::dataToUnsignedShort(uint8_t offset, const uint8_t (&inData)[comm
     }
     else
     {
-        return serialErr_General;
+        return serialErr_Assert;
     }
 }
 
@@ -113,7 +113,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             //CTC
 
             //check for size correctness
-            if (dataSize <= sizeof(short) * 2 + NUM_ELS(commandEOLOnResponceSequence))
+            if (dataSize < sizeof(short) * 2 + commandEOLSizeOnRecieve )
             {
                 return serialErr_NumberToShort;
             }
@@ -123,7 +123,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
 
             if (e != serialErr_None)
             {
-                return serialErr_IncorrectNumberFormat;
+                return e;
             }
 
             Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, tempMeasmntInterval);
@@ -237,7 +237,7 @@ uint8_t  HKComm::respondSerial(void)
                 g_serialError = command_C(g_command, g_data, g_dataIt);
                 break;
             default :
-                g_serialError  = serialErr_General;
+                g_serialError  = serialErr_UnknownCommand;
             }
 
             if (g_serialError == serialErr_None)

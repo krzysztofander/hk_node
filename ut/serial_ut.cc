@@ -136,6 +136,52 @@ TEST(Serial, t1)
     ASSERT_TRUE (1);
 }
 
+
+TEST(Serial, check_dataToUnsignedShort)
+{
+    //uint8_t HKComm::dataToUnsignedShort(uint8_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
+
+    uint8_t inData[HKComm::commandMaxDataSize] = { '1', '2', '3' ,'4', 'f', 'f' ,'f' ,'f' , '0'}; //not really a valid data, should be terminated by EOL
+    uint8_t inData2[HKComm::commandMaxDataSize] ={ 'a', 'b', 'a' ,'1', 'c', '2' ,'4' ,'f' , '\n' };
+
+    uint8_t inDataE[HKComm::commandMaxDataSize] ={ 'A', 'B', 'A' ,'1', 'c', '2' ,'4' ,'\n' , '\n' };
+
+
+    uint16_t retVal;
+    uint8_t errorCode;
+
+    errorCode = HKComm::dataToUnsignedShort(0, inData, retVal);
+    ASSERT_EQ(retVal, 0x1234u);
+    ASSERT_EQ(errorCode, HKComm::serialErr_None);
+
+    errorCode = HKComm::dataToUnsignedShort(4, inData, retVal);
+    ASSERT_EQ(retVal, 0xffffu);
+    ASSERT_EQ(errorCode, HKComm::serialErr_None);
+
+    errorCode = HKComm::dataToUnsignedShort(3, inData, retVal);
+    ASSERT_EQ(retVal, 0x4fffu);
+    ASSERT_EQ(errorCode, HKComm::serialErr_None);
+
+    errorCode = HKComm::dataToUnsignedShort(0, inData2, retVal);
+    ASSERT_EQ(retVal, 0xaba1u);
+    ASSERT_EQ(errorCode, HKComm::serialErr_None);
+    // now fail scenarios
+
+    errorCode = HKComm::dataToUnsignedShort(0, inDataE, retVal);
+    ASSERT_EQ(errorCode, HKComm::serialErr_IncorrectNumberFormat);
+
+    errorCode = HKComm::dataToUnsignedShort(4, inDataE, retVal);
+    ASSERT_EQ(errorCode, HKComm::serialErr_IncorrectNumberFormat);
+
+    errorCode = HKComm::dataToUnsignedShort(5, inData2, retVal);
+    ASSERT_EQ(errorCode, HKComm::serialErr_Assert);
+
+    errorCode = HKComm::dataToUnsignedShort(66, inData, retVal);
+    ASSERT_EQ(errorCode, HKComm::serialErr_Assert);
+    
+}
+
+
 TEST(Serial, initSerial)
 {
     SerialImpl myS;
