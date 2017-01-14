@@ -43,7 +43,10 @@ project (unit_tests)
         ${TOP}/googletest/googlemock/include/
     )
 
-
+    set(GOOGLET_UT_LIBS
+            gtest_main
+            gmock_main
+        )
    set(SERIAL_SOURCES
         ${TOP}/hk_node/src/serial.cpp
         serial_ut.cc
@@ -52,12 +55,16 @@ project (unit_tests)
         ${TOP}/hk_node/src/serial.h
     )
 
-
-    set(SERIAL_UT_LIBS
-            gtest_main
-            gmock_main
-        )
-
-
-    add_test_executable(serial_ut "${SERIAL_UT_LIBS}" "${SERIAL_SOURCES}" )
+    add_test_executable(serial_ut "${GOOGLET_UT_LIBS}" "${SERIAL_SOURCES}" )
     
+	
+	set(EXECUTUR_SOURCES
+        ${TOP}/hk_node/src/executor.cpp
+        executor_ut.cc
+        Arduino.h
+        ${TOP}/hk_node/src/hk_node.h
+        ${TOP}/hk_node/src/executor.h
+    )
+
+    add_test_executable(executor_ut "${GOOGLET_UT_LIBS}" "${EXECUTUR_SOURCES}" )
+

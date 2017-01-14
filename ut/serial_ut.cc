@@ -8,6 +8,7 @@ using ::testing::Return;
 using ::testing::InSequence;
 using ::testing::NiceMock;
 using ::testing::StrictMock;
+using ::testing::_;
 
 
 TSerial Serial;
@@ -461,13 +462,68 @@ TEST_F (Serial_D_method_Fixture, unknownD)
 
 }
 
+TEST_F(StrictSerialFixture, changeStateToResponse_ForEcho)
+{
+    int8_t retVal = 0;
+
+    HKComm::g_command[0] = 'D';
+    HKComm::g_command[1] = 'E';
+    HKComm::g_command[2] = 'X';
+    HKComm::g_SerialState =  HKComm::serialState_Action; 
+
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Respond);
+    ASSERT_EQ(retVal, 1);
+    ASSERT_EQ(HKComm::g_dataIt, 0);
 
 
+    {
+        EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKComm::g_command))).
+            WillOnce(Return(NUM_ELS(HKComm::g_command)));
+        EXPECT_CALL(mockSerial, write(_, HKComm::commandEOLSizeOnResponce)).
+            WillOnce(Return(HKComm::commandEOLSizeOnResponce));
+
+        retVal = HKComm::respondSerial();
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadCommand);
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_None);
+        ASSERT_EQ(HKComm::g_dataIt, 0);   //data zero after response
+
+    }
+
+}
 
 
-//    EXPECT_CALL(mockSerial, write(writeData, 3+NUM_ELS(commandEOLOnResponceSequence) ))
-  //      .Times(1);
+TEST_F(StrictSerialFixture, testResponse)
+{
+    int8_t retVal = 0;
 
+    HKComm::g_command[0] = 'D';
+    HKComm::g_command[1] = 'E';
+    HKComm::g_command[2] = 'X';
+    HKComm::g_SerialState =  HKComm::serialState_Respond; 
+    HKComm::g_dataIt = 5;
+
+       
+    {
+        EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKComm::g_command))).
+            WillOnce(Return(NUM_ELS(HKComm::g_command)));
+
+        EXPECT_CALL(mockSerial, write(_, 5)).
+            WillOnce(Return(5));
+
+        EXPECT_CALL(mockSerial, write(_, HKComm::commandEOLSizeOnResponce)).
+            WillOnce(Return(HKComm::commandEOLSizeOnResponce));
+
+        retVal = HKComm::respondSerial();
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadCommand);
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_None);
+        ASSERT_EQ(HKComm::g_dataIt, 0);   //data zero after error
+
+    }
+
+}
 
 
 

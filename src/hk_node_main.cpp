@@ -20,6 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "executor.h"
+#include "serial.h"
 
 
 
@@ -55,15 +56,15 @@ void loopBody()
 {
     //just woke up
 
-    alert(AlertReason_Step1, true);
+    //alert(AlertReason_Step1, false);
     uint16_t timeSlept = Sleeper::howMuchDidWeSleep();
     Executor::adjustToElapsedTime(timeSlept);
 
-    respondSerial();  //if this was serial, handle that
-    alert(AlertReason_Step2, true);
+    HKComm::respondSerial();  //if this was serial, handle that
+   // alert(AlertReason_Step2, true);
     //now execute what needs to be executed...
     uint8_t executor = Executor::giveExecutorToCall();
-    alert(AlertReason_Step3, true);
+   // alert(AlertReason_Step3, true);
     if (executor < (uint8_t) Executor::executorsNumber)
     {
         //alert(AlertReason_Step2, true);
@@ -80,8 +81,9 @@ void loopBody()
     else
     {
         //nothing to call, it might have been from serial
+        //  alert(7, true);
     }
-
+    //alert(AlertReason_Step2, false);
     Sleeper::setNextSleep(Executor::getNextSleepTime());
 
     //go to sleep
@@ -137,18 +139,22 @@ void alert(register AlertReason reason, bool hold)
            digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); 
          
       }
+      else
+      {
+        delay(10);
+      }
 }
 
 //---------------------------------------------------------------
-
+void ledToggler(void);
 void initAllFunctions(void)
 {
     initMeasureTemperature();
     Executor::init();
 
-    //Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 100, measureTemperature);
-    //...
-
+    Executor::setupExecutingFn((uint8_t)Executor::blinker, 9, ledToggler);
+   
+   
 }
 
 //---------------------------------------------------------------
@@ -159,7 +165,7 @@ void Sleeper::setNextSleep(Sleeper::SleepTime  st)
 }
 Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 {
-    return 0; //todo Fix THAT
+    return 1; //todo Fix THAT
 }
 
 void Sleeper::gotToSleep(void)
@@ -167,6 +173,7 @@ void Sleeper::gotToSleep(void)
     if (g_sleepTime > 0)
     {
         //do go to power saving now
+        delay(100* g_sleepTime);
     }
 }
 

@@ -41,7 +41,7 @@ public:
 
         command_DataSize = 8,
         commandEOLSizeOnRecieve = sizeof(commandEOLSignOnRecieve), //how many uint8_tacters to expect on end of line
-
+        commandEOLSizeOnResponce = sizeof( commandEOLOnResponceSequence),
         commandMaxDataSize = command_DataSize + commandEOLSizeOnRecieve
 
     };

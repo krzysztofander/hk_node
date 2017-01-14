@@ -32,6 +32,9 @@ public:
     {
         blinker = 0,
         temperatureMeasurer,
+        fakeExecutor1,
+        fakeExecutor2,
+        fakeExecutor3,
 
         executorsNumber,
 
@@ -48,9 +51,9 @@ public:
     static void rescheduleExecutor(uint8_t executor);
     static void setupExecutingFn(uint8_t executor, uint16_t defaultTime,  ExecutingFn f );
     static ExecutingFn giveExecutorHandleToCall(uint8_t executor);
+    static uint8_t isExecutorActive(uint8_t executor);
 
-
-private:
+public:
     static uint16_t g_ExecutorsTimeLeft[executorsNumber];  // how much time has left to next call
     static uint16_t g_ExecutorsPeriods[executorsNumber];  //how ofthen each exec is called
     static ExecutingFn g_ExecutingFunctions[executorsNumber];

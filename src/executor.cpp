@@ -28,12 +28,18 @@ uint16_t Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much 
 uint16_t Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how ofthen each exec is called
 ExecutingFn Executor::g_ExecutingFunctions[Executor::executorsNumber];
 
+uint8_t Executor::isExecutorActive(uint8_t executor)
+{
+    return  (executor < executorsNumber && g_ExecutingFunctions[executor] !=  0) ? 1 : 0;
+}
+
 void Executor::setupExecutingFn(uint8_t executor, uint16_t defaultTime, ExecutingFn f)
 {
     if (executor < (uint8_t)executorsNumber)
     {
         g_ExecutingFunctions[executor] = f;
         g_ExecutorsPeriods[executor] = defaultTime;
+        g_ExecutorsTimeLeft[executor] = 0; // expected to be called immediately after setup
     }
     else
     {
@@ -59,8 +65,7 @@ uint8_t Executor::giveExecutorToCall(void)
 {
     for (uint8_t i = 0; i < (uint8_t)executorsNumber; i++)
     {
-        if (g_ExecutorsTimeLeft[i] == 0 
-            && g_ExecutingFunctions[i] != 0 /*is active*/)
+        if (isExecutorActive (i) && g_ExecutorsTimeLeft[i] == 0 )
         {
             return i;
         }
@@ -70,7 +75,7 @@ uint8_t Executor::giveExecutorToCall(void)
 
 ExecutingFn Executor::giveExecutorHandleToCall(uint8_t executor)
 {
-    if (executor < (uint8_t)executorsNumber )
+    if (isExecutorActive (executor)  )
     {
         return g_ExecutingFunctions[executor];
     }
@@ -85,12 +90,13 @@ ExecutingFn Executor::giveExecutorHandleToCall(uint8_t executor)
 
 uint16_t Executor::getNextSleepTime(void)
 {
-    //returns the shortest time remaining for all executors
+    //returns the shortest time remaining for all ACTIVE executors
     //or 0 if nothing left
-    uint16_t nextTime = g_ExecutorsTimeLeft[0];
-    for (uint8_t i = 1; i < (uint8_t)executorsNumber; i++)
+    uint16_t nextTime = uint16_t(~0u);
+         
+    for (uint8_t i = 0; i < (uint8_t)executorsNumber; i++)
     {
-        if (g_ExecutorsTimeLeft[i] < nextTime)
+        if (isExecutorActive(i) && g_ExecutorsTimeLeft[i] < nextTime)
         {
             nextTime = g_ExecutorsTimeLeft[i];
         }
@@ -104,15 +110,19 @@ void Executor::adjustToElapsedTime(uint16_t timePassed)
     //so can now see what to execute and how much has left
     for (uint8_t i = 0; i < (uint8_t)executorsNumber; i++)
     {
-        if (g_ExecutorsTimeLeft[i] < timePassed)
+        if (isExecutorActive(i))
         {
-            //this should not have happened. 
-            alert(AlertReason_PassedOverTime, true);
-            g_ExecutorsTimeLeft[i] = 0;
-        }
-        else
-        {
-            g_ExecutorsTimeLeft[i] -= timePassed;
+            //executor is active....
+            if (g_ExecutorsTimeLeft[i] < timePassed)
+            {
+                //this should not have happened unless time passed while doing other executor
+                //routine.
+                g_ExecutorsTimeLeft[i] = 0;
+            }
+            else
+            {
+                g_ExecutorsTimeLeft[i] -= timePassed;
+            }
         }
     }
 
@@ -120,7 +130,7 @@ void Executor::adjustToElapsedTime(uint16_t timePassed)
 
 void Executor::setExecutionTime(uint8_t executorToSet, uint16_t newTime)
 {
-    if (executorToSet < (uint8_t)executorsNumber)
+    if (isExecutorActive(executorToSet) )
     {
         g_ExecutorsPeriods[executorToSet] = newTime;
         //if new time is shorter than remaining adjust remaining
@@ -136,7 +146,7 @@ void Executor::setExecutionTime(uint8_t executorToSet, uint16_t newTime)
 }
 void Executor::rescheduleExecutor(uint8_t executor)
 {
-    if (executor < (uint8_t)executorsNumber)
+    if (isExecutorActive(executor))
     {
          g_ExecutorsTimeLeft[executor] =  g_ExecutorsPeriods[executor] ;
     }

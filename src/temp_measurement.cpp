@@ -57,3 +57,13 @@ void measureTemperature(void)
     
 }
 
+uint8_t state = 1;   
+void ledToggler(void)
+{
+   
+   digitalWrite(LED_BUILTIN, state);   
+   state = state != 0  ? 0 : 1;
+
+}
+
+

@@ -269,10 +269,13 @@ uint8_t  HKComm::respondSerial(void)
             {
                 g_serialError = serialErr_WriteFail;
                 g_SerialState = serialState_Error;
+                //leaving g_dataIt  as is for debug purposes...
             }
             else
             {
-                g_SerialState = serialState_ReadData;
+                g_serialError = serialErr_None;
+                g_SerialState = serialState_ReadCommand;
+                g_dataIt = 0;
             }
             return 1;
             break;
