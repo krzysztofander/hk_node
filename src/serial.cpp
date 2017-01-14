@@ -207,7 +207,7 @@ uint8_t  HKComm::respondSerial(void)
                 else
                 {   
                     
-                    if (g_dataIt >= NUM_ELS(g_data))
+                    if (g_dataIt >= NUM_ELS(g_data) - 1 /*cannot increase g_dataIt as next read we would go out of buffer*/ )
                     {
                         //lost end of line and have a buffer full already. It must be an error
                         g_serialError = serialErr_noEolFound;
@@ -291,7 +291,10 @@ uint8_t  HKComm::respondSerial(void)
             //    Serial.read();
             //}
             g_serialError = serialErr_None;
+            g_SerialState = serialState_ReadCommand;
             g_dataIt = 0;
+            return 1;
+
             break;
         }
 

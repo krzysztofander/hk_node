@@ -197,7 +197,7 @@ TEST_F(StrictSerialFixture, notEnoutDataAvailable)
 {
     int8_t retVal = 0;
     //check if function exits when not enouth data available
-
+    //state is read command
     EXPECT_CALL(mockSerial, available())
         .WillOnce(Return(2))
         .WillRepeatedly(Return(0));
@@ -213,10 +213,10 @@ TEST_F(StrictSerialFixture, notEnoutDataAvailable)
         .WillOnce(Return(0));
     retVal += HKComm::respondSerial();
 
-    ASSERT_EQ(retVal, 0);
-    ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadCommand);
-    ASSERT_EQ(HKComm::g_dataIt, 0);
-    ASSERT_EQ(HKComm::g_serialError, 0);
+    ASSERT_EQ(retVal, 0); //returned 0, no need to change state
+    ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadCommand);  //state did not change
+    ASSERT_EQ(HKComm::g_dataIt, 0);  //no data
+    ASSERT_EQ(HKComm::g_serialError, 0);//no error
 
 }
 
@@ -232,7 +232,7 @@ TEST_F(StrictSerialFixture, changeStateToReadData)
         
 
     retVal = HKComm::respondSerial();
-    ASSERT_EQ(retVal, 1);
+    ASSERT_EQ(retVal, 1);  //returned 1, need to change state immediately
 
     ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadData);
     ASSERT_EQ(HKComm::g_dataIt, 0);
@@ -257,7 +257,7 @@ TEST_F(StrictSerialFixture, changeStateError_serialErr_eolInCommand01)
 
     ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Error);
     ASSERT_EQ(HKComm::g_dataIt, 0);
-    ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_eolInCommand);
+    ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_eolInCommand);  //end of line encounted in command
 
 }
 TEST_F(StrictSerialFixture, changeStateError_serialErr_eolInCommand02)
@@ -268,7 +268,7 @@ TEST_F(StrictSerialFixture, changeStateError_serialErr_eolInCommand02)
         .WillOnce(Return(3));
     EXPECT_CALL(mockSerial, read())
         .WillOnce(Return('D'))
-        .WillOnce(Return(HKComm::commandEOLSignOnRecieve));
+        .WillOnce(Return(HKComm::commandEOLSignOnRecieve));  //end of line encounted in command
 
     retVal = HKComm::respondSerial();
     ASSERT_EQ(retVal, 1);
@@ -276,6 +276,142 @@ TEST_F(StrictSerialFixture, changeStateError_serialErr_eolInCommand02)
     ASSERT_EQ(HKComm::g_dataIt, 0);
     ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_eolInCommand);
 }
+
+
+//checking what happen when recieved unknown command...
+TEST_F(SerialFixture, changeStateError_serialErr_unknownCommand)
+{
+    int8_t retVal = 0;
+
+    EXPECT_CALL(mockSerial, available())
+        .WillOnce(Return(3));
+    EXPECT_CALL(mockSerial, read())
+        .WillOnce(Return('?'))
+        .WillOnce(Return('?'))
+        .WillOnce(Return('?'));  //Command is correct, but unknown
+
+   
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_dataIt, 0);
+    ASSERT_EQ(retVal, 1);
+    ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadData);
+
+
+    EXPECT_CALL(mockSerial, available()) .WillOnce(Return(1));
+    EXPECT_CALL(mockSerial, read() ).WillOnce(Return(HKComm::commandEOLSignOnRecieve));  //EOL in data
+    retVal = HKComm::respondSerial();
+
+    ASSERT_EQ(HKComm::g_dataIt, 0);
+    ASSERT_EQ(retVal, 1);
+    ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Action);
+
+
+    EXPECT_CALL(mockSerial, available()).Times (0);
+    EXPECT_CALL(mockSerial, read() ).Times (0);
+    retVal = HKComm::respondSerial();
+    
+    ASSERT_EQ(HKComm::g_dataIt, 0);
+    ASSERT_EQ(retVal, 1);
+    ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Error);
+    ASSERT_EQ(HKComm::g_dataIt, 0);
+    ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_UnknownCommand);
+}
+
+TEST_F(SerialFixture, changeStateError_serialErr_unknownCommandMoreData)
+{
+    int8_t retVal = 0;
+
+    HKComm::g_command[0] = '?';
+    HKComm::g_SerialState =  HKComm::serialState_ReadData; 
+    int i;
+    for (i = 0; i < 5; i++)
+    {
+        //fill in some data
+        EXPECT_CALL(mockSerial, available()).WillOnce(Return(1));
+        EXPECT_CALL(mockSerial, read()).WillOnce(Return('?'));  //EOL in data
+        retVal = HKComm::respondSerial();
+
+        ASSERT_EQ(HKComm::g_dataIt, i+1);
+        ASSERT_EQ(retVal, 0);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadData);
+    }
+    
+    //in serialState_ReadData switch to serialState_Action
+    {// end of line finally
+        EXPECT_CALL(mockSerial, available()).WillOnce(Return(1));
+        EXPECT_CALL(mockSerial, read()).WillOnce(Return(HKComm::commandEOLSignOnRecieve));  //EOL in data
+        retVal = HKComm::respondSerial();
+
+        ASSERT_EQ(HKComm::g_dataIt, i /*end of line did not enter*/);
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Action);
+    }
+    //In serialState_Action, switch to serialState_Error
+    {
+        EXPECT_CALL(mockSerial, available()).Times (0);
+        EXPECT_CALL(mockSerial, read()).Times (0);
+        retVal = HKComm::respondSerial();
+
+
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Error);
+        ASSERT_EQ(HKComm::g_dataIt, i);   //still data in the buffer to sort out
+        ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_UnknownCommand);
+    }
+    //In serialState_Error, switch to serialState_ReadCommand:
+    {
+    //now check if it recovered, e.g. entered the read command  stage
+        retVal = HKComm::respondSerial();
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadCommand);
+        ASSERT_EQ(HKComm::g_dataIt, 0);   //data zero after error
+        ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_None);
+    }
+
+}
+
+TEST_F(StrictSerialFixture, changeStateError_serialErr_unknownCommandNoEolInData)
+{
+    int8_t retVal = 0;
+
+    HKComm::g_command[0] = '?';
+    HKComm::g_SerialState =  HKComm::serialState_ReadData; 
+    int i;
+    for (i = 0; i < NUM_ELS(HKComm::g_data) - 1; i++)
+    {
+        //fill in some data
+        EXPECT_CALL(mockSerial, available()).WillOnce(Return(1));
+        EXPECT_CALL(mockSerial, read()).WillOnce(Return('?'));  //EOL in data
+        retVal = HKComm::respondSerial();
+
+        ASSERT_EQ(HKComm::g_dataIt, i+1);
+        ASSERT_EQ(retVal, 0);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadData);
+    }
+    //finall call
+    //in serialState_ReadData switch to serialState_Error
+    {
+        EXPECT_CALL(mockSerial, available()).WillOnce(Return(1));
+        EXPECT_CALL(mockSerial, read()).WillOnce(Return('?'));  //no EOL in data
+        retVal = HKComm::respondSerial();  //swith to error state
+        ASSERT_EQ(HKComm::g_dataIt, i /*i got increased already in for loop*/); 
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_Error);
+        ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_noEolFound);
+    }
+    //In serialState_Error, switch to serialState_ReadCommand:
+    {
+    //not check if it recovered, e.g. entered the read command  stage
+        retVal = HKComm::respondSerial();
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadCommand);
+        ASSERT_EQ(HKComm::g_dataIt, 0);   //data zero after error
+        ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_None);
+    }
+
+}
+
+
 
 TEST_F (Serial_D_method_Fixture, echoD)
 {
@@ -293,13 +429,39 @@ TEST_F (Serial_D_method_Fixture, echoD)
     uint8_t retVal = HKComm::command_D(inOutCommand,inOutData,dataSize);
 
     //expected results:
-    ASSERT_EQ(inOutCommand[0],'D');
+    ASSERT_EQ(inOutCommand[0],'D');  //what to expect in command
     ASSERT_EQ(inOutCommand[1],'R');
     ASSERT_EQ(inOutCommand[2],'X');
-    ASSERT_EQ(dataSize, 0);
+    ASSERT_EQ(dataSize, 0);  //no data
     ASSERT_EQ(retVal, HKComm::serialErr_None);
 
 }
+
+TEST_F (Serial_D_method_Fixture, unknownD)
+{
+
+    uint8_t inOutCommand[HKComm::commandSize] = 
+    {   //command to send
+        'D',
+        '?',
+        '?' 
+    };
+    uint8_t inOutData[HKComm::commandMaxDataSize];
+    std::fill_n(inOutData, 0,HKComm:: commandMaxDataSize);
+    inOutData[0] = HKComm::commandEOLSignOnRecieve;
+
+    uint8_t retVal = HKComm::command_D(inOutCommand,inOutData,dataSize);
+
+    //expected results:
+    ASSERT_EQ(inOutCommand[0],'D');  //what to expect in command
+    ASSERT_EQ(inOutCommand[1],'u');
+    ASSERT_EQ(inOutCommand[2],'n');
+    ASSERT_EQ(dataSize, 0);  //no data
+    ASSERT_EQ(retVal, HKComm::serialErr_None);
+
+}
+
+
 
 
 
