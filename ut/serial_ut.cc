@@ -280,7 +280,7 @@ TEST_F(StrictSerialFixture, changeStateError_serialErr_eolInCommand02)
 
 
 //checking what happen when recieved unknown command...
-TEST_F(SerialFixture, changeStateError_serialErr_unknownCommand)
+TEST_F(NiceSerialFixture, changeStateError_serialErr_unknownCommand)
 {
     int8_t retVal = 0;
 
@@ -318,7 +318,7 @@ TEST_F(SerialFixture, changeStateError_serialErr_unknownCommand)
     ASSERT_EQ(HKComm::g_serialError, HKComm::serialErr_UnknownCommand);
 }
 
-TEST_F(SerialFixture, changeStateError_serialErr_unknownCommandMoreData)
+TEST_F(NiceSerialFixture, changeStateError_serialErr_unknownCommandMoreData)
 {
     int8_t retVal = 0;
 
@@ -333,7 +333,7 @@ TEST_F(SerialFixture, changeStateError_serialErr_unknownCommandMoreData)
         retVal = HKComm::respondSerial();
 
         ASSERT_EQ(HKComm::g_dataIt, i+1);
-        ASSERT_EQ(retVal, 0);
+        ASSERT_EQ(retVal, 1);
         ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadData);
     }
     
@@ -371,7 +371,7 @@ TEST_F(SerialFixture, changeStateError_serialErr_unknownCommandMoreData)
 
 }
 
-TEST_F(StrictSerialFixture, changeStateError_serialErr_unknownCommandNoEolInData)
+TEST_F(NiceSerialFixture, changeStateError_serialErr_unknownCommandNoEolInData)
 {
     int8_t retVal = 0;
 
@@ -386,7 +386,7 @@ TEST_F(StrictSerialFixture, changeStateError_serialErr_unknownCommandNoEolInData
         retVal = HKComm::respondSerial();
 
         ASSERT_EQ(HKComm::g_dataIt, i+1);
-        ASSERT_EQ(retVal, 0);
+        ASSERT_EQ(retVal, 1);
         ASSERT_EQ(HKComm::g_SerialState, HKComm::serialState_ReadData);
     }
     //finall call
@@ -479,7 +479,7 @@ TEST_F(StrictSerialFixture, changeStateToResponse_ForEcho)
 
     {
         EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKComm::g_command))).
-            WillOnce(Return(NUM_ELS(HKComm::g_command)));
+            WillOnce(Return(uint8_t(NUM_ELS(HKComm::g_command))));
         EXPECT_CALL(mockSerial, write(_, HKComm::commandEOLSizeOnResponce)).
             WillOnce(Return(HKComm::commandEOLSizeOnResponce));
 
@@ -507,7 +507,7 @@ TEST_F(StrictSerialFixture, testResponse)
        
     {
         EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKComm::g_command))).
-            WillOnce(Return(NUM_ELS(HKComm::g_command)));
+            WillOnce(Return((uint8_t)NUM_ELS(HKComm::g_command)));
 
         EXPECT_CALL(mockSerial, write(_, 5)).
             WillOnce(Return(5));

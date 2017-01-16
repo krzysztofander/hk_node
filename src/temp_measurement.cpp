@@ -60,10 +60,13 @@ void measureTemperature(void)
 uint8_t state = 1;   
 void ledToggler(void)
 {
-   
-   digitalWrite(LED_BUILTIN, state);   
-   state = state != 0  ? 0 : 1;
-
+   for (int i = 0; i < 3; i++)
+   {
+       digitalWrite(LED_BUILTIN, 1);
+       delay(20);
+       digitalWrite(LED_BUILTIN, 0);
+       delay(40);
+   }  
 }
 
 

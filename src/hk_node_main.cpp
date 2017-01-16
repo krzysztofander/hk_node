@@ -18,6 +18,13 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 #include <Arduino.h>
+#include <avr/interrupt.h>
+#include <avr/power.h>
+#include <avr/sleep.h>
+#include <avr/io.h>
+#include <avr/wdt.h>
+
+
 #include "hk_node.h"
 #include "executor.h"
 #include "serial.h"
@@ -47,6 +54,7 @@ void setupBody()
     //end of test
     Serial.println("hello world");
 
+    alert(0, false);
     initAllFunctions();
 
     
@@ -60,7 +68,10 @@ void loopBody()
     uint16_t timeSlept = Sleeper::howMuchDidWeSleep();
     Executor::adjustToElapsedTime(timeSlept);
 
-    HKComm::respondSerial();  //if this was serial, handle that
+    while(HKComm::respondSerial());  //if this was serial, handle that
+   if (1)
+    
+{
    // alert(AlertReason_Step2, true);
     //now execute what needs to be executed...
     uint8_t executor = Executor::giveExecutorToCall();
@@ -81,13 +92,19 @@ void loopBody()
     else
     {
         //nothing to call, it might have been from serial
-        //  alert(7, true);
+        //  alert(0, false);
     }
     //alert(AlertReason_Step2, false);
-    Sleeper::setNextSleep(Executor::getNextSleepTime());
+    uint16_t sleepTime = Executor::getNextSleepTime();
+    if (0 && sleepTime < 15)
+    {
+       //alert (sleepTime, false);
+    }
+    Sleeper::setNextSleep(sleepTime);
 
     //go to sleep
     Sleeper::gotToSleep(); //if its set to 0 it wont...
+}
 }
 //------------------------------------------------------------------
 
@@ -152,7 +169,7 @@ void initAllFunctions(void)
     initMeasureTemperature();
     Executor::init();
 
-    Executor::setupExecutingFn((uint8_t)Executor::blinker, 9, ledToggler);
+    Executor::setupExecutingFn((uint8_t)Executor::blinker, 6, ledToggler);
    
    
 }
@@ -167,13 +184,71 @@ Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 {
     return 1; //todo Fix THAT
 }
+//http://www.gammon.com.au/forum/?id=11497
+
+// watchdog interrupt
+ISR (WDT_vect) 
+{
+   wdt_disable();  // disable watchdog
+}  // end of WDT_vect
+
 
 void Sleeper::gotToSleep(void)
 {
-    if (g_sleepTime > 0)
+  delay (1000);
+ if (0 && g_sleepTime > 0)
+  {
+   digitalWrite(LED_BUILTIN, 0);
+  // disable ADC
+    ADCSRA = 0;  
+  
+    // clear various "reset" flags
+    MCUSR = 0;     
+    noInterrupts ();  
+    // allow changes, disable reset
+    WDTCSR = bit (WDCE) | bit (WDE);
+    // set interrupt mode and an interval 
+    //WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
+    WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1) ;    // set WDIE, and 1 seconds delay
+
+    interrupts ();    
+    
+    wdt_reset();  // pat the dog
+  
+    //set_sleep_mode (SLEEP_MODE_PWR_SAVE);  
+    set_sleep_mode(SLEEP_MODE_IDLE);
+    noInterrupts ();           // timed sequence follows
+      sleep_enable();
+      // turn off brown-out enable in software
+      //MCUCR = bit (BODS) | bit (BODSE);
+      //MCUCR = bit (BODS); 
+    interrupts ();             // guarantees next instruction executed
+    sleep_cpu ();  
+  
+    // cancel sleep as a precaution
+    sleep_disable();
+    digitalWrite(LED_BUILTIN, 1);
+  }
+  
+   // if (g_sleepTime > 0)
+   if (0)
     {
-        //do go to power saving now
-        delay(100* g_sleepTime);
+        // Choose our preferred sleep mode:
+        set_sleep_mode(SLEEP_MODE_IDLE);
+     
+        // Set sleep enable (SE) bit:
+        sleep_enable();
+        digitalWrite(LED_BUILTIN, 0);
+        // Put the device to sleep:
+        sleep_mode();
+     
+        // Upon waking up, sketch continues from this point.
+        digitalWrite(LED_BUILTIN, 1);
+        sleep_disable();
+
+        delay(80);
+
+        //delay(100 * g_sleepTime);
     }
 }
 

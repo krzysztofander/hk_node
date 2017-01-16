@@ -26,7 +26,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKComm
 {
 public:
-    static const uint8_t commandEOLSignOnRecieve  = '\n';
+    static const uint8_t commandEOLSignOnRecieve  = 0x0dU;
     static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
 
 
@@ -78,7 +78,7 @@ public:
     static uint8_t command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint8_t & dataSize);
     static uint8_t command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint8_t & dataSize);
     static uint8_t respondSerial(void);
-
+    static void echoLetter(uint8_t l);
 
 
     static uint8_t g_command[commandSize];

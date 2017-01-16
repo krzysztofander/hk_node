@@ -44,6 +44,31 @@ uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet)
     return uint8_t(1);
 }
 
+void HKComm::echoLetter(uint8_t l)
+{
+    uint8_t sequence[] = "0x?? \n\r";
+    uint8_t highHex = l >> 4 ;
+    highHex += highHex > uint8_t(9) ? uint8_t('a')  - uint8_t(10) : uint8_t('0');
+    
+    uint8_t lowHex = l & uint8_t(0xF);
+    lowHex += lowHex > uint8_t(9) ? uint8_t('a') - uint8_t(10) : uint8_t('0');
+
+    sequence[2] = highHex;
+    sequence[3] = lowHex;
+    if (l > uint8_t(' '))
+    {
+      Serial.write(&l,1); 
+      uint8_t arrow[] = " -> ";
+      Serial.write(arrow,4); 
+      Serial.write(sequence, NUM_ELS(sequence)- 3); //no need for EOL
+    }
+    else
+    {
+      Serial.write(sequence, NUM_ELS(sequence)- 1); //no need for terminating null
+    }  
+}
+
+
 //@Brief parses the ASCII and fills the pointer with value
 //@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
 uint8_t HKComm::dataToUnsignedShort(uint8_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
@@ -113,7 +138,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             //CTC
 
             //check for size correctness
-            if (dataSize < sizeof(short) * 2 + commandEOLSizeOnRecieve )
+            if (dataSize < sizeof(short) * 2)
             {
                 return serialErr_NumberToShort;
             }
@@ -165,6 +190,8 @@ uint8_t HKComm::g_serialError = serialErr_None;
 
 uint8_t  HKComm::respondSerial(void)
 {
+
+    alert(g_SerialState +1, false);
     switch (g_SerialState)
     {
         case serialState_ReadCommand:
@@ -176,7 +203,7 @@ uint8_t  HKComm::respondSerial(void)
                 {
                     g_command[commandIt] = Serial.read();
                     //in case of error here...
-                    if (g_command[commandIt] == commandEOLSignOnRecieve)
+                    if (g_command[commandIt] == uint8_t(commandEOLSignOnRecieve))
                     {
                         g_serialError = serialErr_eolInCommand;
                         g_SerialState =  serialState_Error;
@@ -198,15 +225,15 @@ uint8_t  HKComm::respondSerial(void)
             {
                 //read up to end of line or to error
                 g_data[g_dataIt] = Serial.read();
-                if (g_data[g_dataIt] == commandEOLSignOnRecieve)
+                echoLetter(g_data[g_dataIt] );
+                if (g_data[g_dataIt] == uint8_t(commandEOLSignOnRecieve))
                 {
-                    //found end of line
+                      //found end of line
                     g_SerialState =  serialState_Action;
                     return 1;
                 }
                 else
                 {   
-                    
                     if (g_dataIt >= NUM_ELS(g_data) - 1 /*cannot increase g_dataIt as next read we would go out of buffer*/ )
                     {
                         //lost end of line and have a buffer full already. It must be an error
@@ -218,6 +245,8 @@ uint8_t  HKComm::respondSerial(void)
                     {
                         //still place and did not recieve the end of line yet. Keep gathering
                         g_dataIt++;
+                        
+                        return 1; //maybe the is more data, so try immediately
                     }
                 }
             }
@@ -227,7 +256,7 @@ uint8_t  HKComm::respondSerial(void)
         {
             //command  and data recieved. Handle that...
             //TODO remove this state.
-           
+            
             switch (g_command[commandIdentifierPos])
             {
             case 'D':
@@ -255,10 +284,10 @@ uint8_t  HKComm::respondSerial(void)
         }
         case serialState_Respond:
         {
-
+            
             //write command then variable number of data then end of line sequence.
             uint8_t written = Serial.write(g_command,NUM_ELS(g_command));
-            if (g_dataIt)
+            if (g_dataIt != uint8_t(0))
             {
                 written += Serial.write(g_data, g_dataIt);
             }

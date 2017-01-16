@@ -358,6 +358,51 @@ TEST(ExecutorTst, moreExecutors)
 
 }
 
+TEST(ExecutorTst, periodicInterrupts)
+{
+    int timeSlept = 1;
+    int blinkerSleepTime = 30;
+    int nextSleepTime = 0;
+
+    Executor::init();
+    Executor::setupExecutingFn(Executor::blinker, blinkerSleepTime, ef);
+    Executor::rescheduleExecutor(Executor::blinker);
+
+
+    for (int loop = 0; loop < 20; loop++)
+    {
+        timeSlept = 1;
+
+        Executor::adjustToElapsedTime(timeSlept);
+
+        uint8_t executor = Executor::giveExecutorToCall();
+        // alert(AlertReason_Step3, true);
+        if (executor < (uint8_t)Executor::executorsNumber)
+        {
+            Executor::rescheduleExecutor(executor);
+            //execute the executor now... 
+            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            f();
+
+            nextSleepTime = Executor::getNextSleepTime();
+            ASSERT_EQ(nextSleepTime, blinkerSleepTime );
+
+        }
+        else
+        {
+            //nothing to call, it might have been from serial
+
+            nextSleepTime = Executor::getNextSleepTime();
+            ASSERT_EQ(nextSleepTime + timeSlept, blinkerSleepTime - loop);
+
+        }
+
+        timeSlept = nextSleepTime;
+    }
+
+}
+
+
 
 //fakeExecutor1,
 //fakeExecutor2,
