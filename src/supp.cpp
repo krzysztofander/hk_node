@@ -21,12 +21,27 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 //------------------------------------------------------------------
 
+volatile static uint8_t gv_blueState = 0;
+
 void toggleBlue(void)
 {
-    volatile static uint8_t state = 0;
-    digitalWrite(AlPinBlue, state);
-    state = !state;
+    digitalWrite(AlPinBlue, gv_blueState);
+    gv_blueState = !gv_blueState;
 }
+
+void blueOn(void)
+{
+    digitalWrite(AlPinBlue, 0);
+    gv_blueState = 0;
+}
+
+void blueOff(void)
+{
+    digitalWrite(AlPinBlue, 1);
+    gv_blueState = 1;
+}
+
+
 
 void alert(register AlertReason reason, bool hold)
 {

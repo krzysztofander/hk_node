@@ -26,6 +26,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKComm
 {
 public:
+    static const uint8_t preamble  = '!';
     static const uint8_t commandEOLSignOnRecieve  = 0x0dU;
     static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
 
@@ -48,6 +49,7 @@ public:
 
     enum ESerialState
     {
+     //   serialState_Preable,
         serialState_ReadCommand,
         serialState_ReadData,
         serialState_Action,

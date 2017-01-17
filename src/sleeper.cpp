@@ -75,7 +75,6 @@ ISR (WDT_vect)
     Sleeper::gv_wdInterrupt_B  = 1;      //annotate that the interrupt came from watchdog.
 
     Sleeper::incUpTime();
-    toggleBlue();
 
 }  // end of WDT_vect
 
@@ -88,10 +87,9 @@ ISR (WDT_vect)
 ISR (PCINT2_vect)
 {
    PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-//   toggleBlue();
-
    Serial.begin(9600);     // start serial
-   
+                           // not nessesarily here and in main loop.
+  
 }
 
 
@@ -160,24 +158,47 @@ void Sleeper::gotToSleep(void)
    ///     HKComm::echoLetter(PCICR);
    //     HKComm::echoLetter(Sleeper::gv_wdInterrupt);
    //     HKComm::echoLetter(Sleeper::gv_wdInterrupt_B);
-
+    blueOn();
     UpTime time = getUpTime();
-   // alert(uint8_t(time & 0xF), false);
+    alert(uint8_t(time & 0xF), false);
    // HKComm::echoLetter('A');
    //  HKComm::echoLetter(g_sleepTime & 0xFF);
     
     if (1 
-        && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
+     //   && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
         && g_sleepTime > 0          //we want to sleep
         && ! HKComm::isActive()     //serial does command processing now
         )
     {
         //finish off serial
+        //NOTE: Apparently serial have to be on to call flush or end. Otherwise locks here...
         Serial.flush();
         Serial.end();
 
+        //select sleep mode depending on WD
+        if (gv_wdInterrupt_B != 0  /* && see extra node in else */)
+        {
+            //last time it was watchdog that woke up
+            //total down
+            blueOff();
+            set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
+
+            //when waking up from powed down some characters 
+
+            //other periph could be powered donw here.
+        }
+        else
+        {
+            
+            //serial or button. Standby for now
+            set_sleep_mode (SLEEP_MODE_STANDBY);  
+
+            /*if we 1 tick from action the periph could be woken up here*/
+
+        }
+        
         //set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
-        set_sleep_mode (SLEEP_MODE_STANDBY);  
+        
         //set_sleep_mode(SLEEP_MODE_IDLE);
         digitalWrite(LED_BUILTIN, 0);
 
@@ -185,9 +206,7 @@ void Sleeper::gotToSleep(void)
         MCUSR = 0;    
 
         PCIFR  &= ~bit (PCIF2);                 // clear any outstanding interrupts
-        EIMSK = 0;                              //disable Int0, int 1
-        PCMSK2 = bit (PCINT16) | bit(PCINT19);  // want pin 0 and 3 ONLY
-
+  
         PCICR  |= bit (PCIE2);                  // enable pin change interrupts for D0 to D7
         gv_wdInterrupt = 0;                     // clear the indication flag
 
@@ -214,6 +233,8 @@ void Sleeper::gotToSleep(void)
             PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
           
             
+            //periph should be woken up here
+
             //WARNING: This flag is cleared only here....
             gv_wdInterrupt_B  = 0; // say to this function not to enter sleep before next WD tick      
         }
@@ -221,6 +242,9 @@ void Sleeper::gotToSleep(void)
         {
             //it was from watchdog. Clear the indication flag so it gets set again in WD ISR
             gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
+
+            //periph could be woken up if just 1 tick to WD wake
+
         }
 
 

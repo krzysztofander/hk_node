@@ -203,6 +203,25 @@ uint8_t  HKComm::respondSerial(void)
     //alert(g_SerialState +1, false);
     switch (g_SerialState)
     {
+     /*   case serialState_Preable:
+        {
+            if (Serial.available() > 0)
+            {
+                uint8_t nb = 0;// Serial.peek();
+                if (nb != preamble)
+                {
+                    g_SerialState = serialState_ReadCommand;
+                    return true;
+                }
+                else
+                {
+                    Serial.read();
+                }
+            }
+
+        }
+        break;*/
+
         case serialState_ReadCommand:
         {
             // read whole command first.
