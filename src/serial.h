@@ -79,7 +79,7 @@ public:
     static uint8_t command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint8_t & dataSize);
     static uint8_t respondSerial(void);
     static void echoLetter(uint8_t l);
-
+    static uint8_t isActive(void);
 
     static uint8_t g_command[commandSize];
     static uint8_t g_data[commandMaxDataSize];

@@ -17,46 +17,43 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_EXECUTORS_H
-#define HK_EXECUTORS_H
 
-#include <Arduino.h>
-#include "hk_node.h"
-#include "sleeper.h"
+#ifndef HK_SLEEPER_H
+#define HK_SLEEPER_H
 
-class Executor
+class Sleeper
 {
 public:
+    typedef uint32_t SleepTime;
+    typedef uint64_t UpTime;
 
-    enum EExecutors
-    {
-        blinker = 0,
-        temperatureMeasurer,
-        fakeExecutor1,
-        fakeExecutor2,
-        fakeExecutor3,
+    static void setNextSleep(SleepTime  st);
+    static SleepTime howMuchDidWeSleep(void);
 
-        executorsNumber,
+    static void gotToSleep(void);
 
-        executorNone = 255
+    static void init(void);
 
-    };
-    static void init (void);
 
-    static void adjustToElapsedTime(Sleeper::SleepTime timePassed);
-    static uint8_t giveExecutorToCall(void);
-    
-    static Sleeper::SleepTime getNextSleepTime(void);
-    static void setExecutionTime(uint8_t executorToSet, Sleeper::SleepTime newTime);
-    static void rescheduleExecutor(uint8_t executor);
-    static void setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime,  ExecutingFn f );
-    static ExecutingFn giveExecutorHandleToCall(uint8_t executor);
-    static uint8_t isExecutorActive(uint8_t executor);
+    static UpTime getUpTime(void);
+    static void incUpTime(void);
+private:
 
-public:
-    static Sleeper::SleepTime g_ExecutorsTimeLeft[executorsNumber];  // how much time has left to next call
-    static Sleeper::SleepTime g_ExecutorsPeriods[executorsNumber];  //how ofthen each exec is called
-    static ExecutingFn g_ExecutingFunctions[executorsNumber];
+    static void initWD(void);
+    static void setWDScale(int8_t scale);
+    static int8_t getWDScale(int8_t scale);
+
+private:
+    static SleepTime g_sleepTime;
+    static uint8_t scale;
+    static volatile UpTime g_upTime ;
+    static UpTime          g_lastUpTime ;
+    static volatile uint8_t gv_wdInterrupt;
+    static volatile uint8_t gv_wdInterrupt_B;
+
 };
+//--------------------------------------------------
+
 
 #endif
+

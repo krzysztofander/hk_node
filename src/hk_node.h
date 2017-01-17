@@ -75,23 +75,29 @@ public:
     typedef uint16_t SleepTime;
     typedef uint64_t UpTime;
 
-
     static void setNextSleep(SleepTime  st);
     static SleepTime howMuchDidWeSleep(void);
 
     static void gotToSleep(void);
 
-    static void setWDScale(int8_t scale);
-    static int8_t getWDScale(int8_t scale);
-    static void initWD(void);
+    static void init(void);
+
 
     static UpTime getUpTime(void);
     static void incUpTime(void);
+private:
+
+    static void initWD(void);
+    static void setWDScale(int8_t scale);
+    static int8_t getWDScale(int8_t scale);
 
 private:
     static SleepTime g_sleepTime;
     static uint8_t scale;
     static volatile UpTime g_upTime ;
+    static UpTime          g_lastUpTime ;
+    static volatile uint8_t gv_wdInterrupt;
+    static volatile uint8_t gv_wdInterrupt_B;
 
 };
 

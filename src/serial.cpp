@@ -57,14 +57,14 @@ void HKComm::echoLetter(uint8_t l)
     sequence[3] = lowHex;
     if (l > uint8_t(' '))
     {
-      Serial.write(&l,1); 
-      uint8_t arrow[] = " -> ";
-      Serial.write(arrow,4); 
-      Serial.write(sequence, NUM_ELS(sequence)- 3); //no need for EOL
+        Serial.write(&l,1); 
+        uint8_t arrow[] = " -> ";
+        Serial.write(arrow,4); 
+        Serial.write(sequence, NUM_ELS(sequence)- 3); //no need for EOL
     }
     else
     {
-      Serial.write(sequence, NUM_ELS(sequence)- 1); //no need for terminating null
+        Serial.write(sequence, NUM_ELS(sequence)- 1); //no need for terminating null
     }  
 }
 
@@ -151,7 +151,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
                 return e;
             }
 
-            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, tempMeasmntInterval);
+            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, (Sleeper::SleepTime)tempMeasmntInterval);
             //Response is same as command...
             //todo actually read that and respond accordingly
 
@@ -184,6 +184,15 @@ uint8_t HKComm::g_data[HKComm::commandMaxDataSize];
 uint8_t HKComm::g_dataIt = 0;
 
 uint8_t HKComm::g_serialError = serialErr_None;
+
+uint8_t HKComm::isActive(void)
+{
+    if (g_SerialState != serialState_ReadCommand
+        || Serial.available() > 0)
+        return 1;
+    else
+        return 0;
+}
 
 // @brief Main function responding to serial data
 // @returns True if switched state and shall be called immediately.

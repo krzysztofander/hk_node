@@ -24,8 +24,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "executor.h"
 #include "hk_node.h"
 
-uint16_t Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much time has left to next call
-uint16_t Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how ofthen each exec is called
+Sleeper::SleepTime Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much time has left to next call
+Sleeper::SleepTime Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how ofthen each exec is called
 ExecutingFn Executor::g_ExecutingFunctions[Executor::executorsNumber];
 
 uint8_t Executor::isExecutorActive(uint8_t executor)
@@ -33,7 +33,7 @@ uint8_t Executor::isExecutorActive(uint8_t executor)
     return  (executor < executorsNumber && g_ExecutingFunctions[executor] !=  0) ? 1 : 0;
 }
 
-void Executor::setupExecutingFn(uint8_t executor, uint16_t defaultTime, ExecutingFn f)
+void Executor::setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime, ExecutingFn f)
 {
     if (executor < (uint8_t)executorsNumber)
     {
@@ -88,11 +88,11 @@ ExecutingFn Executor::giveExecutorHandleToCall(uint8_t executor)
 
 
 
-uint16_t Executor::getNextSleepTime(void)
+Sleeper::SleepTime Executor::getNextSleepTime(void)
 {
     //returns the shortest time remaining for all ACTIVE executors
     //or 0 if nothing left
-    uint16_t nextTime = uint16_t(~0u);
+    Sleeper::SleepTime nextTime = Sleeper::SleepTime(~0u);
          
     for (uint8_t i = 0; i < (uint8_t)executorsNumber; i++)
     {
@@ -104,7 +104,7 @@ uint16_t Executor::getNextSleepTime(void)
     return nextTime;
 }
 //@Brief Decreases the table of execution times by the time passed
-void Executor::adjustToElapsedTime(uint16_t timePassed)
+void Executor::adjustToElapsedTime(Sleeper::SleepTime timePassed)
 {
     //called when woken up. Need to substract time passed from g_ExecutorsTimeLeft
     //so can now see what to execute and how much has left
@@ -128,7 +128,7 @@ void Executor::adjustToElapsedTime(uint16_t timePassed)
 
 }
 
-void Executor::setExecutionTime(uint8_t executorToSet, uint16_t newTime)
+void Executor::setExecutionTime(uint8_t executorToSet, Sleeper::SleepTime newTime)
 {
     if (isExecutorActive(executorToSet) )
     {

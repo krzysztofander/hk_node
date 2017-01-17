@@ -26,13 +26,18 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "hk_node.h"
+#include "sleeper.h"
 #include "executor.h"
 #include "serial.h"
+
 
 //---------------------------------------------------------------
 Sleeper::SleepTime Sleeper::g_sleepTime     = 0;
 uint8_t            Sleeper::scale           = 6;
 volatile Sleeper::UpTime  Sleeper::g_upTime          = 0;
+Sleeper::UpTime  Sleeper::g_lastUpTime               = 0;
+volatile uint8_t Sleeper::gv_wdInterrupt = 0; //raised ones WD triggers an interrupt.
+volatile uint8_t Sleeper::gv_wdInterrupt_B = 0; //raised ones WD triggers an interrupt.
 //---------------------------------------------------------------
 
 void Sleeper::setNextSleep(Sleeper::SleepTime  st)
@@ -41,34 +46,53 @@ void Sleeper::setNextSleep(Sleeper::SleepTime  st)
 }
 Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 {
-    return 1; //todo Fix THAT
+    Sleeper::SleepTime retVal;
+    Sleeper::UpTime thisUpTime = getUpTime();
+    if (((thisUpTime - g_lastUpTime) >> (sizeof(Sleeper::SleepTime) * 8)) != 0)
+    {
+        //did not fit, return biggest possible
+        retVal = ~(Sleeper::SleepTime(0));
+    }
+    else
+    {
+        retVal = Sleeper::SleepTime(thisUpTime - g_lastUpTime);
+    }
+    g_lastUpTime = thisUpTime;
+    return retVal;
 }
 //http://www.gammon.com.au/forum/?id=11497
 
-// watchdog interrupt
-ISR (WDT_vect) 
-{
-    PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-    Sleeper::incUpTime();
-    Serial.begin(9600);
-}  // end of WDT_vect
-
-//pin interrupt. Will get triggered from serial
-volatile uint8_t g_gotSerial = 0;
-
-ISR (PCINT2_vect)
-{
-   PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-   toggleBlue();
-   g_gotSerial++;
-   Serial.begin(9600);
-   
-}
 
 void Sleeper::incUpTime(void)
 {
     Sleeper::g_upTime++;
 }
+
+// watchdog interrupt
+ISR (WDT_vect) 
+{
+    gv_wdInterrupt  = 1;        //annotate that the interrupt came from watchdog.
+    gv_wdInterrupt_B  = 1;      //annotate that the interrupt came from watchdog.
+
+    Sleeper::incUpTime();
+}  // end of WDT_vect
+
+
+//Pin interrupt. will be trigerred (or not...) from serial
+//
+//.. WARNING::
+//The ISR may not be executed it AVR is in Power Down mode
+//Despiate that the AVR gets woken op
+ISR (PCINT2_vect)
+{
+   PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
+   toggleBlue();
+
+   Serial.begin(9600);     // start serial
+   
+}
+
+
 
 Sleeper::UpTime Sleeper::getUpTime(void)
 {
@@ -88,12 +112,12 @@ void Sleeper::setWDScale(int8_t scale)
         // allow changes, disable reset
         WDTCSR = bit (WDCE) | bit (WDE);
         // set interrupt mode and an interval 
-          WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
+        //WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
        // WDTCSR = bit (WDIE) | bit (WDP3); 
-        //WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1) ;    // set WDIE, and 1 seconds delay
+        WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1) ;    // set WDIE, and 1 seconds delay
     
         g_upTime = 0U;
-    
+        g_lastUpTime  = 0U;    
     interrupts ();    
 
     wdt_reset();  // pat the dog
@@ -113,6 +137,15 @@ void Sleeper::initWD(void)
 
 }
 
+void Sleeper::init(void)
+{
+
+
+    Sleeper::initWD();
+    EIMSK = 0;                              //disable Int0, int 1
+    PCMSK2 = bit (PCINT16) | bit(PCINT19);  // want pin 0 and 3 ONLY
+    //interrupts will be enabled just before sleep
+}
 
 void Sleeper::gotToSleep(void)
 {
@@ -126,101 +159,71 @@ void Sleeper::gotToSleep(void)
     UpTime time = getUpTime();
     alert(uint8_t(time & 0xF), false);
 
-    if (1 &&  ((g_gotSerial != 0 )&& g_sleepTime > 0))
+    if (1 
+        && gv_wdInterrupt_B == 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
+        && g_sleepTime > 0          //we want to sleep
+        && ! HKComm::isActive()     //serial does command processing now
+        )
     {
-  //          EIMSK = 0;  //disable Int0, int 1
-                                   //todo - move that to serial init...
-            // pin change interrupt (example for D0)
-  //          PCMSK2 = bit (PCINT16) | bit(PCINT19); // want pin 0 ONLY
-            //PCMSK2 = bit (PCINT19); // want pin 3 ONLY
-            //PCMSK2 = bit (PCINT16); // want pin 0 ONLY
-  //          PCIFR  &= ~bit (PCIF2);   // clear any outstanding interrupts
-  //          PCICR  = bit (PCIE2);   // enable pin change interrupts for D0 to D7
-        for (int i = 0; i < 100; i++)
-        {
-          delay (16);
-          digitalWrite(LED_BUILTIN, 1);
-          delay (30);
-          digitalWrite(LED_BUILTIN, 0);
-        }
-    }
-    
-    if (1 && g_sleepTime > 0 && g_gotSerial == 0 /*todo, day disable untill serial is active, for e.g. 3 seconds*/)
-    {
-        digitalWrite(LED_BUILTIN, 0);
         //finish off serial
         Serial.flush();
         Serial.end();
-        digitalWrite(LED_BUILTIN, 1);
-         // disable ADC
-        ADCSRA = 0;  
-        // clear various "reset" flags
-        MCUSR = 0;     
- 
+
         //set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
         set_sleep_mode (SLEEP_MODE_STANDBY);  
         //set_sleep_mode(SLEEP_MODE_IDLE);
         digitalWrite(LED_BUILTIN, 0);
 
+        PCIFR  &= ~bit (PCIF2);                 // clear any outstanding interrupts
+        PCICR  |= bit (PCIE2);                  // enable pin change interrupts for D0 to D7
+        gv_wdInterrupt = 0;                     // clear the indication flag
 
-        
-      //  noInterrupts ();           // timed sequence follows
-   //         UCSR0B &= ~bit (RXEN0);  // disable receiver
-  //          UCSR0B &= ~bit (TXEN0);  // disable transmitter
-            //attachInterrupt(digitalPinToInterrupt(0), ISR2_Recieved, LOW);
-            //attachInterrupt(digitalPinToInterrupt(3), ISR2_Recieved, LOW);
-
-            EIMSK = 0;  //disable Int0, int 1
-            PCMSK2 = bit (PCINT16) | bit(PCINT19); // want pin 0 and 3 ONLY
-            PCIFR  &= ~bit (PCIF2);   // clear any outstanding interrupts
-            PCICR  |= bit (PCIE2);   // enable pin change interrupts for D0 to D7
-
-
-            sleep_enable();
+        sleep_enable();
 
   
             // turn off brown-out enable in software
             //MCUCR = bit (BODS) | bit (BODSE);
             //MCUCR = bit (BODS); 
-      //  interrupts (); 
-    
-      
         sleep_cpu ();  
         //SLEEPING HERE
+        // ......
+        //GOT SOME wake
+        if (gv_wdInterrupt == 0)
+        {
+            //interrupt did not came from watchdog as WD is setting this to 1
+            //disable pin intterupts and fire off serial
+            //this can and should be done reqardless whether ISR picked that 
 
-         //GOT SOME INT
+            PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
+            Serial.begin(9600);
+            
+            //WARNING: This flag is cleared only here....
+            gv_wdInterrupt_B  = 0; // say to this function not to enter sleep before next WD tick      
+        }
+        else
+        {
+            //it was from watchdog. Clear the indication flag so it gets set again in WD ISR
+            gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
+        }
+
         // cancel sleep as a precaution
-    
         sleep_disable();
- //       PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
- //       UCSR0B |= bit (RXEN0);  // enable receiver
- //       UCSR0B |= bit (TXEN0);  // enable transmitter
 
+
+        //TODO investigate whether is better to use that...
+        //       UCSR0B |= bit (RXEN0);  // enable receiver
+        //       UCSR0B |= bit (TXEN0);  // enable transmitter
 
 
         digitalWrite(LED_BUILTIN, 1);
+    }
+    else
+    {
+        digitalWrite(LED_BUILTIN, 1);
+        //we do not go to sleep. The tick will return some time passed eventually
     }
   
-    // if (g_sleepTime > 0)
-    if (0)
-    {
-        // Choose our preferred sleep mode:
-        set_sleep_mode(SLEEP_MODE_IDLE);
-     
-        // Set sleep enable (SE) bit:
-        sleep_enable();
-        digitalWrite(LED_BUILTIN, 0);
-        // Put the device to sleep:
-        sleep_mode();
-     
-        // Upon waking up, sketch continues from this point.
-        digitalWrite(LED_BUILTIN, 1);
-        sleep_disable();
 
-        delay(80);
-
-    //delay(100 * g_sleepTime);
-    }
 }
 
 
