@@ -22,7 +22,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "executor.h"
 #include "serial.h"
 #include "temp_measurement.h"
-
+#include "sleeper.h"
 
 
 
@@ -64,7 +64,7 @@ void loopBody()
     //just woke up
 
     //alert(AlertReason_Step1, false);
-    uint16_t timeSlept = Sleeper::howMuchDidWeSleep();
+    Sleeper::SleepTime timeSlept = Sleeper::howMuchDidWeSleep();
     Executor::adjustToElapsedTime(timeSlept);
 
     while(HKComm::respondSerial());  //if this was serial, handle that
@@ -93,7 +93,7 @@ void loopBody()
             //  alert(0, false);
         }
         //alert(AlertReason_Step2, false);
-        uint16_t sleepTime = Executor::getNextSleepTime();
+        Sleeper::SleepTime sleepTime = Executor::getNextSleepTime();
         if (0 && sleepTime < 15)
         {
            //alert (sleepTime, false);
@@ -116,7 +116,7 @@ void initAllFunctions(void)
     Executor::init();
 
     Executor::setupExecutingFn((uint8_t)Executor::blinker, 6, ledToggler);
-    Sleeper::initWD();
+    Sleeper::init();
    
 }
 //---------------------------------------------------------------

@@ -48,6 +48,7 @@ private:
     static uint8_t scale;
     static volatile UpTime g_upTime ;
     static UpTime          g_lastUpTime ;
+public:    
     static volatile uint8_t gv_wdInterrupt;
     static volatile uint8_t gv_wdInterrupt_B;
 

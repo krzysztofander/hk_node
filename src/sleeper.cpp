@@ -71,10 +71,12 @@ void Sleeper::incUpTime(void)
 // watchdog interrupt
 ISR (WDT_vect) 
 {
-    gv_wdInterrupt  = 1;        //annotate that the interrupt came from watchdog.
-    gv_wdInterrupt_B  = 1;      //annotate that the interrupt came from watchdog.
+    Sleeper::gv_wdInterrupt  = 1;        //annotate that the interrupt came from watchdog.
+    Sleeper::gv_wdInterrupt_B  = 1;      //annotate that the interrupt came from watchdog.
 
     Sleeper::incUpTime();
+    toggleBlue();
+
 }  // end of WDT_vect
 
 
@@ -86,7 +88,7 @@ ISR (WDT_vect)
 ISR (PCINT2_vect)
 {
    PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-   toggleBlue();
+//   toggleBlue();
 
    Serial.begin(9600);     // start serial
    
@@ -149,18 +151,23 @@ void Sleeper::init(void)
 
 void Sleeper::gotToSleep(void)
 {
-        HKComm::echoLetter('E');
-        HKComm::echoLetter(0);
-        HKComm::echoLetter(PCMSK2);
-        HKComm::echoLetter(PCIFR);
-        HKComm::echoLetter(PCICR);
-        HKComm::echoLetter(g_gotSerial);
+   
+   
+   //     HKComm::echoLetter('E');
+   //     HKComm::echoLetter(0);
+   //     HKComm::echoLetter(PCMSK2);
+   //     HKComm::echoLetter(PCIFR);
+   ///     HKComm::echoLetter(PCICR);
+   //     HKComm::echoLetter(Sleeper::gv_wdInterrupt);
+   //     HKComm::echoLetter(Sleeper::gv_wdInterrupt_B);
 
     UpTime time = getUpTime();
-    alert(uint8_t(time & 0xF), false);
-
+   // alert(uint8_t(time & 0xF), false);
+   // HKComm::echoLetter('A');
+   //  HKComm::echoLetter(g_sleepTime & 0xFF);
+    
     if (1 
-        && gv_wdInterrupt_B == 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
+        && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
         && g_sleepTime > 0          //we want to sleep
         && ! HKComm::isActive()     //serial does command processing now
         )
@@ -174,7 +181,13 @@ void Sleeper::gotToSleep(void)
         //set_sleep_mode(SLEEP_MODE_IDLE);
         digitalWrite(LED_BUILTIN, 0);
 
+        // clear various "reset" flags
+        MCUSR = 0;    
+
         PCIFR  &= ~bit (PCIF2);                 // clear any outstanding interrupts
+        EIMSK = 0;                              //disable Int0, int 1
+        PCMSK2 = bit (PCINT16) | bit(PCINT19);  // want pin 0 and 3 ONLY
+
         PCICR  |= bit (PCIE2);                  // enable pin change interrupts for D0 to D7
         gv_wdInterrupt = 0;                     // clear the indication flag
 
@@ -188,6 +201,10 @@ void Sleeper::gotToSleep(void)
         //SLEEPING HERE
         // ......
         //GOT SOME wake
+
+        // cancel sleep as a precaution
+        sleep_disable();
+
         if (gv_wdInterrupt == 0)
         {
             //interrupt did not came from watchdog as WD is setting this to 1
@@ -195,7 +212,7 @@ void Sleeper::gotToSleep(void)
             //this can and should be done reqardless whether ISR picked that 
 
             PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-            Serial.begin(9600);
+          
             
             //WARNING: This flag is cleared only here....
             gv_wdInterrupt_B  = 0; // say to this function not to enter sleep before next WD tick      
@@ -206,16 +223,15 @@ void Sleeper::gotToSleep(void)
             gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
         }
 
-        // cancel sleep as a precaution
-        sleep_disable();
 
 
         //TODO investigate whether is better to use that...
         //       UCSR0B |= bit (RXEN0);  // enable receiver
         //       UCSR0B |= bit (TXEN0);  // enable transmitter
 
-
+        Serial.begin(9600);
         digitalWrite(LED_BUILTIN, 1);
+    
     }
     else
     {
