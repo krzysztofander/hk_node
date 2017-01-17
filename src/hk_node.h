@@ -30,6 +30,7 @@ void loopBody();
 typedef  uint8_t AlertReason;
 enum EAlertPins
 {
+   AlPinBlue = 9,
    AlPin1 = 8,
    AlPin2 = 7,
    AlPin3 = 6,
@@ -59,6 +60,7 @@ enum EAlertReasons
 };
 
 void alert(register AlertReason reason, bool hold);
+void toggleBlue(void);
 //--------------------------------------------------
 typedef void (*ExecutingFn)(void);
 
@@ -67,29 +69,30 @@ void setupDoWhatYouShouldTab(void);
 void doWhatYouShould(void);
 
 //--------------------------------------------------
-typedef signed short TempMeasurement;
-
-TempMeasurement getSingleTempMeasurement(void);
-void initMeasureTemperature(void);
-void measureTemperature(void);
-#define maxMeasurements  64
-#define TempMeasurement_invalid (((TempMeasurement )1) << ((sizeof(TempMeasurement) * 8) -1))
-extern TempMeasurement g_tempMeasurements[maxMeasurements];
-extern uint16_t g_lastTempMeasurementIt;
-//-------------------------------------------------
-//--------------------------------------------------
 class Sleeper
 {
 public:
     typedef uint16_t SleepTime;
+    typedef uint64_t UpTime;
+
 
     static void setNextSleep(SleepTime  st);
     static SleepTime howMuchDidWeSleep(void);
 
     static void gotToSleep(void);
 
+    static void setWDScale(int8_t scale);
+    static int8_t getWDScale(int8_t scale);
+    static void initWD(void);
+
+    static UpTime getUpTime(void);
+    static void incUpTime(void);
+
 private:
     static SleepTime g_sleepTime;
+    static uint8_t scale;
+    static volatile UpTime g_upTime ;
+
 };
 
 //--------------------------------------------------

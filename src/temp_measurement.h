@@ -18,56 +18,20 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#include <Arduino.h>
-#include "hk_node.h"
-#include "temp_measurement.h"
-//------------------------------------------------------------------
-uint16_t g_lastTempMeasurementIT =  NUM_ELS(g_tempMeasurements);
-TempMeasurement g_tempMeasurements[maxMeasurements];
-void initMeasureTemperature(void)
-{
-    
-    for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
-    {
-        g_tempMeasurements[i] = TempMeasurement_invalid;
-    }
-}
+#ifndef HK_TEMP_MEASUREMENT_H
+#define HK_TEMP_MEASUREMENT_H
 
 
-TempMeasurement getSingleTempMeasurement(void)
-{
-    //TODO - make it correct
-    static TempMeasurement sTempMeasurement = 0;
-    return ++sTempMeasurement;
-}
+//--------------------------------------------------
+typedef int16_t TempMeasurement;
 
-void measureTemperature(void)
-{
-    alert(AlertReason_ExecutorCalled, false);
-    //bring up pointer to front if needed
-    if (g_lastTempMeasurementIT >= NUM_ELS(g_tempMeasurements) -1 )
-    {
-        g_lastTempMeasurementIT  = 0;
-    }
-    else
-    {
-        g_lastTempMeasurementIT++;
-    }
-    
-    g_tempMeasurements[g_lastTempMeasurementIT] =  getSingleTempMeasurement();
-    
-}
-
-uint8_t state = 1;   
-void ledToggler(void)
-{
-   for (int i = 0; i < 3; i++)
-   {
-       digitalWrite(LED_BUILTIN, 1);
-       delay(20);
-       digitalWrite(LED_BUILTIN, 0);
-       delay(40);
-   }  
-}
-
+TempMeasurement getSingleTempMeasurement(void);
+void initMeasureTemperature(void);
+void measureTemperature(void);
+#define maxMeasurements  64
+#define TempMeasurement_invalid (((TempMeasurement )1) << ((sizeof(TempMeasurement) * 8) -1))
+extern TempMeasurement g_tempMeasurements[maxMeasurements];
+extern uint16_t g_lastTempMeasurementIt;
+//-------------------------------------------------
+#endif
 

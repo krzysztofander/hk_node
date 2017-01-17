@@ -191,7 +191,7 @@ uint8_t HKComm::g_serialError = serialErr_None;
 uint8_t  HKComm::respondSerial(void)
 {
 
-    alert(g_SerialState +1, false);
+    //alert(g_SerialState +1, false);
     switch (g_SerialState)
     {
         case serialState_ReadCommand:

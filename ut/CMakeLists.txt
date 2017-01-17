@@ -68,3 +68,12 @@ project (unit_tests)
 
     add_test_executable(executor_ut "${GOOGLET_UT_LIBS}" "${EXECUTUR_SOURCES}" )
 
+    set(MAIN_SOURCES
+        ${TOP}/hk_node/src/hk_node_main.cpp
+        ${TOP}/hk_node/src/supp.cpp
+        ${TOP}/hk_node/src/sleeper.cpp
+        Arduino.h
+        ${TOP}/hk_node/src/hk_node.h
+    )
+
+    add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )
