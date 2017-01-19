@@ -22,7 +22,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "executor.h"
 #include "serial.h"
 #include "comm.h"
-
+#include "supp.h"
 #include "temp_measurement.h"
 #include "sleeper.h"
 
@@ -114,10 +114,11 @@ void loopBody()
 void ledToggler(void);
 void initAllFunctions(void)
 {
-    initMeasureTemperature();
+    TempMeasure::initMeasureTemperature();
     Executor::init();
 
     Executor::setupExecutingFn((uint8_t)Executor::blinker, 6, ledToggler);
+    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 5, TempMeasure::measureTemperature);
     Sleeper::init();
    
 }

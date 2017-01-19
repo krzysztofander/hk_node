@@ -19,6 +19,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 #include <Arduino.h>
 #include "hk_node.h"
+#include "supp.h"
 //------------------------------------------------------------------
 
 volatile static uint8_t gv_blueState = 0;
@@ -41,7 +42,15 @@ void blueOff(void)
     gv_blueState = 1;
 }
 
-
+void blinkBlue(void)
+{
+  for (uint8_t i =0; i < 5; i++)
+  {
+    toggleBlue();
+    delay(20);
+  }
+  blueOff();
+}
 
 void alert(register AlertReason reason, bool hold)
 {
@@ -66,7 +75,9 @@ void alert(register AlertReason reason, bool hold)
             case 15:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
           
        }
-       if (hold)
+       if (
+        0 && // disaled for now
+        hold)
        {
            volatile uint8_t buttonState = 1;
            while (  buttonState ) 

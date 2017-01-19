@@ -22,6 +22,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 #include "temp_measurement.h"
 #include "sleeper.h"
+#include "supp.h"
 //------------------------------------------------------------------
 TempMeasure::TempRecord TempMeasure::g_tempMeasurements[TempMeasure::maxMeasurements];
 uint16_t TempMeasure::g_lastTempMeasurementIt =  NUM_ELS(g_tempMeasurements)  -1 ;   //points to the last by purpose
@@ -41,6 +42,9 @@ TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
     //TODO: replace it with real measurement
     static TempMeasure::TempMeasurement X = 0x12ab;
     X++;
+
+    blinkBlue();
+    
     return X;
 }
 

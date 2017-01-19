@@ -221,7 +221,7 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             retVal = shortToData(it, inOutData, 0);
             inOutData[it++]=',';
             retVal = shortToData(it, inOutData, val);
-            inOutData[it]=')';
+            inOutData[it++]=')';
             if (retVal != serialErr_None)
             {
                 return retVal;
@@ -411,8 +411,8 @@ uint8_t  HKComm::respondSerial(void)
             if (serialErr_WriteFail != g_serialError)
             {
                 g_command[0]='E';
-                g_command[0]='R';
-                g_command[0]='R';
+                g_command[1]='R';
+                g_command[2]='R';
 
 
                 g_dataIt = 0;

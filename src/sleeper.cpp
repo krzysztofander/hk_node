@@ -29,8 +29,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sleeper.h"
 #include "executor.h"
 #include "serial.h"
-
-
+#include "supp.h"
+#include "comm.h"
 //---------------------------------------------------------------
 Sleeper::SleepTime Sleeper::g_sleepTime     = 0;
 uint8_t            Sleeper::scale           = 6;
@@ -158,7 +158,7 @@ void Sleeper::gotToSleep(void)
    ///     HKComm::echoLetter(PCICR);
    //     HKComm::echoLetter(Sleeper::gv_wdInterrupt);
    //     HKComm::echoLetter(Sleeper::gv_wdInterrupt_B);
-    blueOn();
+ //   blueOn();
     HKTime::UpTime time = getUpTime();
     alert(uint8_t(time & 0xF), false);
    // HKComm::echoLetter('A');
@@ -176,7 +176,9 @@ void Sleeper::gotToSleep(void)
         Serial.end();
 
         //select sleep mode depending on WD
-        if (gv_wdInterrupt_B != 0  /* && see extra node in else */)
+        if (
+          0 //disabled this for now
+           && gv_wdInterrupt_B != 0  /* && see extra node in else */)
         {
             //last time it was watchdog that woke up
             //total down

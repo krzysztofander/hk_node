@@ -587,7 +587,7 @@ TEST_F (Serial_R_method_Fixture, readTM)
     ASSERT_EQ(inOutCommand[0],'V');  //what to expect in command
     ASSERT_EQ(inOutCommand[1],'T');
     ASSERT_EQ(inOutCommand[2],'M');
-    ASSERT_EQ(dataSize, 10);  //no data
+    ASSERT_EQ(dataSize, 11);  
     int it = 0;
     ASSERT_EQ(inOutData[it++],'(');  //what to expect in command
     ASSERT_EQ(inOutData[it++],'0');  //what to expect in command
@@ -600,6 +600,7 @@ TEST_F (Serial_R_method_Fixture, readTM)
     ASSERT_EQ(inOutData[it++],'2');  //what to expect in command
     ASSERT_EQ(inOutData[it++],'a');  //what to expect in command
     ASSERT_EQ(inOutData[it++],'c');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],')');  //what to expect in command
 
 
 
