@@ -18,41 +18,49 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_SLEEPER_H
-#define HK_SLEEPER_H
+#ifndef HK_SUPP_H
+#define HK_SUPP_H
 
-class Sleeper
+//--------------------------------------------------
+typedef  uint8_t AlertReason;
+enum EAlertPins
 {
-public:
-    typedef int32_t SleepTime;  //signed
+   AlPinBlue = 9,
+   AlPin1 = 8,
+   AlPin2 = 7,
+   AlPin3 = 6,
+   AlPin4 = 5,
 
-    static void setNextSleep(SleepTime  st);
-    static SleepTime howMuchDidWeSleep(void);   //has a state...
+   buttonPin = 3
+};
+enum EAlertReasons
+{
+    AlertReason_Step1 = 1,
+    AlertReason_Step2 = 2,
+    AlertReason_Step3 = 3,
+    
+    AlertReason_serialSend  = 4,
+    AlertReason_serialuint8_t  = 5,
+    AlertReason_serialwriteProblem = 6,
+    AlertReason_serialReadProblem = 7,
+    AlertReason_intervalSet = 8,
+    
+    AlertReason_PassedOverTime = 9,
+    AlertReason_BadParam = 10,
 
-    static void gotToSleep(void);
+    AlertReason_ExecutorCalled = 11,
+    AlertReason_serialChar = 12
 
-    static void init(void);
-
-
-    static HKTime::UpTime getUpTime(void);
-    static void incUpTime(void);
-private:
-
-    static void initWD(void);
-    static void setWDScale(int8_t scale);
-    static int8_t getWDScale(int8_t scale);
-
-private:
-    static SleepTime g_sleepTime;
-    static uint8_t scale;
-    static volatile HKTime::UpTime g_upTime ;
-    static HKTime::UpTime          g_lastUpTime ;
-public:    
-    static volatile uint8_t gv_wdInterrupt;
-    static volatile uint8_t gv_wdInterrupt_B;
 
 };
+
+void alert(register AlertReason reason, bool hold);
+void toggleBlue(void);
+void blueOff(void);
+void blueOn(void);
+
 //--------------------------------------------------
+
 
 
 #endif

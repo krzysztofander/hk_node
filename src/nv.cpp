@@ -17,43 +17,41 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#include <Arduino.h>
+#include "nv.h"
+//------------------------------------------------------------------
 
-#ifndef HK_SLEEPER_H
-#define HK_SLEEPER_H
 
-class Sleeper
+
+void NV::save(uint8_t what, uint8_t dataToSave)
 {
-public:
-    typedef int32_t SleepTime;  //signed
 
-    static void setNextSleep(SleepTime  st);
-    static SleepTime howMuchDidWeSleep(void);   //has a state...
-
-    static void gotToSleep(void);
-
-    static void init(void);
+}
+void NV::save(uint8_t what, uint16_t dataToSave)
+{
 
 
-    static HKTime::UpTime getUpTime(void);
-    static void incUpTime(void);
-private:
+}
+void NV::save(uint8_t what, uint32_t dataToSave)
+{
 
-    static void initWD(void);
-    static void setWDScale(int8_t scale);
-    static int8_t getWDScale(int8_t scale);
-
-private:
-    static SleepTime g_sleepTime;
-    static uint8_t scale;
-    static volatile HKTime::UpTime g_upTime ;
-    static HKTime::UpTime          g_lastUpTime ;
-public:    
-    static volatile uint8_t gv_wdInterrupt;
-    static volatile uint8_t gv_wdInterrupt_B;
-
-};
-//--------------------------------------------------
+}
 
 
-#endif
+void NV::read(uint8_t what, uint8_t  & dataToRead)
+{
 
+}
+void NV::read(uint8_t what, uint16_t & dataToRead)
+{
+
+}
+void NV::read(uint8_t what, uint32_t & dataToRead)
+{
+
+}
+
+
+
+
+//---------------------------------------------------------------

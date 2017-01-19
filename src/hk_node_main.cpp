@@ -21,6 +21,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 #include "executor.h"
 #include "serial.h"
+#include "comm.h"
+
 #include "temp_measurement.h"
 #include "sleeper.h"
 
@@ -120,3 +122,13 @@ void initAllFunctions(void)
    
 }
 //---------------------------------------------------------------
+void ledToggler(void)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        digitalWrite(LED_BUILTIN, 1);
+        delay(20);
+        digitalWrite(LED_BUILTIN, 0);
+        delay(40);
+    }  
+}

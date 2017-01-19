@@ -23,6 +23,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "executor.h"
 #include "hk_node.h"
+#include "supp.h"
 
 Sleeper::SleepTime Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much time has left to next call
 Sleeper::SleepTime Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how ofthen each exec is called
@@ -92,7 +93,7 @@ Sleeper::SleepTime Executor::getNextSleepTime(void)
 {
     //returns the shortest time remaining for all ACTIVE executors
     //or 0 if nothing left
-    Sleeper::SleepTime nextTime = Sleeper::SleepTime(~0u);
+    Sleeper::SleepTime nextTime = Sleeper::SleepTime(0x7FFFFFFF);
          
     for (uint8_t i = 0; i < (uint8_t)executorsNumber; i++)
     {

@@ -21,53 +21,53 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "temp_measurement.h"
+#include "sleeper.h"
 //------------------------------------------------------------------
-uint16_t g_lastTempMeasurementIT =  NUM_ELS(g_tempMeasurements);
-TempMeasurement g_tempMeasurements[maxMeasurements];
-void initMeasureTemperature(void)
+TempMeasure::TempRecord TempMeasure::g_tempMeasurements[TempMeasure::maxMeasurements];
+uint16_t TempMeasure::g_lastTempMeasurementIt =  NUM_ELS(g_tempMeasurements)  -1 ;   //points to the last by purpose
+HKTime::UpTime TempMeasure::g_lastMeasurementTime = 0; 
+
+void TempMeasure::initMeasureTemperature(void)
 {
-    
     for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
     {
-        g_tempMeasurements[i] = TempMeasurement_invalid;
+        g_tempMeasurements[i].temp = TempMeasure::tempMeasurement_invalid;
+        g_tempMeasurements[i].timePassed = 0;
     }
 }
 
-
-TempMeasurement getSingleTempMeasurement(void)
+TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
 {
-    //TODO - make it correct
-    static TempMeasurement sTempMeasurement = 0;
-    return ++sTempMeasurement;
+    //TODO: replace it with real measurement
+    static TempMeasure::TempMeasurement X = 0x12ab;
+    X++;
+    return X;
 }
 
-void measureTemperature(void)
+
+void TempMeasure::getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime)
 {
-    alert(AlertReason_ExecutorCalled, false);
-    //bring up pointer to front if needed
-    if (g_lastTempMeasurementIT >= NUM_ELS(g_tempMeasurements) -1 )
+    out.timePassed = HKTime::getShortDiff(currentTime, lastUpTime);
+    out.temp = getSingleTempMeasurement();
+}
+
+void TempMeasure::measureTemperature(void)
+{
+    uint16_t lastMeasurementIt = TempMeasure::g_lastTempMeasurementIt;
+    g_lastTempMeasurementIt++;
+
+    if (g_lastTempMeasurementIt >= NUM_ELS(g_tempMeasurements)  )
     {
-        g_lastTempMeasurementIT  = 0;
+        g_lastTempMeasurementIt  = 0;
     }
-    else
-    {
-        g_lastTempMeasurementIT++;
-    }
+    HKTime::UpTime thisUpTime = Sleeper::getUpTime();
+    getSingleTempMeasurement(g_tempMeasurements[g_lastTempMeasurementIt], thisUpTime , g_lastMeasurementTime);
+
+    g_lastMeasurementTime = thisUpTime;
     
-    g_tempMeasurements[g_lastTempMeasurementIT] =  getSingleTempMeasurement();
     
 }
 
-uint8_t state = 1;   
-void ledToggler(void)
-{
-   for (int i = 0; i < 3; i++)
-   {
-       digitalWrite(LED_BUILTIN, 1);
-       delay(20);
-       digitalWrite(LED_BUILTIN, 0);
-       delay(40);
-   }  
-}
+
 
 

@@ -20,18 +20,38 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef HK_TEMP_MEASUREMENT_H
 #define HK_TEMP_MEASUREMENT_H
-
+#include "hk_node.h"
 
 //--------------------------------------------------
-typedef int16_t TempMeasurement;
 
-TempMeasurement getSingleTempMeasurement(void);
-void initMeasureTemperature(void);
-void measureTemperature(void);
-#define maxMeasurements  64
-#define TempMeasurement_invalid (((TempMeasurement )1) << ((sizeof(TempMeasurement) * 8) -1))
-extern TempMeasurement g_tempMeasurements[maxMeasurements];
-extern uint16_t g_lastTempMeasurementIt;
+class TempMeasure
+{
+public:
+    
+    typedef int16_t TempMeasurement;  //change the tempMeasurement_invalid if changing this type
+
+    static const int8_t maxMeasurements = 64;
+    static const int16_t tempMeasurement_invalid = -0x8000;  
+
+    struct TempRecord
+    {
+        HKTime::ShortTimeDiff  timePassed;
+        TempMeasurement        temp;
+    };
+
+    static TempMeasurement getSingleTempMeasurement(void);                     //returns single value of temperature
+    static void getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime);     //returns single value. It gets the current time 
+
+
+    static void initMeasureTemperature(void);                //init
+    static void measureTemperature(void);                    //measure no
+
+public:    
+    static TempRecord  g_tempMeasurements[maxMeasurements];
+
+    static uint16_t g_lastTempMeasurementIt;
+    static HKTime::UpTime    g_lastMeasurementTime;
+};
 //-------------------------------------------------
 #endif
 

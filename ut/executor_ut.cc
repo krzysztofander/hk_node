@@ -2,6 +2,8 @@
 #include "gmock/gmock.h"
 #include "Arduino.h"
 #include "executor.h"
+#include "temp_measurement.h"
+
 using ::testing::AtLeast;  
 using ::testing::Return;
 using ::testing::InSequence;
@@ -10,7 +12,7 @@ using ::testing::StrictMock;
 using ::testing::_;
 
 
-void ef(void)
+void someBlinker(void)
 {}
 
 TEST(ExecutorTst, singleExecutor)
@@ -20,7 +22,7 @@ TEST(ExecutorTst, singleExecutor)
     int nextSleepTime = 0;
 
     Executor::init();
-    Executor::setupExecutingFn(Executor::blinker, blinkerSleepTime, ef);
+    Executor::setupExecutingFn(Executor::blinker, blinkerSleepTime, someBlinker);
     Executor::rescheduleExecutor(Executor::blinker);
 
     
@@ -402,8 +404,3 @@ TEST(ExecutorTst, periodicInterrupts)
 
 }
 
-
-
-//fakeExecutor1,
-//fakeExecutor2,
-//fakeExecutor3,

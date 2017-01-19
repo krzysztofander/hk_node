@@ -34,8 +34,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //---------------------------------------------------------------
 Sleeper::SleepTime Sleeper::g_sleepTime     = 0;
 uint8_t            Sleeper::scale           = 6;
-volatile Sleeper::UpTime  Sleeper::g_upTime          = 0;
-Sleeper::UpTime  Sleeper::g_lastUpTime               = 0;
+volatile HKTime::UpTime  Sleeper::g_upTime          = 0;
+HKTime::UpTime Sleeper::g_lastUpTime               = 0;
 volatile uint8_t Sleeper::gv_wdInterrupt = 0; //raised ones WD triggers an interrupt.
 volatile uint8_t Sleeper::gv_wdInterrupt_B = 0; //raised ones WD triggers an interrupt.
 //---------------------------------------------------------------
@@ -47,11 +47,11 @@ void Sleeper::setNextSleep(Sleeper::SleepTime  st)
 Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 {
     Sleeper::SleepTime retVal;
-    Sleeper::UpTime thisUpTime = getUpTime();
+    HKTime::UpTime thisUpTime = getUpTime();
     if (((thisUpTime - g_lastUpTime) >> (sizeof(Sleeper::SleepTime) * 8)) != 0)
     {
-        //did not fit, return biggest possible
-        retVal = ~(Sleeper::SleepTime(0));
+        //did not fit or negative, return biggest possible
+        retVal = 0x7FFFFFFF;
     }
     else
     {
@@ -94,10 +94,10 @@ ISR (PCINT2_vect)
 
 
 
-Sleeper::UpTime Sleeper::getUpTime(void)
+HKTime::UpTime Sleeper::getUpTime(void)
 {
-    volatile  Sleeper::UpTime tempTime1;
-    volatile  Sleeper::UpTime tempTime2;
+    volatile  HKTime::UpTime tempTime1;
+    volatile  HKTime::UpTime tempTime2;
     do
     {
         tempTime1 = Sleeper::g_upTime;
@@ -159,7 +159,7 @@ void Sleeper::gotToSleep(void)
    //     HKComm::echoLetter(Sleeper::gv_wdInterrupt);
    //     HKComm::echoLetter(Sleeper::gv_wdInterrupt_B);
     blueOn();
-    UpTime time = getUpTime();
+    HKTime::UpTime time = getUpTime();
     alert(uint8_t(time & 0xF), false);
    // HKComm::echoLetter('A');
    //  HKComm::echoLetter(g_sleepTime & 0xFF);

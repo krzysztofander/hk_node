@@ -49,9 +49,12 @@ project (unit_tests)
         )
    set(SERIAL_SOURCES
         ${TOP}/hk_node/src/serial.cpp
+        ${TOP}/hk_node/src/comm.cpp
+
         serial_ut.cc
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
+        ${TOP}/hk_node/src/comm.h
         ${TOP}/hk_node/src/serial.h
     )
 
@@ -60,10 +63,15 @@ project (unit_tests)
 	
 	set(EXECUTUR_SOURCES
         ${TOP}/hk_node/src/executor.cpp
+        ${TOP}/hk_node/src/temp_measurement.cpp
         executor_ut.cc
+        temp_measure_ut.cc
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/executor.h
+        ${TOP}/hk_node/src/temp_measurement.h
+        
+
     )
 
     add_test_executable(executor_ut "${GOOGLET_UT_LIBS}" "${EXECUTUR_SOURCES}" )
@@ -72,8 +80,12 @@ project (unit_tests)
         ${TOP}/hk_node/src/hk_node_main.cpp
         ${TOP}/hk_node/src/supp.cpp
         ${TOP}/hk_node/src/sleeper.cpp
+        ${TOP}/hk_node/src/nv.cpp
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
+        ${TOP}/hk_node/src/supp.h
+        ${TOP}/hk_node/src/sleeper.h
+        ${TOP}/hk_node/src/nv.h
     )
 
     add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )
