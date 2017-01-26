@@ -18,60 +18,47 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#ifndef HK_SUPP_H
+#define HK_SUPP_H
 
-class HKTime
+//--------------------------------------------------
+typedef  uint8_t AlertReason;
+enum EAlertPins
 {
-public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    //typedef uint16_t ShortUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
+   AlPinBlue = 9,
+   AlPin1 = 8,
+   AlPin2 = 7,
+   AlPin3 = 6,
+   AlPin4 = 5,
 
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
-    {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
-    }
+   buttonPin = 3
+};
+enum EAlertReasons
+{
+    AlertReason_Step1 = 1,
+    AlertReason_Step2 = 2,
+    AlertReason_Step3 = 3,
+    
+    AlertReason_serialSend  = 4,
+    AlertReason_serialuint8_t  = 5,
+    AlertReason_serialwriteProblem = 6,
+    AlertReason_serialReadProblem = 7,
+    AlertReason_intervalSet = 8,
+    
+    AlertReason_PassedOverTime = 9,
+    AlertReason_BadParam = 10,
+
+    AlertReason_ExecutorCalled = 11,
+    AlertReason_serialChar = 12
+
 
 };
 
-
-void setupBody();
-void loopBody();
-
-//--------------------------------------------------
-typedef void (*ExecutingFn)(void);
-
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
+void alert(register AlertReason reason, bool hold);
+void toggleBlue(void);
+void blueOff(void);
+void blueOn(void);
+void blinkBlue(void);
 
 //--------------------------------------------------
 

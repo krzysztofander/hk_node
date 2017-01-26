@@ -18,63 +18,41 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#ifndef HK_SLEEPER_H
+#define HK_SLEEPER_H
 
-class HKTime
+class Sleeper
 {
 public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    //typedef uint16_t ShortUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
+    typedef int32_t SleepTime;  //signed
 
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
-    {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
-    }
+    static void setNextSleep(SleepTime  st);
+    static SleepTime howMuchDidWeSleep(void);   //has a state...
+
+    static void gotToSleep(void);
+
+    static void init(void);
+
+
+    static HKTime::UpTime getUpTime(void);
+    static void incUpTime(void);
+private:
+
+    static void initWD(void);
+    static void setWDScale(int8_t scale);
+    static int8_t getWDScale(int8_t scale);
+
+private:
+    static SleepTime g_sleepTime;
+    static uint8_t scale;
+    static volatile HKTime::UpTime g_upTime ;
+    static HKTime::UpTime          g_lastUpTime ;
+public:    
+    static volatile uint8_t gv_wdInterrupt;
+    static volatile uint8_t gv_wdInterrupt_B;
 
 };
-
-
-void setupBody();
-void loopBody();
-
 //--------------------------------------------------
-typedef void (*ExecutingFn)(void);
-
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
-
-//--------------------------------------------------
-
 
 
 #endif

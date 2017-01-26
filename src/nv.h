@@ -17,65 +17,30 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#include <Arduino.h>
+#include "hk_node.h"
+//------------------------------------------------------------------
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
-
-class HKTime
+class NV
 {
 public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    //typedef uint16_t ShortUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
-
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
+    enum NVData
     {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
-    }
+        nvTempMeasureSchedule
+
+    };
+
+
+    static void save(uint8_t what, uint8_t dataToSave);
+    static void save(uint8_t what, uint16_t dataToSave);
+    static void save(uint8_t what, uint32_t dataToSave);
+
+    static void read(uint8_t what, uint8_t  & dataToRead);
+    static void read(uint8_t what, uint16_t & dataToRead);
+    static void read(uint8_t what, uint32_t & dataToRead);
+
 
 };
 
 
-void setupBody();
-void loopBody();
-
-//--------------------------------------------------
-typedef void (*ExecutingFn)(void);
-
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
-
-//--------------------------------------------------
-
-
-
-#endif
-
+//---------------------------------------------------------------

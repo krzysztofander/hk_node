@@ -17,40 +17,46 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-
-#include "hk_node.h"
 #include <Arduino.h>
+#include "hk_node.h"
+#include "executor.h"
+#include "serial.h"
+#include "comm.h"
+#include "supp.h"
+#include "temp_measurement.h"
+#include "sleeper.h"
+
+
 
 void setupBody() 
 {
     // test
-
+    Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(AlPin1, OUTPUT);
     pinMode(AlPin2, OUTPUT);
     pinMode(AlPin3, OUTPUT);
     pinMode(AlPin4, OUTPUT);
+    pinMode(AlPinBlue, OUTPUT);
+
+    
     pinMode(buttonPin, INPUT);
     
     for (int i = 0; i < 10; i++)
     {
+        toggleBlue();
         digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
         delay(20);                       // wait for a second
         digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
         delay(20);                       // wait for a second
     }
-
-    for (AlertReason i = 0; i < 16; i++)
-    {
-        alert(i, true);
-    }
-
-    Serial.begin(9600);
-    Serial.println("hello world");
+    alert(14, true);
+    
     //end of test
+    Serial.println("hello world");
 
+    alert(0, false);
     initAllFunctions();
-    setupDoWhatYouShouldTab();
 
     
 }
@@ -59,130 +65,71 @@ void loopBody()
 {
     //just woke up
 
-    //check reason
-    WakeUpReason wkReason = getWKReason();
-    //do actions
-    if (wkReason == WakeUpReason_timeout)
-    {
-        setNextSleep(getDefaultSleepTime());
-        doWhatYouShould();
-    }
-    else if (wkReason == WakeUpReason_serial)
-    {
-        setNextSleep(getRemainingSleepTime());
-        respondSerial();
-    }
-    else
-    {
-        alert(AlertReason_unknownWakeUp, true);
-        Serial.println("unknowns wakeup: ");
-        Serial.println(wkReason, HEX );
-    }
+    //alert(AlertReason_Step1, false);
+    Sleeper::SleepTime timeSlept = Sleeper::howMuchDidWeSleep();
+    Executor::adjustToElapsedTime(timeSlept);
 
-    //go to sleep
+    while(HKComm::respondSerial());  //if this was serial, handle that
+    if (1)
+    {
+       // alert(AlertReason_Step2, true);
+        //now execute what needs to be executed...
+        uint8_t executor = Executor::giveExecutorToCall();
+       // alert(AlertReason_Step3, true);
+        if (executor < (uint8_t) Executor::executorsNumber)
+        {
+            //alert(AlertReason_Step2, true);
+            Executor::rescheduleExecutor(executor);
+            //execute the executor now... 
+            //alert(AlertReason_Step3, true);
 
+            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            //alert(AlertReason_Step2, true);
+
+            f();
+            //alert(AlertReason_Step3, true);
+        }
+        else
+        {
+            //nothing to call, it might have been from serial
+            //  alert(0, false);
+        }
+        //alert(AlertReason_Step2, false);
+        Sleeper::SleepTime sleepTime = Executor::getNextSleepTime();
+        if (0 && sleepTime < 15)
+        {
+           //alert (sleepTime, false);
+        }
+        Sleeper::setNextSleep(sleepTime);
+
+        //go to sleep
+        Sleeper::gotToSleep(); //if its set to 0 it wont...
+    }
 }
 //------------------------------------------------------------------
 
-WakeUpReason getWKReason(void)
-{
-    //todo - fix that
-    return WakeUpReason_serial;
-}
 
-void alert(register AlertReason reason, bool hold)
-{
-      switch (reason)
-      {
-            case 14:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
-            case 13:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
-            case 12:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); break; 
-            case 11:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
-            case 10:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
-            case 9 :  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
-            case 8 :  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); break; 
-            case 7 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
-            case 6 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
-            case 5 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
-            case 4 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); break; 
-            case 3 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
-            case 2 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, HIGH); break; 
-            case 1 :  digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, LOW); break; 
-             
-            default:
-            case 15:  digitalWrite(AlPin1, LOW);  digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW);  digitalWrite(AlPin4, LOW); break; 
-          
-       }
-       if (hold)
-       {
-           volatile char buttonState = 1;
-           while (  buttonState ) 
-           {
-                digitalWrite(LED_BUILTIN, LOW);
-                delay(10);             
-                digitalWrite(LED_BUILTIN, HIGH);
-                delay(50);             
-                buttonState = digitalRead(buttonPin);
-           }
-           delay(10);
-           while (  !buttonState ) 
-           {
-                digitalWrite(LED_BUILTIN, LOW);
-                delay(50);             
-                digitalWrite(LED_BUILTIN, HIGH);
-                delay(10);             
-                buttonState = digitalRead(buttonPin);
-           }
-           delay(10);
-           digitalWrite(AlPin1, HIGH);  digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH);  digitalWrite(AlPin4, HIGH); 
-         
-      }
-}
 
-//------------------------------------------------------------------
-// The tab conatins functions pointers that gets executed every time
-// system wakes up for the action
-// This is not for the wakeup from serial, etc.
-DoWhatYouShould g_doWhatYouShouldTab[MaxDoWhatYouShould];
-
+//---------------------------------------------------------------
+void ledToggler(void);
 void initAllFunctions(void)
 {
-    initMeasureTemperature();
-    //...
+    TempMeasure::initMeasureTemperature();
+    Executor::init();
 
+    Executor::setupExecutingFn((uint8_t)Executor::blinker, 6, ledToggler);
+    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 5, TempMeasure::measureTemperature);
+    Sleeper::init();
+   
 }
-void setupDoWhatYouShouldTab(void)
+//---------------------------------------------------------------
+void ledToggler(void)
 {
-    for (unsigned char i = 0; i < NUM_ELS(g_doWhatYouShouldTab) ; i++)
+    for (int i = 0; i < 3; i++)
     {
-        g_doWhatYouShouldTab[i] = 0;
-    }
-    g_doWhatYouShouldTab[0] = measureTemperature;
-    //...
-
+        digitalWrite(LED_BUILTIN, 1);
+        delay(20);
+        digitalWrite(LED_BUILTIN, 0);
+        delay(40);
+    }  
 }
-
-void doWhatYouShould(void)
-{
-    unsigned char i = 0;
-    while (g_doWhatYouShouldTab[i] != 0 && i < NUM_ELS(g_doWhatYouShouldTab)  )
-    {
-        g_doWhatYouShouldTab[i]();
-    }
-}
-
-SleepTime getRemainingSleepTime(void)
-{
-    return 0;
-}
-
-SleepTime getDefaultSleepTime(void)
-{
-    return 0;
-}
-
-void setNextSleep(SleepTime  st)
-{
-
-}
-

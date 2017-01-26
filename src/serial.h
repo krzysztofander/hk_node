@@ -17,28 +17,17 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef HK_SERIAL_H
+#define HK_SERIAL_H
 
-#include <Arduino.h>
 #include "hk_node.h"
-#include "executor.h"
-#include "serial.h"
-#include "supp.h"
-#include "comm.h"
 
-
-uint8_t HKSerial::read()
+class HKSerial
 {
-    return Serial.read();
-}
-uint8_t HKSerial::available()
-{
-    return Serial.available();
-}
-uint8_t HKSerial::peek()
-{
-    return Serial.peek();
-}
-uint8_t HKSerial::write(const uint8_t * buff, size_t size)
-{
-    return Serial.write(buff, size);
-}
+public:
+    static uint8_t read();
+    static uint8_t available();
+    static uint8_t peek();
+    static uint8_t write(const uint8_t * buff, size_t size);
+};
+#endif

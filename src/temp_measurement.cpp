@@ -18,46 +18,60 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-
+#include <Arduino.h>
 #include "hk_node.h"
+#include "temp_measurement.h"
+#include "sleeper.h"
+#include "supp.h"
 //------------------------------------------------------------------
-unsigned short g_lastTempMeasurementIT =  NUM_ELS(g_tempMeasurements);
-TempMeasurement g_tempMeasurements[maxMeasurements];
-void initMeasureTemperature(void)
+TempMeasure::TempRecord TempMeasure::g_tempMeasurements[TempMeasure::maxMeasurements];
+uint16_t TempMeasure::g_lastTempMeasurementIt =  NUM_ELS(g_tempMeasurements)  -1 ;   //points to the last by purpose
+HKTime::UpTime TempMeasure::g_lastMeasurementTime = 0; 
+
+void TempMeasure::initMeasureTemperature(void)
 {
-    
-    for (unsigned short i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
+    for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
     {
-        g_tempMeasurements[i] = TempMeasurement_invalid;
+        g_tempMeasurements[i].temp = TempMeasure::tempMeasurement_invalid;
+        g_tempMeasurements[i].timePassed = 0;
     }
 }
 
-void setUpTemperatureMeasurementInterval(unsigned short interval)
+TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
 {
-   //TODO - really set somethig up
-    alert(AlertReason_intervalSet, true);
+    //TODO: replace it with real measurement
+    static TempMeasure::TempMeasurement X = 0x12ab;
+    X++;
+
+    blinkBlue();
+    
+    return X;
 }
 
-TempMeasurement getSingleTempMeasurement(void)
+
+void TempMeasure::getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime)
 {
-    //TODO - make it correct
-    static TempMeasurement sTempMeasurement = 0;
-    return ++sTempMeasurement;
+    out.timePassed = HKTime::getShortDiff(currentTime, lastUpTime);
+    out.temp = getSingleTempMeasurement();
 }
 
-void measureTemperature(void)
+void TempMeasure::measureTemperature(void)
 {
-    //bring up pointer to front if needed
-    if (g_lastTempMeasurementIT >= NUM_ELS(g_tempMeasurements) -1 )
+    uint16_t lastMeasurementIt = TempMeasure::g_lastTempMeasurementIt;
+    g_lastTempMeasurementIt++;
+
+    if (g_lastTempMeasurementIt >= NUM_ELS(g_tempMeasurements)  )
     {
-        g_lastTempMeasurementIT  = 0;
+        g_lastTempMeasurementIt  = 0;
     }
-    else
-    {
-        g_lastTempMeasurementIT++;
-    }
+    HKTime::UpTime thisUpTime = Sleeper::getUpTime();
+    getSingleTempMeasurement(g_tempMeasurements[g_lastTempMeasurementIt], thisUpTime , g_lastMeasurementTime);
+
+    g_lastMeasurementTime = thisUpTime;
     
-    g_tempMeasurements[g_lastTempMeasurementIT] =  getSingleTempMeasurement();
     
 }
+
+
+
 

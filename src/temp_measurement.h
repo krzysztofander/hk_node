@@ -18,27 +18,40 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#include <Arduino.h>
+#ifndef HK_TEMP_MEASUREMENT_H
+#define HK_TEMP_MEASUREMENT_H
 #include "hk_node.h"
-#include "executor.h"
-#include "serial.h"
-#include "supp.h"
-#include "comm.h"
+
+//--------------------------------------------------
+
+class TempMeasure
+{
+public:
+    
+    typedef int16_t TempMeasurement;  //change the tempMeasurement_invalid if changing this type
+
+    static const int8_t maxMeasurements = 64;
+    static const int16_t tempMeasurement_invalid = -0x8000;  
+
+    struct TempRecord
+    {
+        HKTime::ShortTimeDiff  timePassed;
+        TempMeasurement        temp;
+    };
+
+    static TempMeasurement getSingleTempMeasurement(void);                     //returns single value of temperature
+    static void getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime);     //returns single value. It gets the current time 
 
 
-uint8_t HKSerial::read()
-{
-    return Serial.read();
-}
-uint8_t HKSerial::available()
-{
-    return Serial.available();
-}
-uint8_t HKSerial::peek()
-{
-    return Serial.peek();
-}
-uint8_t HKSerial::write(const uint8_t * buff, size_t size)
-{
-    return Serial.write(buff, size);
-}
+    static void initMeasureTemperature(void);                //init
+    static void measureTemperature(void);                    //measure no
+
+public:    
+    static TempRecord  g_tempMeasurements[maxMeasurements];
+
+    static uint16_t g_lastTempMeasurementIt;
+    static HKTime::UpTime    g_lastMeasurementTime;
+};
+//-------------------------------------------------
+#endif
+
