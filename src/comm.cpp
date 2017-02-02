@@ -316,7 +316,7 @@ uint8_t  HKComm::respondSerial(void)
             {
                 //read up to end of line or to error
                 g_data[g_dataIt] = HKSerial::read();
-                echoLetter(g_data[g_dataIt] );
+                //echoLetter(g_data[g_dataIt] );
                 if (g_data[g_dataIt] == uint8_t(commandEOLSignOnRecieve))
                 {
                       //found end of line

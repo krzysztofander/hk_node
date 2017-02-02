@@ -17,64 +17,28 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef TEMP_SENSOR_H
+#define TEMP_SENSOR_H
 
 #include <Arduino.h>
-#include "hk_node.h"
-#include "temp_measurement.h"
-#include "sleeper.h"
-#include "supp.h"
-#include "temp_sensor.h"
-//------------------------------------------------------------------
-TempMeasure::TempRecord TempMeasure::g_tempMeasurements[TempMeasure::maxMeasurements];
-uint16_t TempMeasure::g_lastTempMeasurementIt =  NUM_ELS(g_tempMeasurements)  -1 ;   //points to the last by purpose
-HKTime::UpTime TempMeasure::g_lastMeasurementTime = 0; 
 
-void TempMeasure::initMeasureTemperature(void)
+
+
+class TempSensor 
 {
-    for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
+public:
+    enum
     {
-        g_tempMeasurements[i].temp = TempMeasure::tempMeasurement_invalid;
-        g_tempMeasurements[i].timePassed = 0;
-    }
-}
+        sensorResolution  = 12
+    };
 
-TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
-{
-    //TODO: replace it with real measurement
-    //static TempMeasure::TempMeasurement X = 0x12ab;
-    //X++;
-        
-    float reading =  TempSensor::readTemperature();
-    uint16_t X = reading * 16;
-    blinkBlue();
+    static uint8_t init();
+    static float readTemperature();
     
-    return X;
-}
+private:
+    static uint8_t address[8];
 
+    static uint8_t findSensor();
+};
 
-void TempMeasure::getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime)
-{
-    out.timePassed = HKTime::getShortDiff(currentTime, lastUpTime);
-    out.temp = getSingleTempMeasurement();
-}
-
-void TempMeasure::measureTemperature(void)
-{
-    uint16_t lastMeasurementIt = TempMeasure::g_lastTempMeasurementIt;
-    g_lastTempMeasurementIt++;
-
-    if (g_lastTempMeasurementIt >= NUM_ELS(g_tempMeasurements)  )
-    {
-        g_lastTempMeasurementIt  = 0;
-    }
-    HKTime::UpTime thisUpTime = Sleeper::getUpTime();
-    getSingleTempMeasurement(g_tempMeasurements[g_lastTempMeasurementIt], thisUpTime , g_lastMeasurementTime);
-
-    g_lastMeasurementTime = thisUpTime;
-    
-    
-}
-
-
-
-
+#endif

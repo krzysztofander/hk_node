@@ -80,6 +80,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/hk_node_main.cpp
         ${TOP}/hk_node/src/supp.cpp
         ${TOP}/hk_node/src/sleeper.cpp
+		${TOP}/hk_node/src/temp_sensor.cpp
         ${TOP}/hk_node/src/nv.cpp
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h

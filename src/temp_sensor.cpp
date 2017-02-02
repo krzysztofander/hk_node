@@ -19,62 +19,68 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 #include <Arduino.h>
-#include "hk_node.h"
-#include "temp_measurement.h"
-#include "sleeper.h"
-#include "supp.h"
+#include <OneWire.h>
+#include <DS18B20.h>
 #include "temp_sensor.h"
-//------------------------------------------------------------------
-TempMeasure::TempRecord TempMeasure::g_tempMeasurements[TempMeasure::maxMeasurements];
-uint16_t TempMeasure::g_lastTempMeasurementIt =  NUM_ELS(g_tempMeasurements)  -1 ;   //points to the last by purpose
-HKTime::UpTime TempMeasure::g_lastMeasurementTime = 0; 
 
-void TempMeasure::initMeasureTemperature(void)
+class OneWireWrap
 {
-    for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
-    {
-        g_tempMeasurements[i].temp = TempMeasure::tempMeasurement_invalid;
-        g_tempMeasurements[i].timePassed = 0;
-    }
-}
+public:
+    static const uint8_t  ONEWIRE_PIN = 4;
+    static OneWire onewire; 
 
-TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
+    static DS18B20 sensor;
+
+};
+
+OneWire  OneWireWrap::onewire(OneWireWrap::ONEWIRE_PIN);
+DS18B20  OneWireWrap::sensor(&OneWireWrap::onewire);
+
+uint8_t TempSensor::address[8];
+
+uint8_t TempSensor::init()
 {
-    //TODO: replace it with real measurement
-    //static TempMeasure::TempMeasurement X = 0x12ab;
-    //X++;
         
-    float reading =  TempSensor::readTemperature();
-    uint16_t X = reading * 16;
-    blinkBlue();
-    
-    return X;
-}
-
-
-void TempMeasure::getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime)
-{
-    out.timePassed = HKTime::getShortDiff(currentTime, lastUpTime);
-    out.temp = getSingleTempMeasurement();
-}
-
-void TempMeasure::measureTemperature(void)
-{
-    uint16_t lastMeasurementIt = TempMeasure::g_lastTempMeasurementIt;
-    g_lastTempMeasurementIt++;
-
-    if (g_lastTempMeasurementIt >= NUM_ELS(g_tempMeasurements)  )
+    //sensor not found
+    if (!(findSensor()))
     {
-        g_lastTempMeasurementIt  = 0;
+        return 0;
     }
-    HKTime::UpTime thisUpTime = Sleeper::getUpTime();
-    getSingleTempMeasurement(g_tempMeasurements[g_lastTempMeasurementIt], thisUpTime , g_lastMeasurementTime);
+    OneWireWrap::sensor.begin(sensorResolution);
+    return 1;
+}
 
-    g_lastMeasurementTime = thisUpTime;
-    
-    
+//size of address array>=8
+uint8_t TempSensor::findSensor()
+{
+    while(OneWireWrap::onewire.search(address))
+    {
+        //not temp sensor
+        if (address[0] != 0x28)
+        {
+            continue;
+        }   
+        //Incorrect crc
+        if (OneWire::crc8(address, 7) != address[7])
+        {
+            continue;
+        }
+        else //found sensor
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 
-
+float TempSensor::readTemperature()
+{
+    OneWireWrap::sensor.request(address);
+    while(!OneWireWrap::sensor.available())
+    {
+        //timeout is included in the sensor
+    }
+    return OneWireWrap::sensor.readTemperature(address);
+}
 
