@@ -77,7 +77,13 @@ public:
 
     
     static uint8_t dataToUnsignedShort(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal );
-    static uint8_t shortToData(uint16_t & inOutOffset, uint8_t (&inData)[commandMaxDataSize], const uint16_t  inVal);
+    static uint8_t shortToData(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], const uint16_t  inVal);
+    static uint8_t formatMeasurement(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], HKTime::SmallUpTime timeStamp, int16_t val);
+
+
+
+
+
     static uint8_t command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize);

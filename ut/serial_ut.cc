@@ -16,6 +16,24 @@ using ::testing::_;
 
 TSerial Serial;
 
+class MockSleeper
+{
+public:
+    MOCK_METHOD0( getUpTime, HKTime::UpTime(void));
+
+    static MockSleeper & instance()
+    {
+        static MockSleeper i;
+        return i;
+    }
+
+};
+
+HKTime::UpTime Sleeper::getUpTime()
+{
+    MockSleeper & i = MockSleeper::instance();
+    return i.getUpTime();
+}
 
 class MockSerial : public Serial_if
 {
@@ -568,6 +586,7 @@ TEST_F(StrictSerialFixture, testResponse)
 TEST_F (Serial_R_method_Fixture, readTM)
 {
     MockLooseFn & f = MockLooseFn::instance();
+    MockSleeper & s = MockSleeper::instance();
 
     uint8_t inOutCommand[HKComm::commandSize] = 
     {   //command to send
@@ -580,6 +599,7 @@ TEST_F (Serial_R_method_Fixture, readTM)
     inOutData[0] = HKComm::commandEOLSignOnRecieve;
 
     EXPECT_CALL(f, getSingleTempMeasurement()).Times(1).WillOnce(Return(0x12ac));
+    EXPECT_CALL(s, getUpTime()).WillOnce(Return(0xabcd12345678ll));
 
     uint8_t retVal = HKComm::command_R(inOutCommand,inOutData,dataSize);
 
@@ -587,13 +607,17 @@ TEST_F (Serial_R_method_Fixture, readTM)
     ASSERT_EQ(inOutCommand[0],'V');  //what to expect in command
     ASSERT_EQ(inOutCommand[1],'T');
     ASSERT_EQ(inOutCommand[2],'M');
-    ASSERT_EQ(dataSize, 11);  
+    ASSERT_EQ(dataSize, 3+ 8 +4);  
     int it = 0;
     ASSERT_EQ(inOutData[it++],'(');  //what to expect in command
-    ASSERT_EQ(inOutData[it++],'0');  //what to expect in command
-    ASSERT_EQ(inOutData[it++],'0');  //what to expect in command
-    ASSERT_EQ(inOutData[it++],'0');  //what to expect in command
-    ASSERT_EQ(inOutData[it++],'0');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'1');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'2');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'3');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'4');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'5');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'6');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'7');  //what to expect in command
+    ASSERT_EQ(inOutData[it++],'8');  //what to expect in command
 
     ASSERT_EQ(inOutData[it++],',');  //what to expect in command
     ASSERT_EQ(inOutData[it++],'1');  //what to expect in command

@@ -27,7 +27,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //------------------------------------------------------------------
 TempMeasure::TempRecord TempMeasure::g_tempMeasurements[TempMeasure::maxMeasurements];
 uint16_t TempMeasure::g_lastTempMeasurementIt =  NUM_ELS(g_tempMeasurements)  -1 ;   //points to the last by purpose
-HKTime::UpTime TempMeasure::g_lastMeasurementTime = 0; 
+
 
 //@brief Inits the records table and iterator
 void TempMeasure::initMeasureTemperature(void)
@@ -35,10 +35,9 @@ void TempMeasure::initMeasureTemperature(void)
     for (uint16_t i = 0 ; i < NUM_ELS(g_tempMeasurements); i++)
     {
         g_tempMeasurements[i].tempFPCelcjus = TempMeasure::tempMeasurement_invalid;
-        g_tempMeasurements[i].timePassed = 0;
+        g_tempMeasurements[i].timeStamp = 0;
     }
     g_lastTempMeasurementIt =  NUM_ELS(TempMeasure::g_tempMeasurements) - 1;
-    TempMeasure::g_lastMeasurementTime = Sleeper::getUpTime();
 }
 
 //@brief Makes a single temperature measurement and returns temperature in celcius in fixed point
@@ -52,10 +51,10 @@ TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
 }
 
 //@brief Makes a temperature measurement and constucts the temperature measurement record
-void TempMeasure::getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime)
+void TempMeasure::getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime)
 {
-    out.timePassed = HKTime::getShortDiff(currentTime, lastUpTime);
-    out.tempFPCelcjus = getSingleTempMeasurement();
+    out.timeStamp       = HKTime::SmallUpTime(currentTime);
+    out.tempFPCelcjus   = getSingleTempMeasurement();
 }
 
 //@brief Makes a temperature measurement store measurement record
@@ -68,10 +67,9 @@ void TempMeasure::measureTemperature(void)
     {
         g_lastTempMeasurementIt  = 0;
     }
-    HKTime::UpTime thisUpTime = Sleeper::getUpTime();
-    getSingleTempMeasurement(g_tempMeasurements[g_lastTempMeasurementIt], thisUpTime , g_lastMeasurementTime);
+    HKTime::SmallUpTime thisUpTime = (HKTime::SmallUpTime)Sleeper::getUpTime();
+    getSingleTempMeasurement(g_tempMeasurements[g_lastTempMeasurementIt], thisUpTime);
 
-    g_lastMeasurementTime = thisUpTime;
 }
 
 //@brief returs temp measurement record back in records number

@@ -71,6 +71,7 @@ void HKComm::echoLetter(uint8_t l)
 }
 
 
+
 //@Brief parses the ASCII and fills the pointer with value
 //@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
 uint8_t HKComm::dataToUnsignedShort(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
@@ -96,9 +97,9 @@ uint8_t HKComm::dataToUnsignedShort(uint16_t offset, const uint8_t (&inData)[com
     }
 }
 
-uint8_t HKComm::shortToData(uint16_t & inOutOffset, uint8_t (&inData)[commandMaxDataSize], const uint16_t  inVal )
+uint8_t HKComm::shortToData(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], const uint16_t  inVal )
 {
-    if (inOutOffset <= commandMaxDataSize - sizeof(uint16_t) * 2 - commandEOLSizeOnRecieve)
+    if (inOutOffset + sizeof(uint16_t) * 2 < sizeof(inOutData)  )
     {
         for (uint8_t i = 0; i < sizeof(inVal); i++)
         {
@@ -108,8 +109,8 @@ uint8_t HKComm::shortToData(uint16_t & inOutOffset, uint8_t (&inData)[commandMax
             uint8_t lowHex = l & uint8_t(0xF);
             lowHex += lowHex > uint8_t(9) ? uint8_t('a') - uint8_t(10) : uint8_t('0');
 
-            inData[inOutOffset++] = highHex;
-            inData[inOutOffset++] = lowHex;
+            inOutData[inOutOffset++] = highHex;
+            inOutData[inOutOffset++] = lowHex;
         }
         return 0;
     }
@@ -119,6 +120,40 @@ uint8_t HKComm::shortToData(uint16_t & inOutOffset, uint8_t (&inData)[commandMax
     }
 
 }
+
+//@brief formats the measurement time/val pair directly into buffer
+//@param [inout] inOutOffset:  base and new offset in buffer
+//@param [inout] inoutData:  buffer where to input the function
+//@param [in ] inoutDataSize:  size of buffer
+//@return 0 if ok, serialErr_Assert  if error
+uint8_t HKComm::formatMeasurement(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], HKTime::SmallUpTime timeStamp, int16_t val)
+{
+    static const char chStart = '(';
+    static const char chSeparator = ',';
+    static const char chEnd   = ')';
+
+    if (inOutOffset
+        + sizeof(chStart)
+        + sizeof(uint16_t) * 2 *2 
+        + sizeof(chEnd)
+        + sizeof(uint16_t) * 2
+        + sizeof(chEnd) < sizeof(inOutData))
+    {
+        inOutData[inOutOffset++]=chStart;
+        shortToData(inOutOffset, inOutData, uint16_t(timeStamp >> 16)); //MSB first
+        shortToData(inOutOffset, inOutData, uint16_t(timeStamp));       //LSB
+        inOutData[inOutOffset++]=chSeparator;
+        shortToData(inOutOffset, inOutData, val);
+        inOutData[inOutOffset++]=chEnd;
+        
+        return serialErr_None;
+    }
+    else
+    {
+        return serialErr_Assert;
+    }
+}
+
 
 
 //------------------------------------------------------------------
@@ -162,28 +197,35 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
         if (inOutCommand[command_subIdPos2] = 'M')
         {
             //CTC
-
-            //check for size correctness
-            if (dataSize < sizeof(short) * 2)
+            Sleeper::SleepTime sleepTime = 0;
+            if (dataSize < sizeof(uint16_t) * 2)
             {
                 return serialErr_NumberToShort;
             }
-
-            uint16_t tempMeasmntInterval;
-            uint8_t e = dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
-
-            if (e != serialErr_None)
+            else if (dataSize == sizeof(uint16_t))
             {
-                return e;
-            }
+                uint16_t tempMeasmntInterval;
+                uint8_t e = dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
 
-            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, (Sleeper::SleepTime)tempMeasmntInterval);
+                if (e != serialErr_None)
+                {
+                    return e;
+                }
+                sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
+            }
+            else if (dataSize == sizeof(int32_t))
+            {
+                return serialErr_Assert; // not ready yet...
+            }
+            else
+            {
+                return serialErr_NumberToShort;
+            }
+            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer,sleepTime );
             //Response is same as command...
             //todo actually read that and respond accordingly
-
-                //not touch data
-                //set size to number of elements in data.
-            dataSize = sizeof(short) * 2;
+            //for now its just unchanged,
+            
             return serialErr_None;
         }
         inOutCommand[command_subIdPos2] = 'u';
@@ -209,26 +251,38 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
 
         switch (inOutCommand[command_subIdPos2])
         {
-        case 'M':
+        case 'M':   //make a measurement
         {
-            //make a measurement
-            TempMeasure::TempMeasurement val = TempMeasure::getSingleTempMeasurement();
+            TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
             inOutCommand[commandIdentifierPos] =  'V';
-            //inOutCommand[command_subIdPos1] =  'T';
-            //inOutCommand[command_subIdPos2] =  'M'
-            uint16_t it = 0;
-            inOutData[it++]='(';
-            retVal = shortToData(it, inOutData, 0);
-            inOutData[it++]=',';
-            retVal = shortToData(it, inOutData, val);
-            inOutData[it++]=')';
+            dataSize = 0;
+            retVal = formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()) , singleTempMeasurement);
             if (retVal != serialErr_None)
             {
                 return retVal;
             }
-            dataSize = it;
             break;
         }
+
+        case 'H':  //temperatue history
+        {
+            //check for size correctness
+            if (dataSize < sizeof(short) * 2)
+            {
+                return serialErr_NumberToShort;
+            }
+            uint16_t measurementsToReturn;
+            uint8_t e = dataToUnsignedShort(0, inOutData, measurementsToReturn);
+            if (e != serialErr_None)
+            {
+                return e;
+            }
+            //measurementsToReturn contains how many
+
+
+
+        }
+
         default:
         {
             dataSize = 0;

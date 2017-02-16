@@ -71,7 +71,6 @@ TEST(TempMeasurementTest, t1)
     MockSleeper    &   s = MockSleeper::instance();
     MockTempSensor & mTS = MockTempSensor::instance();
 
-    EXPECT_CALL(s, getUpTime()).WillOnce(Return(0));
     TempMeasure::initMeasureTemperature();
     ASSERT_EQ(TempMeasure::g_lastTempMeasurementIt, NUM_ELS(TempMeasure::g_tempMeasurements) - 1);  //it is expected to be roll over on first call
 
@@ -80,14 +79,14 @@ TEST(TempMeasurementTest, t1)
 
     TempMeasure::measureTemperature();
     ASSERT_EQ(TempMeasure::g_lastTempMeasurementIt, 0);
-    ASSERT_EQ(TempMeasure::g_tempMeasurements[TempMeasure::g_lastTempMeasurementIt].timePassed, 2);
+    ASSERT_EQ(TempMeasure::g_tempMeasurements[TempMeasure::g_lastTempMeasurementIt].timeStamp, 2);
     ASSERT_EQ(TempMeasure::g_tempMeasurements[TempMeasure::g_lastTempMeasurementIt].tempFPCelcjus, 122*16 + 4);
 
     EXPECT_CALL(s, getUpTime()).WillOnce(Return(22));
     EXPECT_CALL(mTS, readTemperature()).WillOnce(Return(-11.25f));
     TempMeasure::measureTemperature();
     ASSERT_EQ(TempMeasure::g_lastTempMeasurementIt, 1);
-    ASSERT_EQ(TempMeasure::g_tempMeasurements[TempMeasure::g_lastTempMeasurementIt].timePassed, 20);
+    ASSERT_EQ(TempMeasure::g_tempMeasurements[TempMeasure::g_lastTempMeasurementIt].timeStamp, 22);
     ASSERT_EQ(TempMeasure::g_tempMeasurements[TempMeasure::g_lastTempMeasurementIt].tempFPCelcjus, -11*16 - 4);
 
 }
@@ -97,7 +96,6 @@ TEST(TempMeasurementTest, t2)
     MockSleeper    &   s = MockSleeper::instance();
     MockTempSensor & mTS = MockTempSensor::instance();
 
-    EXPECT_CALL(s, getUpTime()).WillOnce(Return(0));
     TempMeasure::initMeasureTemperature();
     ASSERT_EQ(TempMeasure::g_lastTempMeasurementIt, NUM_ELS(TempMeasure::g_tempMeasurements) - 1);  //it is expected to be roll over on first call
 
@@ -106,7 +104,7 @@ TEST(TempMeasurementTest, t2)
 
     for (int i = 0; i < measurements ; i++)
     {
-        EXPECT_CALL(s, getUpTime()).WillOnce(Return((i+1)*(i+1)));
+        EXPECT_CALL(s, getUpTime()).WillOnce(Return(i));
         EXPECT_CALL(mTS, readTemperature()).WillOnce(Return( float (i * 1.0 / 16.0)) );
         TempMeasure::measureTemperature();
     }
@@ -115,19 +113,19 @@ TEST(TempMeasurementTest, t2)
 
     for (int i = 0; i < measurements; i++)
     {
-        ASSERT_EQ(TempMeasure::g_tempMeasurements[i].timePassed, i*2 +1);
+        ASSERT_EQ(TempMeasure::g_tempMeasurements[i].timeStamp, i);
         ASSERT_EQ(TempMeasure::g_tempMeasurements[i].tempFPCelcjus, i );
     }
     //now, check the get function
     for (int i = 0; i < measurements; i++)
     {
-        TempMeasure::TempRecord rec(2*(measurements -1 - i) + 1, measurements -i - 1 );
-        ASSERT_EQ(TempMeasure::getTempMeasurementRecord(i).timePassed,rec.timePassed );
+        TempMeasure::TempRecord rec(measurements -1 - i, measurements -i - 1 );
+        ASSERT_EQ(TempMeasure::getTempMeasurementRecord(i).timeStamp,rec.timeStamp );
         ASSERT_EQ(TempMeasure::getTempMeasurementRecord(i).tempFPCelcjus,rec.tempFPCelcjus);
     }
     // test over range
-    TempMeasure::TempRecord rec(1,0);
-    ASSERT_EQ(TempMeasure::getTempMeasurementRecord(1234).timePassed,rec.timePassed );
+    TempMeasure::TempRecord rec(0,0);
+    ASSERT_EQ(TempMeasure::getTempMeasurementRecord(1234).timeStamp,rec.timeStamp );
     ASSERT_EQ(TempMeasure::getTempMeasurementRecord(2345).tempFPCelcjus,rec.tempFPCelcjus);
 
 }

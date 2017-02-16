@@ -36,22 +36,22 @@ public:
     struct TempRecord
     {
         TempRecord()
-            : timePassed(TempMeasure::tempMeasurement_invalid)
-            , tempFPCelcjus(0)
+            : timeStamp(0)
+            , tempFPCelcjus(TempMeasure::tempMeasurement_invalid)
         {}
 
 
-        TempRecord(HKTime::ShortTimeDiff  timePassed, TempMeasurement tempFPCelcjus)
-            : timePassed(timePassed)
+        TempRecord(HKTime::SmallUpTime timeStamp, TempMeasurement tempFPCelcjus)
+            : timeStamp(timeStamp)
             , tempFPCelcjus(tempFPCelcjus)
         {}
 
-        HKTime::ShortTimeDiff  timePassed;
+        HKTime::SmallUpTime    timeStamp;
         TempMeasurement        tempFPCelcjus;
     };
 
-    static TempMeasurement getSingleTempMeasurement(void);                     //returns single value of temperature
-    static void getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime);     //returns single value. It gets the current time 
+    static TempMeasurement getSingleTempMeasurement(void);                     
+    static void getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime);
     static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
 
 
@@ -63,7 +63,6 @@ public:
     static TempRecord  g_tempMeasurements[maxMeasurements];
 
     static uint16_t g_lastTempMeasurementIt;
-    static HKTime::UpTime    g_lastMeasurementTime;
 };
 //-------------------------------------------------
 #endif

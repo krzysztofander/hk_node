@@ -28,7 +28,7 @@ class HKTime
 public:
     typedef int64_t UpTime;             //signed!
     //typedef uint32_t TimeDiff;
-    //typedef uint16_t ShortUpTime;
+    typedef int32_t SmallUpTime;
     typedef int16_t ShortTimeDiff;      //signed!
 
 
