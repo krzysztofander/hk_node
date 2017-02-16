@@ -58,6 +58,8 @@ public:
     MOCK_METHOD2(alert, void(uint8_t, bool b));
     MOCK_METHOD2(Executor_setExecutionTime, void(uint8_t, uint16_t));
     MOCK_METHOD0(getSingleTempMeasurement, uint16_t(void));
+    MOCK_METHOD1(getTempMeasurementRecord, TempMeasure::TempRecord(uint16_t));
+
 
     static MockLooseFn & instance()
     {
@@ -75,6 +77,12 @@ TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
 {
     return MockLooseFn::instance().getSingleTempMeasurement();
 }
+TempMeasure::TempRecord TempMeasure::getTempMeasurementRecord(uint16_t howManyRecordsBack)
+{
+    return MockLooseFn::instance().getTempMeasurementRecord(howManyRecordsBack);
+}
+
+
 
 void Executor::setExecutionTime(uint8_t t, Sleeper::SleepTime  s)
 {

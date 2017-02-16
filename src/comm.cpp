@@ -71,31 +71,78 @@ void HKComm::echoLetter(uint8_t l)
 }
 
 
-
-//@Brief parses the ASCII and fills the pointer with value
+//@Brief parses the ASCII and fills the reference with value
 //@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
-uint8_t HKComm::dataToUnsignedShort(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
+template <class C>
+uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKComm::commandMaxDataSize], C & retVal )
 {
-    if (offset <= commandMaxDataSize - sizeof(uint16_t) * 2 - commandEOLSizeOnRecieve)
+    if (offset <= HKComm::commandMaxDataSize - sizeof(C) * 2 - HKComm::commandEOLSizeOnRecieve)
     {
-        for (uint8_t i = 0; i < sizeof(uint16_t) * 2; i++)
+        for (uint8_t i = 0; i < sizeof(C) * 2; i++)
         {
             uint8_t v;
             uint8_t r = charToUnsigned(inData[offset + i], &v);
             if (!!r)
             {
-                return serialErr_IncorrectNumberFormat;
+                return HKComm::serialErr_IncorrectNumberFormat;
             }
             retVal <<= 4; //bits per digit
-            retVal |= (uint16_t)v;
+            retVal |= (C)v;
         }
         return 0;
     }
     else
     {
-        return serialErr_Assert;
+        return HKComm::serialErr_Assert;
     }
 }
+
+class ExtraRecordsHDL
+{
+    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
+
+    //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
+    // in valid returs if record is valid or run ouf of scheduled elems
+    static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKComm::commandMaxDataSize])
+    {
+        HKTime::SmallUpTime timeReturned;
+        int16_t  value;
+        if (dataReciever == 0|| recordsIt == 0)
+        {
+            valid = 0;
+            return HKComm::serialErr_None;
+        }
+        uint8_t err = dataReciever(timeReturned, value, recordsIt);
+        recordsIt--;
+        if (err)
+        {
+            return err;
+        }
+        err  = HKComm::formatMeasurement(inOutOffset, outData, timeReturned, value);
+        return err;
+    }
+
+    static void setNumRecords(uint16_t records)
+    {
+        recordsIt = records;
+    }
+
+    static uint16_t recordsIt;
+    static DataReciever  dataReciever;
+};
+
+
+//@Brief parses the ASCII and fills the reference with value
+//@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
+uint8_t HKComm::dataToUnsignedShort(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
+{
+    return dataToType(offset, inData, retVal);
+}
+uint8_t HKComm::dataToUnsigned32(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint32_t & retVal )
+{
+    return dataToType(offset, inData, retVal);
+}
+
 
 uint8_t HKComm::shortToData(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], const uint16_t  inVal )
 {
@@ -206,7 +253,6 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             {
                 uint16_t tempMeasmntInterval;
                 uint8_t e = dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
-
                 if (e != serialErr_None)
                 {
                     return e;
@@ -215,7 +261,13 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             }
             else if (dataSize == sizeof(int32_t))
             {
-                return serialErr_Assert; // not ready yet...
+                uint32_t tempMeasmntInterval;
+                uint8_t e = dataToUnsigned32(0, inOutData, tempMeasmntInterval);
+                if (e != serialErr_None)
+                {
+                    return e;
+                }
+                sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
             }
             else
             {
@@ -241,6 +293,8 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
     }
 
 }
+
+
 
 uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize)
 {
@@ -277,8 +331,19 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             {
                 return e;
             }
-            //measurementsToReturn contains how many
-
+            //measurementsToReturn contains how many. First one returns difference of current to timestamp
+            HKTime::UpTime diff = Sleeper::getUpTime();
+            diff = diff - TempMeasure::getTempMeasurementRecord(0).timeStamp;
+           
+            retVal = formatMeasurement(dataSize,
+                                       inOutData,
+                                       HKTime::SmallUpTime(diff),
+                                       TempMeasure::getTempMeasurementRecord(0).tempFPCelcjus);
+            if (retVal != serialErr_None)
+            {
+                return retVal;
+            }
+            
 
 
         }
