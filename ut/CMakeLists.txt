@@ -50,11 +50,19 @@ project (unit_tests)
    set(SERIAL_SOURCES
         ${TOP}/hk_node/src/serial.cpp
         ${TOP}/hk_node/src/comm.cpp
+        ${TOP}/hk_node/src/comm_extra_records.cpp
+        ${TOP}/hk_node/src/comm_common.cpp
+        ${TOP}/hk_node/src/comm_defs.cpp
 
         serial_ut.cc
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/comm.h
+        ${TOP}/hk_node/src/comm_extra_records.h
+        ${TOP}/hk_node/src/comm_common.h
+        ${TOP}/hk_node/src/comm_defs.h
+       
+
         ${TOP}/hk_node/src/serial.h
     )
 

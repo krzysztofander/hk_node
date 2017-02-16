@@ -17,30 +17,32 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_COMM_H
-#define HK_COMM_H
+#ifndef HK_COMM_COMMON_H
+#define HK_COMM_COMMON_H
 
 #include "hk_node.h"
 #include "comm_defs.h"
 
-class HKComm
+class HKCommCommon
 {
 public:
+     
+    static uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet);
 
-    static uint8_t command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-    static uint8_t command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-    static uint8_t command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
+    static uint8_t dataToUnsignedShort(uint16_t offset, 
+                                       const uint8_t (&inData)[HKCommDefs::commandMaxDataSize ],
+                                       uint16_t & retVal);
+    static uint8_t dataToUnsigned32(uint16_t offset,
+                                    const uint8_t (&inData)[HKCommDefs::commandMaxDataSize],
+                                    uint32_t & retVal);
 
-    static uint8_t respondSerial(void);
-    static void echoLetter(uint8_t l);
-    static uint8_t isActive(void);
+    static uint8_t shortToData(uint16_t & inOutOffset, 
+                               uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                               const uint16_t  inVal);
 
-    static uint8_t g_command[HKCommDefs::commandSize];
-    static uint8_t g_data[HKCommDefs::commandMaxDataSize];
-    static uint16_t g_dataIt;
-
-    static uint8_t g_SerialState;
-    static uint8_t g_serialError;
+    static uint8_t formatMeasurement(uint16_t & inOutOffset, 
+                                     uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                     HKTime::SmallUpTime timeStamp, int16_t val);
 
 
 };

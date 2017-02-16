@@ -25,26 +25,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm.h"
 #include "supp.h"
 #include "temp_measurement.h"
-
-const uint8_t  HKComm::commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
-
-//@Brief parses the ASCII and fills the pointer with value
-//@Returns 0 if ok, 
-uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet)
-{
-    if (givenChar >= uint8_t('0') && givenChar <= uint8_t('9') )
-    {
-        *valToSet = givenChar - uint8_t('0');
-        return 0;
-    }
-    else if (givenChar >= uint8_t('a') && givenChar <= uint8_t('f'))
-    {
-        givenChar -= (uint8_t('a') - uint8_t(10));
-        *valToSet = givenChar;
-        return uint8_t(0);
-    }
-    return uint8_t(1);
-}
+#include "comm_common.h"
 
 void HKComm::echoLetter(uint8_t l)
 {
@@ -71,163 +52,32 @@ void HKComm::echoLetter(uint8_t l)
 }
 
 
-//@Brief parses the ASCII and fills the reference with value
-//@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
-template <class C>
-uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKComm::commandMaxDataSize], C & retVal )
-{
-    if (offset <= HKComm::commandMaxDataSize - sizeof(C) * 2 - HKComm::commandEOLSizeOnRecieve)
-    {
-        for (uint8_t i = 0; i < sizeof(C) * 2; i++)
-        {
-            uint8_t v;
-            uint8_t r = charToUnsigned(inData[offset + i], &v);
-            if (!!r)
-            {
-                return HKComm::serialErr_IncorrectNumberFormat;
-            }
-            retVal <<= 4; //bits per digit
-            retVal |= (C)v;
-        }
-        return 0;
-    }
-    else
-    {
-        return HKComm::serialErr_Assert;
-    }
-}
-
-class ExtraRecordsHDL
-{
-    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
-
-    //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
-    // in valid returs if record is valid or run ouf of scheduled elems
-    static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKComm::commandMaxDataSize])
-    {
-        HKTime::SmallUpTime timeReturned;
-        int16_t  value;
-        if (dataReciever == 0|| recordsIt == 0)
-        {
-            valid = 0;
-            return HKComm::serialErr_None;
-        }
-        uint8_t err = dataReciever(timeReturned, value, recordsIt);
-        recordsIt--;
-        if (err)
-        {
-            return err;
-        }
-        err  = HKComm::formatMeasurement(inOutOffset, outData, timeReturned, value);
-        return err;
-    }
-
-    static void setNumRecords(uint16_t records)
-    {
-        recordsIt = records;
-    }
-
-    static uint16_t recordsIt;
-    static DataReciever  dataReciever;
-};
-
-
-//@Brief parses the ASCII and fills the reference with value
-//@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
-uint8_t HKComm::dataToUnsignedShort(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
-{
-    return dataToType(offset, inData, retVal);
-}
-uint8_t HKComm::dataToUnsigned32(uint16_t offset, const uint8_t (&inData)[commandMaxDataSize], uint32_t & retVal )
-{
-    return dataToType(offset, inData, retVal);
-}
-
-
-uint8_t HKComm::shortToData(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], const uint16_t  inVal )
-{
-    if (inOutOffset + sizeof(uint16_t) * 2 < sizeof(inOutData)  )
-    {
-        for (uint8_t i = 0; i < sizeof(inVal); i++)
-        {
-            uint8_t l = uint8_t(inVal >> (8 - (8 * i)));
-            uint8_t highHex = l >> 4 ;
-            highHex += highHex > uint8_t(9) ? uint8_t('a') - uint8_t(10) : uint8_t('0');
-            uint8_t lowHex = l & uint8_t(0xF);
-            lowHex += lowHex > uint8_t(9) ? uint8_t('a') - uint8_t(10) : uint8_t('0');
-
-            inOutData[inOutOffset++] = highHex;
-            inOutData[inOutOffset++] = lowHex;
-        }
-        return 0;
-    }
-    else
-    {
-        return serialErr_Assert;
-    }
-
-}
-
-//@brief formats the measurement time/val pair directly into buffer
-//@param [inout] inOutOffset:  base and new offset in buffer
-//@param [inout] inoutData:  buffer where to input the function
-//@param [in ] inoutDataSize:  size of buffer
-//@return 0 if ok, serialErr_Assert  if error
-uint8_t HKComm::formatMeasurement(uint16_t & inOutOffset, uint8_t (&inOutData)[commandMaxDataSize], HKTime::SmallUpTime timeStamp, int16_t val)
-{
-    static const char chStart = '(';
-    static const char chSeparator = ',';
-    static const char chEnd   = ')';
-
-    if (inOutOffset
-        + sizeof(chStart)
-        + sizeof(uint16_t) * 2 *2 
-        + sizeof(chEnd)
-        + sizeof(uint16_t) * 2
-        + sizeof(chEnd) < sizeof(inOutData))
-    {
-        inOutData[inOutOffset++]=chStart;
-        shortToData(inOutOffset, inOutData, uint16_t(timeStamp >> 16)); //MSB first
-        shortToData(inOutOffset, inOutData, uint16_t(timeStamp));       //LSB
-        inOutData[inOutOffset++]=chSeparator;
-        shortToData(inOutOffset, inOutData, val);
-        inOutData[inOutOffset++]=chEnd;
-        
-        return serialErr_None;
-    }
-    else
-    {
-        return serialErr_Assert;
-    }
-}
-
-
 
 //------------------------------------------------------------------
 // @brief Response for D (debug) function  
 
-uint8_t HKComm::command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize)
+uint8_t HKComm::command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     (void)inOutData;
 
-    switch (inOutCommand[command_subIdPos1])
+    switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'E': //echo 
         //Ignore inOutCommand[command_subIdPos2] 
         //Response:
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-          inOutCommand[command_subIdPos1] = 'R';
+          inOutCommand[HKCommDefs::command_subIdPos1] = 'R';
         //inOutCommand[command_subIdPos2] = as is
         break;
     default:  //unknown 'D' command
         //Response:
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-        inOutCommand[command_subIdPos1] = 'u';
-        inOutCommand[command_subIdPos2] =  'n';
+        inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
+        inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
         break;
     }
     dataSize = 0;
-    return serialErr_None;  //no data set...
+    return HKCommDefs::serialErr_None;  //no data set...
     
 }
 
@@ -235,25 +85,25 @@ uint8_t HKComm::command_D(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
 // @brief Response for C (configuration) request function  
 // @Returns 0 ok, 1 or above - serial error
 
-uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize)
+uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     (void)inOutData;
-    switch (inOutCommand[command_subIdPos1])
+    switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'T': //configure temperature
-        if (inOutCommand[command_subIdPos2] = 'M')
+        if (inOutCommand[HKCommDefs::command_subIdPos2] = 'M')
         {
             //CTC
             Sleeper::SleepTime sleepTime = 0;
             if (dataSize < sizeof(uint16_t) * 2)
             {
-                return serialErr_NumberToShort;
+                return HKCommDefs::serialErr_NumberToShort;
             }
             else if (dataSize == sizeof(uint16_t))
             {
                 uint16_t tempMeasmntInterval;
-                uint8_t e = dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
-                if (e != serialErr_None)
+                uint8_t e = HKCommCommon::dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
+                if (e != HKCommDefs::serialErr_None)
                 {
                     return e;
                 }
@@ -262,8 +112,8 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             else if (dataSize == sizeof(int32_t))
             {
                 uint32_t tempMeasmntInterval;
-                uint8_t e = dataToUnsigned32(0, inOutData, tempMeasmntInterval);
-                if (e != serialErr_None)
+                uint8_t e = HKCommCommon::dataToUnsigned32(0, inOutData, tempMeasmntInterval);
+                if (e != HKCommDefs::serialErr_None)
                 {
                     return e;
                 }
@@ -271,47 +121,47 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             }
             else
             {
-                return serialErr_NumberToShort;
+                return HKCommDefs::serialErr_NumberToShort;
             }
             Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer,sleepTime );
             //Response is same as command...
             //todo actually read that and respond accordingly
             //for now its just unchanged,
             
-            return serialErr_None;
+            return HKCommDefs::serialErr_None;
         }
-        inOutCommand[command_subIdPos2] = 'u';
+        inOutCommand[HKCommDefs::command_subIdPos2] = 'u';
         dataSize = 0;
-        dataSize = serialErr_None;
+        dataSize = HKCommDefs::serialErr_None;
      
     default:  //unknown 'C' command
         //Response:
-        inOutCommand[command_subIdPos1] =  'u';
-        inOutCommand[command_subIdPos2] =  'n';
+        inOutCommand[HKCommDefs::command_subIdPos1] =  'u';
+        inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
         dataSize = 0;
-        return serialErr_None;
+        return HKCommDefs::serialErr_None;
     }
 
 }
 
 
 
-uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutData)[commandMaxDataSize], uint16_t & dataSize)
+uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     uint8_t retVal;
-    switch (inOutCommand[command_subIdPos1])
+    switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'T':
 
-        switch (inOutCommand[command_subIdPos2])
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
         {
         case 'M':   //make a measurement
         {
             TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
-            inOutCommand[commandIdentifierPos] =  'V';
+            inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
             dataSize = 0;
-            retVal = formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()) , singleTempMeasurement);
-            if (retVal != serialErr_None)
+            retVal = HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()) , singleTempMeasurement);
+            if (retVal != HKCommDefs::serialErr_None)
             {
                 return retVal;
             }
@@ -323,11 +173,11 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             //check for size correctness
             if (dataSize < sizeof(short) * 2)
             {
-                return serialErr_NumberToShort;
+                return HKCommDefs::serialErr_NumberToShort;
             }
             uint16_t measurementsToReturn;
-            uint8_t e = dataToUnsignedShort(0, inOutData, measurementsToReturn);
-            if (e != serialErr_None)
+            uint8_t e = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
+            if (e != HKCommDefs::serialErr_None)
             {
                 return e;
             }
@@ -335,11 +185,11 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
             HKTime::UpTime diff = Sleeper::getUpTime();
             diff = diff - TempMeasure::getTempMeasurementRecord(0).timeStamp;
            
-            retVal = formatMeasurement(dataSize,
+            retVal = HKCommCommon::formatMeasurement(dataSize,
                                        inOutData,
                                        HKTime::SmallUpTime(diff),
                                        TempMeasure::getTempMeasurementRecord(0).tempFPCelcjus);
-            if (retVal != serialErr_None)
+            if (retVal != HKCommDefs::serialErr_None)
             {
                 return retVal;
             }
@@ -359,28 +209,28 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[commandSize], uint8_t (&inOutD
     {
               //Response:
               //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-        inOutCommand[command_subIdPos1] = 'u';
-        inOutCommand[command_subIdPos2] =  'n';
+        inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
+        inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
         break;
     }
     }
-    return serialErr_None;  //no data set...
+    return HKCommDefs::serialErr_None;  //no data set...
 }
 
 
 
 //------------------------------------------------------------------
 
-uint8_t HKComm::g_SerialState = serialState_ReadCommand;
-uint8_t HKComm::g_command[HKComm::commandSize];
-uint8_t HKComm::g_data[HKComm::commandMaxDataSize];
+uint8_t HKComm::g_SerialState = HKCommDefs::serialState_ReadCommand;
+uint8_t HKComm::g_command[HKCommDefs::commandSize];
+uint8_t HKComm::g_data[HKCommDefs::commandMaxDataSize];
 uint16_t HKComm::g_dataIt = 0;
 
-uint8_t HKComm::g_serialError = serialErr_None;
+uint8_t HKComm::g_serialError = HKCommDefs::serialErr_None;
 
 uint8_t HKComm::isActive(void)
 {
-    if (g_SerialState != serialState_ReadCommand
+    if (g_SerialState != HKCommDefs::serialState_ReadCommand
         || HKSerial::available() > 0)
         return 1;
     else
@@ -396,13 +246,13 @@ uint8_t  HKComm::respondSerial(void)
     //alert(g_SerialState +1, false);
     switch (g_SerialState)
     {
-        case serialState_ReadCommand:
+        case HKCommDefs::serialState_ReadCommand:
         {
             // read whole command first.
             if (HKSerial::available() >=  NUM_ELS(g_command))
             {
                 //peek for preamble:
-                if (HKSerial::peek() == preamble)
+                if (HKSerial::peek() == HKCommDefs::preamble)
                 {
                     //ignore preamble
                     HKSerial::read();
@@ -413,33 +263,33 @@ uint8_t  HKComm::respondSerial(void)
                 {
                     g_command[commandIt] = HKSerial::read();
                     //in case of error here...
-                    if (g_command[commandIt] == uint8_t(commandEOLSignOnRecieve))
+                    if (g_command[commandIt] == uint8_t(HKCommDefs::commandEOLSignOnRecieve))
                     {
-                        g_serialError = serialErr_eolInCommand;
-                        g_SerialState =  serialState_Error;
+                        g_serialError = HKCommDefs::serialErr_eolInCommand;
+                        g_SerialState =  HKCommDefs::serialState_Error;
                         return true;
                     }
                 }
-                g_serialError = serialErr_None;
+                g_serialError = HKCommDefs::serialErr_None;
                 //all ok, switch to data
-                g_SerialState = serialState_ReadData;
+                g_SerialState = HKCommDefs::serialState_ReadData;
                 g_dataIt = 0;
                 return 1;
             }
             break;
         }
 
-        case serialState_ReadData:
+        case HKCommDefs::serialState_ReadData:
         {
             if (HKSerial::available() >= 1)
             {
                 //read up to end of line or to error
                 g_data[g_dataIt] = HKSerial::read();
                 //echoLetter(g_data[g_dataIt] );
-                if (g_data[g_dataIt] == uint8_t(commandEOLSignOnRecieve))
+                if (g_data[g_dataIt] == uint8_t(HKCommDefs::commandEOLSignOnRecieve))
                 {
                       //found end of line
-                    g_SerialState =  serialState_Action;
+                    g_SerialState =  HKCommDefs::serialState_Action;
                     return 1;
                 }
                 else
@@ -447,8 +297,8 @@ uint8_t  HKComm::respondSerial(void)
                     if (g_dataIt >= NUM_ELS(g_data) - 1 /*cannot increase g_dataIt as next read we would go out of buffer*/ )
                     {
                         //lost end of line and have a buffer full already. It must be an error
-                        g_serialError = serialErr_noEolFound;
-                        g_SerialState =  serialState_Error;
+                        g_serialError = HKCommDefs::serialErr_noEolFound;
+                        g_SerialState =  HKCommDefs::serialState_Error;
                         return 1;
                     }
                     else
@@ -462,12 +312,12 @@ uint8_t  HKComm::respondSerial(void)
             }
             break;
         }
-        case serialState_Action:
+        case HKCommDefs::serialState_Action:
         {
             //command  and data recieved. Handle that...
             //TODO remove this state.
             
-            switch (g_command[commandIdentifierPos])
+            switch (g_command[HKCommDefs::commandIdentifierPos])
             {
             case 'D':
                 g_serialError = command_D(g_command, g_data, g_dataIt);
@@ -480,23 +330,23 @@ uint8_t  HKComm::respondSerial(void)
                 break;
 
             default :
-                g_serialError  = serialErr_UnknownCommand;
+                g_serialError  = HKCommDefs::serialErr_UnknownCommand;
             }
 
-            if (g_serialError == serialErr_None)
+            if (g_serialError == HKCommDefs::serialErr_None)
             {
                 //we have response command and response data in buffers. 
 
-                g_SerialState = serialState_Respond;
+                g_SerialState = HKCommDefs::serialState_Respond;
             }
             else
             {
-                g_SerialState = serialState_Error;
+                g_SerialState = HKCommDefs::serialState_Error;
             }
             return 1;
             break;
         }
-        case serialState_Respond:
+        case HKCommDefs::serialState_Respond:
         {
             
             //write command then variable number of data then end of line sequence.
@@ -505,29 +355,29 @@ uint8_t  HKComm::respondSerial(void)
             {
                 written += HKSerial::write(g_data, g_dataIt);
             }
-            written += HKSerial::write(commandEOLOnResponceSequence,NUM_ELS(commandEOLOnResponceSequence));
+            written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
 
             //check if ammount written matches to what was expected
-            if (written != NUM_ELS(g_command)+ g_dataIt + NUM_ELS(commandEOLOnResponceSequence))
+            if (written != NUM_ELS(g_command)+ g_dataIt + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
             {
-                g_serialError = serialErr_WriteFail;
-                g_SerialState = serialState_Error;
+                g_serialError = HKCommDefs::serialErr_WriteFail;
+                g_SerialState = HKCommDefs::serialState_Error;
                 //leaving g_dataIt  as is for debug purposes...
             }
             else
             {
-                g_serialError = serialErr_None;
-                g_SerialState = serialState_ReadCommand;
+                g_serialError = HKCommDefs::serialErr_None;
+                g_SerialState = HKCommDefs::serialState_ReadCommand;
                 g_dataIt = 0;
             }
             return 1;
             break;
         }
         default:
-        case serialState_Error:
+        case HKCommDefs::serialState_Error:
         {
             
-            if (serialErr_WriteFail != g_serialError)
+            if (HKCommDefs::serialErr_WriteFail != g_serialError)
             {
                 g_command[0]='E';
                 g_command[1]='R';
@@ -535,10 +385,10 @@ uint8_t  HKComm::respondSerial(void)
 
 
                 g_dataIt = 0;
-                shortToData(g_dataIt, g_data, g_serialError);
+                HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
 
-                g_SerialState = serialState_Respond;
-                g_serialError = serialErr_None;
+                g_SerialState = HKCommDefs::serialState_Respond;
+                g_serialError = HKCommDefs::serialErr_None;
                 return 1;
             }
             break;

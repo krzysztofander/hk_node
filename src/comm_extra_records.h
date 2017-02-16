@@ -17,31 +17,26 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_COMM_H
-#define HK_COMM_H
+#ifndef HK_COMM_EXTRA_RECORDS_H
+#define HK_COMM_EXTRA_RECORDS_H
 
 #include "hk_node.h"
 #include "comm_defs.h"
 
-class HKComm
+class ExtraRecordsHDL
 {
-public:
+    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
 
-    static uint8_t command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-    static uint8_t command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-    static uint8_t command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-
-    static uint8_t respondSerial(void);
-    static void echoLetter(uint8_t l);
-    static uint8_t isActive(void);
-
-    static uint8_t g_command[HKCommDefs::commandSize];
-    static uint8_t g_data[HKCommDefs::commandMaxDataSize];
-    static uint16_t g_dataIt;
-
-    static uint8_t g_SerialState;
-    static uint8_t g_serialError;
+    //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
+    // in valid returs if record is valid or run ouf of scheduled elems
+    static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
+  
+    static void setNumRecords(uint16_t records);
 
 
+    static uint16_t recordsIt;
+    static DataReciever  dataReciever;
 };
+
+
 #endif
