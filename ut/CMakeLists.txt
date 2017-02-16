@@ -59,12 +59,12 @@ project (unit_tests)
     )
 
     add_test_executable(serial_ut "${GOOGLET_UT_LIBS}" "${SERIAL_SOURCES}" )
-    
-	
-	set(EXECUTUR_SOURCES
+
+    set(EXECUTUR_SOURCES
         ${TOP}/hk_node/src/executor.cpp
         ${TOP}/hk_node/src/temp_measurement.cpp
         executor_ut.cc
+        executor_ut.h
         temp_measure_ut.cc
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
@@ -80,7 +80,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/hk_node_main.cpp
         ${TOP}/hk_node/src/supp.cpp
         ${TOP}/hk_node/src/sleeper.cpp
-		${TOP}/hk_node/src/temp_sensor.cpp
+        ${TOP}/hk_node/src/temp_sensor.cpp
         ${TOP}/hk_node/src/nv.cpp
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h

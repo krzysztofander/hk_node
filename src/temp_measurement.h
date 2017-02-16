@@ -35,18 +35,31 @@ public:
 
     struct TempRecord
     {
+        TempRecord()
+            : timePassed(TempMeasure::tempMeasurement_invalid)
+            , tempFPCelcjus(0)
+        {}
+
+
+        TempRecord(HKTime::ShortTimeDiff  timePassed, TempMeasurement tempFPCelcjus)
+            : timePassed(timePassed)
+            , tempFPCelcjus(tempFPCelcjus)
+        {}
+
         HKTime::ShortTimeDiff  timePassed;
-        TempMeasurement        temp;
+        TempMeasurement        tempFPCelcjus;
     };
 
     static TempMeasurement getSingleTempMeasurement(void);                     //returns single value of temperature
     static void getSingleTempMeasurement(TempRecord & out, const HKTime::UpTime & currentTime, const HKTime::UpTime & lastUpTime);     //returns single value. It gets the current time 
+    static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
+
 
 
     static void initMeasureTemperature(void);                //init
     static void measureTemperature(void);                    //measure no
 
-public:    
+public:
     static TempRecord  g_tempMeasurements[maxMeasurements];
 
     static uint16_t g_lastTempMeasurementIt;

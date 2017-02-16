@@ -31,6 +31,9 @@ public:
     //typedef uint16_t ShortUpTime;
     typedef int16_t ShortTimeDiff;      //signed!
 
+
+    //@brief returns time difference in ShortTimeDiff (int16_t)
+    //In case the actual difference is higher returns it saturated up to ShortTimeDiff range
     static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
     {
         UpTime diff = current - last;
