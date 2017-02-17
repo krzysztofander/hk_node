@@ -26,6 +26,15 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "supp.h"
 #include "temp_measurement.h"
 #include "comm_common.h"
+#include "comm_extra_records.h"
+#include "comm_extra_rec_handlers.h"
+
+uint8_t  HKComm::g_SerialState = HKCommDefs::serialState_ReadCommand;
+uint8_t  HKComm::g_command[HKCommDefs::commandSize];
+uint8_t  HKComm::g_data[HKCommDefs::commandMaxDataSize];
+uint16_t HKComm::g_dataIt = 0;
+uint8_t  HKComm::g_serialError = HKCommDefs::serialErr_None;
+
 
 void HKComm::echoLetter(uint8_t l)
 {
@@ -181,6 +190,12 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             {
                 return e;
             }
+            //make it sane
+            if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
+            {
+                measurementsToReturn = TempMeasure::capacity();
+            }
+            
             //measurementsToReturn contains how many. First one returns difference of current to timestamp
             HKTime::UpTime diff = Sleeper::getUpTime();
             diff = diff - TempMeasure::getTempMeasurementRecord(0).timeStamp;
@@ -189,6 +204,17 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
                                        inOutData,
                                        HKTime::SmallUpTime(diff),
                                        TempMeasure::getTempMeasurementRecord(0).tempFPCelcjus);
+            
+            
+            measurementsToReturn--; //one is returned in inOutData
+
+            //now set up records handler
+            if (measurementsToReturn > 0)
+            {
+                HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
+                HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+            }
+
             if (retVal != HKCommDefs::serialErr_None)
             {
                 return retVal;
@@ -221,12 +247,6 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
 
 //------------------------------------------------------------------
 
-uint8_t HKComm::g_SerialState = HKCommDefs::serialState_ReadCommand;
-uint8_t HKComm::g_command[HKCommDefs::commandSize];
-uint8_t HKComm::g_data[HKCommDefs::commandMaxDataSize];
-uint16_t HKComm::g_dataIt = 0;
-
-uint8_t HKComm::g_serialError = HKCommDefs::serialErr_None;
 
 uint8_t HKComm::isActive(void)
 {
@@ -348,17 +368,40 @@ uint8_t  HKComm::respondSerial(void)
         }
         case HKCommDefs::serialState_Respond:
         {
-            
+
             //write command then variable number of data then end of line sequence.
-            uint8_t written = HKSerial::write(g_command,NUM_ELS(g_command));
+            uint8_t written = HKSerial::write(g_command, NUM_ELS(g_command));
             if (g_dataIt != 0)
             {
                 written += HKSerial::write(g_data, g_dataIt);
             }
+            //write extra records if any
+            uint8_t valid = 0;
+            uint8_t err = 0;
+            uint16_t extraRecChars;
+            uint16_t extraRecCharsCounter = 0;
+            do
+            {
+                extraRecChars  =0;
+                g_serialError = HKCommExtraRecordsHDL::formatedMeasurement(valid, extraRecChars, g_data);
+                if (g_serialError != HKCommDefs::serialErr_None)
+                {
+                    g_SerialState = HKCommDefs::serialState_Error;
+                    return 1;
+                }
+                if (valid != 0)
+                {
+                    written += HKSerial::write(g_data, g_dataIt);
+                    extraRecCharsCounter += extraRecChars;
+                }
+
+            } while (valid != 0);
+
+
             written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
 
             //check if ammount written matches to what was expected
-            if (written != NUM_ELS(g_command)+ g_dataIt + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
+            if (written != NUM_ELS(g_command)+ g_dataIt + extraRecCharsCounter + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
             {
                 g_serialError = HKCommDefs::serialErr_WriteFail;
                 g_SerialState = HKCommDefs::serialState_Error;

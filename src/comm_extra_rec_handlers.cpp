@@ -18,38 +18,23 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#include "comm_extra_records.h"
+
+#include "hk_node.h"
+#include "temp_measurement.h"
 #include "comm_common.h"
+#include "comm_extra_rec_handlers.h"
 
-
-uint16_t                             HKCommExtraRecordsHDL::recordsIt   = 0;
-HKCommExtraRecordsHDL::DataReciever  HKCommExtraRecordsHDL::dataReciever      = 0;
-
-//@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
-// in valid returs if record is valid or run ouf of scheduled elems
-uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
-                                             uint16_t & inOutOffset, 
-                                             uint8_t (&outData)[HKCommDefs::commandMaxDataSize])
+//@brief a function passed to HKCommExtraRecordsHDL so it returns extra records
+uint8_t HKCommExtraHLRs::RTHdataReciever(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack)
 {
-    HKTime::SmallUpTime timeReturned;
-    int16_t  value;
-    if (dataReciever == 0|| recordsIt == 0)
+    if (whichRecordBack == 0)
     {
-        valid = 0;
-        return HKCommDefs::serialErr_None;
+        return HKCommDefs::serialErr_Assert;
     }
-    uint8_t err = dataReciever(timeReturned, value, recordsIt);
-    recordsIt--;
-    if (err)
-    {
-        return err;
-    }
-    err  = HKCommCommon::formatMeasurement(inOutOffset, outData, timeReturned, value);
-    return err;
-}
+    timeReturned =    TempMeasure::getTempMeasurementRecord(whichRecordBack -1).timeStamp //newer
+        - TempMeasure::getTempMeasurementRecord(whichRecordBack   ).timeStamp;  //older (current temp)
+                                                                                //subtracting older from newer 
+    value        =  TempMeasure::getTempMeasurementRecord(whichRecordBack).tempFPCelcjus;
 
-void HKCommExtraRecordsHDL::setNumRecords(uint16_t records)
-{
-    recordsIt = records;
+    return HKCommDefs::serialErr_None;
 }
-

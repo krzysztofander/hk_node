@@ -22,18 +22,22 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 #include "comm_defs.h"
+#include "comm_extra_rec_handlers.h"
 
-class ExtraRecordsHDL
+class HKCommExtraRecordsHDL
 {
+public:
     typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
 
     //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
     // in valid returs if record is valid or run ouf of scheduled elems
     static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
-  
     static void setNumRecords(uint16_t records);
-
-
+    static void setDataReciever(DataReciever newDataReciver)
+    {
+        dataReciever = newDataReciver;
+    }
+    
     static uint16_t recordsIt;
     static DataReciever  dataReciever;
 };

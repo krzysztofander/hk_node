@@ -51,6 +51,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/serial.cpp
         ${TOP}/hk_node/src/comm.cpp
         ${TOP}/hk_node/src/comm_extra_records.cpp
+        ${TOP}/hk_node/src/comm_extra_rec_handlers.cpp
         ${TOP}/hk_node/src/comm_common.cpp
         ${TOP}/hk_node/src/comm_defs.cpp
 
@@ -59,6 +60,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/comm.h
         ${TOP}/hk_node/src/comm_extra_records.h
+        ${TOP}/hk_node/src/comm_extra_rec_handlers.h
         ${TOP}/hk_node/src/comm_common.h
         ${TOP}/hk_node/src/comm_defs.h
        
