@@ -176,7 +176,7 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             }
             break;
         }
-
+        case 'R':
         case 'H':  //temperatue history
         {
             //check for size correctness
@@ -192,7 +192,7 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             }
             //make it sane
             if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
-            {
+            { //it its zero return all.
                 measurementsToReturn = TempMeasure::capacity();
             }
             
@@ -214,13 +214,11 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
                 HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
                 HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
             }
-
             if (retVal != HKCommDefs::serialErr_None)
             {
                 return retVal;
             }
             
-
 
         }
 
