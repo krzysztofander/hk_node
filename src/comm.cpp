@@ -195,15 +195,19 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             { //it its zero return all.
                 measurementsToReturn = TempMeasure::capacity();
             }
-            
+            dataSize = 0;
+            inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+
+
+
             //measurementsToReturn contains how many. First one returns difference of current to timestamp
             HKTime::UpTime diff = Sleeper::getUpTime();
-            diff = diff - TempMeasure::getTempMeasurementRecord(0).timeStamp;
-           
+            TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
+            diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
             retVal = HKCommCommon::formatMeasurement(dataSize,
                                        inOutData,
                                        HKTime::SmallUpTime(diff),
-                                       TempMeasure::getTempMeasurementRecord(0).tempFPCelcjus);
+                                       tempRecord.tempFPCelcjus);
             
             
             measurementsToReturn--; //one is returned in inOutData
@@ -218,7 +222,7 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             {
                 return retVal;
             }
-            
+            break;
 
         }
 

@@ -20,13 +20,22 @@ class MockSleeper
 {
 public:
     MOCK_METHOD0( getUpTime, HKTime::UpTime(void));
+   
+    MockSleeper()
+    {
+        pInst = this;
+    }
+    ~MockSleeper()
+    {
+        pInst = 0;
+    }
 
     static MockSleeper & instance()
     {
-        static MockSleeper i;
-        return i;
+        return *pInst;
     }
-
+private:
+    static MockSleeper *pInst;
 };
 
 class MockSerial : public Serial_if
@@ -68,12 +77,22 @@ class MockTempMeasurement
 public:
     MOCK_METHOD0(getSingleTempMeasurement, uint16_t(void));
     MOCK_METHOD1(getTempMeasurementRecord, TempMeasure::TempRecord(uint16_t));
+    
+    MockTempMeasurement()
+    {
+        pInst = this;
+    }
+    ~MockTempMeasurement()
+    {
+        pInst = 0;
+    }
 
     static MockTempMeasurement & instance()
     {
-        static MockTempMeasurement  f;
-        return f;
+        return *pInst;
     }
+private:
+    static MockTempMeasurement *pInst;
 
 };
 

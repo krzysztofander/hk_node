@@ -29,6 +29,8 @@ HKTime::UpTime Sleeper::getUpTime()
     MockSleeper & i = MockSleeper::instance();
     return i.getUpTime();
 }
+MockSleeper* MockSleeper::pInst = 0;
+MockTempMeasurement* MockTempMeasurement::pInst = 0;
 
 //------------------------------------------------------------------------
 TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
