@@ -56,6 +56,9 @@ project (unit_tests)
         ${TOP}/hk_node/src/comm_defs.cpp
 
         serial_ut.cc
+        serial_ut_r.cc 
+        mock.cc
+        mock.h
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/comm.h

@@ -7,6 +7,7 @@
 #include "comm_common.h"
 #include "serial.h"
 #include "temp_measurement.h"
+#include "mock.h"
 
 using ::testing::AtLeast;  
 using ::testing::Return;
@@ -15,147 +16,6 @@ using ::testing::NiceMock;
 using ::testing::StrictMock;
 using ::testing::_;
 
-
-TSerial Serial;
-
-class MockSleeper
-{
-public:
-    MOCK_METHOD0( getUpTime, HKTime::UpTime(void));
-
-    static MockSleeper & instance()
-    {
-        static MockSleeper i;
-        return i;
-    }
-
-};
-
-HKTime::UpTime Sleeper::getUpTime()
-{
-    MockSleeper & i = MockSleeper::instance();
-    return i.getUpTime();
-}
-
-class MockSerial : public Serial_if
-{
-public:
-    MOCK_METHOD0(read, uint8_t());
-    MOCK_METHOD0(peek, uint8_t());
-    MOCK_METHOD0(available, uint8_t());
-    MOCK_METHOD2(write, uint8_t(const uint8_t*, size_t));
-
-};
-
-class LooseFn_if
-{
-public:
-    virtual void alert (unsigned char c, bool b) = 0;
-    virtual void Executor_setExecutionTime(uint8_t t, uint16_t s) = 0;
-};
-
-class MockLooseFn : public LooseFn_if
-{
-public:
-    MOCK_METHOD2(alert, void(uint8_t, bool b));
-    MOCK_METHOD2(Executor_setExecutionTime, void(uint8_t, uint16_t));
-    MOCK_METHOD0(getSingleTempMeasurement, uint16_t(void));
-    MOCK_METHOD1(getTempMeasurementRecord, TempMeasure::TempRecord(uint16_t));
-
-
-    static MockLooseFn & instance()
-    {
-        static MockLooseFn  f;
-        return f;
-    }
-};
-
-void alert (unsigned char c, bool b)
-{
-
-}
-
-TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
-{
-    return MockLooseFn::instance().getSingleTempMeasurement();
-}
-TempMeasure::TempRecord TempMeasure::getTempMeasurementRecord(uint16_t howManyRecordsBack)
-{
-    return MockLooseFn::instance().getTempMeasurementRecord(howManyRecordsBack);
-}
-
-
-
-void Executor::setExecutionTime(uint8_t t, Sleeper::SleepTime  s)
-{
-
-}
-
-class SerialFixture : public ::testing::Test
-{
-public: 
-    MockSerial mockSerial;
-    InSequence dummy;
-
-    virtual void SetUp()
-    {
-        Serial.install(&mockSerial);
-        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;
-        HKComm::g_dataIt = 0;
-        HKComm::g_serialError = 0;
-
-    }
-
-};
-
-class NiceSerialFixture : public ::testing::Test
-{
-public: 
-    NiceMock<MockSerial>  mockSerial;
-    InSequence dummy;
-
-    virtual void SetUp()
-    {
-        Serial.install(&mockSerial);
-        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;
-        HKComm::g_dataIt = 0;
-        HKComm::g_serialError = 0;
-
-    }
-
-};
-
-
-class StrictSerialFixture : public ::testing::Test
-{
-public: 
-    StrictMock<MockSerial>  mockSerial;
-    InSequence dummy;
-
-    virtual void SetUp()
-    {
-        Serial.install(&mockSerial);
-
-        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;
-        HKComm::g_dataIt = 0;
-        HKComm::g_serialError = 0;
-    }
-
-};
-
-class Serial_D_method_Fixture : public SerialFixture
-{
-public:
-    uint16_t dataSize;
-
-};
-
-class Serial_R_method_Fixture : public SerialFixture
-{
-public:
-    uint16_t dataSize;
-
-};
 
 
 
@@ -595,7 +455,7 @@ TEST_F(StrictSerialFixture, testResponse)
 
 TEST_F (Serial_R_method_Fixture, readTM)
 {
-    MockLooseFn & f = MockLooseFn::instance();
+    MockTempMeasurement & tm = MockTempMeasurement::instance();
     MockSleeper & s = MockSleeper::instance();
 
     uint8_t inOutCommand[HKCommDefs::commandSize] = 
@@ -608,7 +468,7 @@ TEST_F (Serial_R_method_Fixture, readTM)
     std::fill_n(inOutData, 0,HKCommDefs:: commandMaxDataSize);
     inOutData[0] = HKCommDefs::commandEOLSignOnRecieve;
 
-    EXPECT_CALL(f, getSingleTempMeasurement()).Times(1).WillOnce(Return(0x12ac));
+    EXPECT_CALL(tm, getSingleTempMeasurement()).Times(1).WillOnce(Return(0x12ac));
     EXPECT_CALL(s, getUpTime()).WillOnce(Return(0xabcd12345678ll));
 
     uint8_t retVal = HKComm::command_R(inOutCommand,inOutData,dataSize);
@@ -635,7 +495,6 @@ TEST_F (Serial_R_method_Fixture, readTM)
     ASSERT_EQ(inOutData[it++],'a');  //what to expect in command
     ASSERT_EQ(inOutData[it++],'c');  //what to expect in command
     ASSERT_EQ(inOutData[it++],')');  //what to expect in command
-
 
 
     ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
