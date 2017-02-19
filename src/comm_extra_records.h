@@ -38,7 +38,8 @@ public:
         dataReciever = newDataReciver;
     }
     
-    static uint16_t recordsIt;
+    static int16_t recordsIt;
+    static int16_t totalRecords;
     static DataReciever  dataReciever;
 };
 

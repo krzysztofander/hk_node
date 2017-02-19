@@ -22,7 +22,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_common.h"
 
 
-uint16_t                             HKCommExtraRecordsHDL::recordsIt   = 0;
+int16_t                             HKCommExtraRecordsHDL::recordsIt   = 0;
+int16_t                             HKCommExtraRecordsHDL::totalRecords   = 0;
 HKCommExtraRecordsHDL::DataReciever  HKCommExtraRecordsHDL::dataReciever      = 0;
 
 //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
@@ -33,13 +34,13 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
 {
     HKTime::SmallUpTime timeReturned;
     int16_t  value;
-    if (dataReciever == 0|| recordsIt == 0)
+    if (dataReciever == 0 || recordsIt >= totalRecords  )
     {
         valid = 0;
         return HKCommDefs::serialErr_None;
     }
-    uint8_t err = dataReciever(timeReturned, value, recordsIt);
-    recordsIt--;
+    uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
+    recordsIt++;
     if (err)
     {
         return err;
@@ -50,6 +51,7 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
 
 void HKCommExtraRecordsHDL::setNumRecords(uint16_t records)
 {
-    recordsIt = records;
+    totalRecords = records;
+    recordsIt = 0;
 }
 

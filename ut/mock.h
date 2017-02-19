@@ -220,5 +220,16 @@ public:
         return rcData;
     }
 };
+
+class Serial_RTH_method_Fixture : public Serial_R_method_Fixture
+{
+public:
+    uint8_t inOutCommand[HKCommDefs::commandSize] =
+    {   //command to send
+        'R',
+        'T',
+        'H'
+    };
+};
 #endif
 

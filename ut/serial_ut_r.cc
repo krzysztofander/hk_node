@@ -8,6 +8,7 @@
 #include "serial.h"
 #include "temp_measurement.h"
 #include "mock.h"
+#include "comm_extra_records.h"
 
 using ::testing::AtLeast;  
 using ::testing::Return;
@@ -65,15 +66,8 @@ TEST_F (Serial_R_method_Fixture, RTM)
 #endif
 #if 1
 //@brief checks single measurement read
-TEST_F (Serial_R_method_Fixture, readTMV_01)
+TEST_F (Serial_RTH_method_Fixture, readTMV_01)
 {
-
-    uint8_t inOutCommand[HKCommDefs::commandSize] = 
-    {   //command to send
-        'R',
-        'T',
-        'H' 
-    };
 
     dataPut() = { '0','0','0','1'};
 
@@ -81,7 +75,6 @@ TEST_F (Serial_R_method_Fixture, readTMV_01)
     EXPECT_CALL(mckS, getUpTime())
         .WillOnce(Return(16));
 
-    TempMeasure::TempRecord (10, 1234);
     EXPECT_CALL(mckTm, getTempMeasurementRecord(0))
         .WillOnce(Return(TempMeasure::TempRecord (10, 0x123c)));
    
@@ -109,26 +102,104 @@ TEST_F (Serial_R_method_Fixture, readTMV_01)
     ASSERT_EQ(data()[it++],'3');  //what to expect in command
     ASSERT_EQ(data()[it++],'c');  //what to expect in command
     ASSERT_EQ(data()[it++],')');  //what to expect in command
-
-
     ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
 
 }
 
 //@brief checks the error when there is not enouth chars in data
-TEST_F (Serial_R_method_Fixture, readTMV_02)
+TEST_F (Serial_RTH_method_Fixture, readTMV_02)
 {
-    uint8_t inOutCommand[HKCommDefs::commandSize] =
-    {   //command to send
-        'R',
-        'T',
-        'H'
-    };
     dataPut() = { '1','2','3'};
-    dataSize() = 3;
     uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
     ASSERT_EQ(retVal, HKCommDefs::serialErr_NumberToShort);
 }
-    
+
+//@brief checks the error when there is a request for 3 history elements
+TEST_F (Serial_RTH_method_Fixture, readTMV_03)
+{
+
+    dataPut() ={ '0','0','0','3' };
+
+    EXPECT_CALL(mckS, getUpTime())
+        .WillOnce(Return(16));
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(0))
+        .WillOnce(Return(TempMeasure::TempRecord (10, 0x123c)));
+  //      .WillOnce(Return(TempMeasure::TempRecord (8,  0x223c)))
+   //     .WillOnce(Return(TempMeasure::TempRecord (1,  0x323c)));
+
+    uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+
+    ASSERT_EQ(inOutCommand[0], 'V');  //what to expect in command
+    ASSERT_EQ(inOutCommand[1], 'T');
+    ASSERT_EQ(inOutCommand[2], 'H');
+    ASSERT_EQ(dataSize(), 1 * (1 /*(*/ + 8 + 1 /*,*/ + 4 + 1 /*)*/));
+
+    ASSERT_EQ(HKCommExtraRecordsHDL::recordsIt, 0);
+    ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 2);
+
+
+   //     g_serialError = HKCommExtraRecordsHDL::formatedMeasurement(valid, extraRecChars, g_data);
+    uint8_t valid;
+    int it = 0;
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(0))
+        .WillOnce(Return(TempMeasure::TempRecord (10, 0x123c)));
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(1)). Times(2)
+        .WillRepeatedly(Return(TempMeasure::TempRecord (8, 0x223c)));
+    dataSize() = 0;
+    retVal = HKCommExtraRecordsHDL::formatedMeasurement(valid, dataSize(), data());
+    it=0;
+
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+    ASSERT_EQ(dataSize(), 1 * (1 /*(*/ + 8 + 1 /*,*/ + 4 + 1 /*)*/));
+    ASSERT_EQ(data()[it++], '(');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '2');  //what to expect in command
+    ASSERT_EQ(data()[it++], ',');  //what to expect in command
+    ASSERT_EQ(data()[it++], '2');  //what to expect in command
+    ASSERT_EQ(data()[it++], '2');  //what to expect in command
+    ASSERT_EQ(data()[it++], '3');  //what to expect in command
+    ASSERT_EQ(data()[it++], 'c');  //what to expect in command
+    ASSERT_EQ(data()[it++], ')');  //what to expect in command
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(1))
+        .WillOnce(Return(TempMeasure::TempRecord (8, 0x223c)));
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(2))
+        .WillRepeatedly(Return(TempMeasure::TempRecord (1, 0x323c)));
+    it=0;
+    dataSize() = 0;
+    retVal = HKCommExtraRecordsHDL::formatedMeasurement(valid, dataSize(), data());
+
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+    ASSERT_EQ(dataSize(), 1 * (1 /*(*/ + 8 + 1 /*,*/ + 4 + 1 /*)*/));
+    ASSERT_EQ(data()[it++], '(');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '0');  //what to expect in command
+    ASSERT_EQ(data()[it++], '7');  //what to expect in command
+    ASSERT_EQ(data()[it++], ',');  //what to expect in command
+    ASSERT_EQ(data()[it++], '3');  //what to expect in command
+    ASSERT_EQ(data()[it++], '2');  //what to expect in command
+    ASSERT_EQ(data()[it++], '3');  //what to expect in command
+    ASSERT_EQ(data()[it++], 'c');  //what to expect in command
+    ASSERT_EQ(data()[it++], ')');  //what to expect in command
+
+    retVal = HKCommExtraRecordsHDL::formatedMeasurement(valid, dataSize(), data());
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+    ASSERT_EQ(valid, 0);
+}
+
 #endif
 
