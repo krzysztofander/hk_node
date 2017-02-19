@@ -32,6 +32,8 @@ public:
 
     static MockSleeper & instance()
     {
+        if (!pInst) 
+            throw std::exception("getting instance when mock is not instantiated");
         return *pInst;
     }
 private:
@@ -89,6 +91,8 @@ public:
 
     static MockTempMeasurement & instance()
     {
+        if (!pInst) 
+            throw std::exception("getting instance when mock is not instantiated");
         return *pInst;
     }
 private:
@@ -148,6 +152,48 @@ public:
 
 };
 
+class SerialBufferHandler : public SerialFixture
+{
+public:
+    class SerialBufferHldrInt
+    {
+    public:
+        SerialBufferHldrInt()
+        {
+            std::fill_n(inOutData, 0,HKCommDefs:: commandMaxDataSize);
+            inOutData[0] = HKCommDefs::commandEOLSignOnRecieve;
+        }
+
+        typedef    uint8_t (& InOutRef)[HKCommDefs::commandMaxDataSize];
+        uint8_t inOutData[HKCommDefs::commandMaxDataSize];
+        uint16_t dataSize;
+
+        operator InOutRef ()
+        {
+            return inOutData;
+        }
+
+        SerialBufferHldrInt & operator=(std::initializer_list<uint8_t>  init)
+        {
+            put(init);
+            return *this;
+        }
+
+        void put(std::initializer_list<uint8_t>  init)
+        {
+            if (init.size() >= HKCommDefs::commandMaxDataSize -1)
+            {
+                throw std::exception("initializer to long for data");
+            }
+            std::copy(init.begin(), init.end(), inOutData);
+            dataSize = (uint16_t)init.size();
+            inOutData[dataSize] = HKCommDefs::commandEOLSignOnRecieve;
+            //termination does not count
+        }
+
+    }rcData;
+};
+
 class Serial_D_method_Fixture : public SerialFixture
 {
 public:
@@ -155,10 +201,19 @@ public:
 
 };
 
-class Serial_R_method_Fixture : public SerialFixture
+class Serial_R_method_Fixture : public SerialBufferHandler
 {
 public:
-    uint16_t dataSize;
+    MockTempMeasurement mckTm;
+    MockSleeper mckS;
+    uint16_t & dataSize()
+    {
+        return rcData.dataSize;
+    }
+    SerialBufferHldrInt::InOutRef data()
+    {
+        return rcData.inOutData;
+    }
 
 };
 #endif
