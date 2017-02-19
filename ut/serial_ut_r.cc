@@ -31,7 +31,7 @@ TEST_F (Serial_R_method_Fixture, RTM)
     EXPECT_CALL(mckTm, getSingleTempMeasurement()).Times(1).WillOnce(Return(0x12ac));
     EXPECT_CALL(mckS, getUpTime()).WillOnce(Return(0xabcd12345678ll));
 
-    uint8_t retVal = HKComm::command_R(inOutCommand,rcData,rcData.dataSize);
+    uint8_t retVal = HKComm::command_R(inOutCommand,data(),dataSize());
 
     //expected results:
     ASSERT_EQ(inOutCommand[0],'V');  //what to expect in command
@@ -72,7 +72,7 @@ TEST_F (Serial_R_method_Fixture, readTMV_01)
         'H' 
     };
 
-    rcData = { '0','0','0','1', HKCommDefs::commandEOLSignOnRecieve };
+    rcData = { '0','0','0','1'};
 
     //TempMeasure::TempRecord TempMeasure::getTempMeasurementRecord(uint16_t howManyRecordsBack)
     EXPECT_CALL(mckS, getUpTime())
@@ -120,8 +120,9 @@ TEST_F (Serial_R_method_Fixture, readTMV_02)
         'T',
         'H'
     };
-    rcData ={  HKCommDefs::commandEOLSignOnRecieve };
-    uint8_t retVal = HKComm::command_R(inOutCommand, rcData, rcData.dataSize);
+    setData() = {  HKCommDefs::commandEOLSignOnRecieve };
+    dataSize() = 3;
+    uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
 }
     
 #endif

@@ -154,9 +154,11 @@ public:
 
 class SerialBufferHandler : public SerialFixture
 {
-public:
+protected:
     class SerialBufferHldrInt
     {
+        uint8_t inOutData[HKCommDefs::commandMaxDataSize];
+        uint16_t m_dataSize;
     public:
         SerialBufferHldrInt()
         {
@@ -165,10 +167,13 @@ public:
         }
 
         typedef    uint8_t (& InOutRef)[HKCommDefs::commandMaxDataSize];
-        uint8_t inOutData[HKCommDefs::commandMaxDataSize];
-        uint16_t dataSize;
 
-        operator InOutRef ()
+        uint16_t & dataSize()
+        {
+            return m_dataSize;
+        }
+
+        InOutRef data()
         {
             return inOutData;
         }
@@ -186,8 +191,8 @@ public:
                 throw std::exception("initializer to long for data");
             }
             std::copy(init.begin(), init.end(), inOutData);
-            dataSize = (uint16_t)init.size();
-            inOutData[dataSize] = HKCommDefs::commandEOLSignOnRecieve;
+            m_dataSize = (uint16_t)init.size();
+            inOutData[m_dataSize] = HKCommDefs::commandEOLSignOnRecieve;
             //termination does not count
         }
 
@@ -206,15 +211,20 @@ class Serial_R_method_Fixture : public SerialBufferHandler
 public:
     MockTempMeasurement mckTm;
     MockSleeper mckS;
+
     uint16_t & dataSize()
     {
-        return rcData.dataSize;
+        return rcData.dataSize();
     }
     SerialBufferHldrInt::InOutRef data()
     {
-        return rcData.inOutData;
+        return rcData.data();
     }
 
+    SerialBufferHldrInt & setData()
+    {
+        return rcData;
+    }
 };
 #endif
 
