@@ -31,6 +31,8 @@ TEST_F (Serial_R_method_Fixture, RTM)
     EXPECT_CALL(mckTm, getSingleTempMeasurement()).Times(1).WillOnce(Return(0x12ac));
     EXPECT_CALL(mckS, getUpTime()).WillOnce(Return(0xabcd12345678ll));
 
+    dataPut() ={};
+
     uint8_t retVal = HKComm::command_R(inOutCommand,data(),dataSize());
 
     //expected results:
@@ -62,6 +64,7 @@ TEST_F (Serial_R_method_Fixture, RTM)
 }
 #endif
 #if 1
+//@brief checks single measurement read
 TEST_F (Serial_R_method_Fixture, readTMV_01)
 {
 
@@ -72,7 +75,7 @@ TEST_F (Serial_R_method_Fixture, readTMV_01)
         'H' 
     };
 
-    rcData = { '0','0','0','1'};
+    dataPut() = { '0','0','0','1'};
 
     //TempMeasure::TempRecord TempMeasure::getTempMeasurementRecord(uint16_t howManyRecordsBack)
     EXPECT_CALL(mckS, getUpTime())
@@ -112,6 +115,7 @@ TEST_F (Serial_R_method_Fixture, readTMV_01)
 
 }
 
+//@brief checks the error when there is not enouth chars in data
 TEST_F (Serial_R_method_Fixture, readTMV_02)
 {
     uint8_t inOutCommand[HKCommDefs::commandSize] =
@@ -120,9 +124,10 @@ TEST_F (Serial_R_method_Fixture, readTMV_02)
         'T',
         'H'
     };
-    setData() = {  HKCommDefs::commandEOLSignOnRecieve };
+    dataPut() = { '1','2','3'};
     dataSize() = 3;
     uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_NumberToShort);
 }
     
 #endif

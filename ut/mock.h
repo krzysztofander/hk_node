@@ -154,29 +154,21 @@ public:
 
 class SerialBufferHandler : public SerialFixture
 {
-protected:
+public:
     class SerialBufferHldrInt
     {
-        uint8_t inOutData[HKCommDefs::commandMaxDataSize];
-        uint16_t m_dataSize;
     public:
+        typedef    uint8_t (& InOutRef)[HKCommDefs::commandMaxDataSize];
+        
+        uint8_t inOutData[HKCommDefs::commandMaxDataSize];
+        uint16_t dataSize;
+
         SerialBufferHldrInt()
         {
             std::fill_n(inOutData, 0,HKCommDefs:: commandMaxDataSize);
             inOutData[0] = HKCommDefs::commandEOLSignOnRecieve;
         }
 
-        typedef    uint8_t (& InOutRef)[HKCommDefs::commandMaxDataSize];
-
-        uint16_t & dataSize()
-        {
-            return m_dataSize;
-        }
-
-        InOutRef data()
-        {
-            return inOutData;
-        }
 
         SerialBufferHldrInt & operator=(std::initializer_list<uint8_t>  init)
         {
@@ -191,11 +183,10 @@ protected:
                 throw std::exception("initializer to long for data");
             }
             std::copy(init.begin(), init.end(), inOutData);
-            m_dataSize = (uint16_t)init.size();
-            inOutData[m_dataSize] = HKCommDefs::commandEOLSignOnRecieve;
-            //termination does not count
+            dataSize = (uint16_t)init.size();
+            inOutData[dataSize] = HKCommDefs::commandEOLSignOnRecieve;
+            //termination sign (\r) does not count
         }
-
     }rcData;
 };
 
@@ -214,14 +205,17 @@ public:
 
     uint16_t & dataSize()
     {
-        return rcData.dataSize();
+        return rcData.dataSize;
     }
     SerialBufferHldrInt::InOutRef data()
     {
-        return rcData.data();
+        return rcData.inOutData;
     }
-
-    SerialBufferHldrInt & setData()
+    void dataPut(std::initializer_list<uint8_t>  init)
+    {
+        return rcData.put(init);
+    }
+    SerialBufferHldrInt & dataPut()
     {
         return rcData;
     }
