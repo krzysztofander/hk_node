@@ -201,5 +201,86 @@ TEST_F (Serial_RTH_method_Fixture, readTMV_03)
     ASSERT_EQ(valid, 0);
 }
 
+//@brief checks the error when there is a request for to many history elements
+TEST_F (Serial_RTH_method_Fixture, readTMV_04)
+{
+
+    dataPut() ={ '1','0','0','3' };
+
+    EXPECT_CALL(mckS, getUpTime())
+        .WillOnce(Return(16));
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(0))
+        .WillOnce(Return(TempMeasure::TempRecord (10, 0x123c)));
+    //      .WillOnce(Return(TempMeasure::TempRecord (8,  0x223c)))
+    //     .WillOnce(Return(TempMeasure::TempRecord (1,  0x323c)));
+
+    uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+
+    ASSERT_EQ(inOutCommand[0], 'V');  //what to expect in command
+    ASSERT_EQ(inOutCommand[1], 'T');
+    ASSERT_EQ(inOutCommand[2], 'H');
+    ASSERT_EQ(dataSize(), 1 * (1 /*(*/ + 8 + 1 /*,*/ + 4 + 1 /*)*/));
+
+    ASSERT_EQ(HKCommExtraRecordsHDL::recordsIt, 0);
+    ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, TempMeasure::capacity() - 1);
+
+
+    uint8_t valid = 1;
+    do
+    {
+        EXPECT_CALL(mckTm, getTempMeasurementRecord(_))
+            .WillRepeatedly(Return(TempMeasure::TempRecord (8, 0x223c)));
+        dataSize() = 0;
+        retVal = HKCommExtraRecordsHDL::formatedMeasurement(valid, dataSize(), data());
+   
+        ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+        if (valid)
+        {
+            ASSERT_EQ(dataSize(), 1 * (1 /*(*/ + 8 + 1 /*,*/ + 4 + 1 /*)*/));
+        }
+    } while (valid != 0);
+
+}
+
+//@brief checks the error when there is a request for to many history elements
+TEST_F (Serial_RTH_method_Fixture, testRespond)
+{
+
+    dataPut() ={ '0','0','0','4' };
+
+    EXPECT_CALL(mckS, getUpTime())
+        .WillOnce(Return(16));
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(0))
+        .WillOnce(Return(TempMeasure::TempRecord (10, 0x123c)));
+    //      .WillOnce(Return(TempMeasure::TempRecord (8,  0x223c)))
+    //     .WillOnce(Return(TempMeasure::TempRecord (1,  0x323c)));
+
+    uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+
+    ASSERT_EQ(inOutCommand[0], 'V');  //what to expect in command
+    ASSERT_EQ(inOutCommand[1], 'T');
+    ASSERT_EQ(inOutCommand[2], 'H');
+    ASSERT_EQ(dataSize(), 1 * (1 /*(*/ + 8 + 1 /*,*/ + 4 + 1 /*)*/));
+
+    ASSERT_EQ(HKCommExtraRecordsHDL::recordsIt, 0);
+    ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 3);
+
+    HKComm::g_SerialState =  HKCommDefs::serialState_Respond;
+    HKComm::g_serialError =  HKCommDefs::serialErr_None;
+    
+    std::copy(&data()[0], &data()[NUM_ELS(HKComm::g_data)], &HKComm::g_data[0]);
+    HKComm::g_dataIt = dataSize();
+    
+    EXPECT_CALL(mockSerial, write(_, 3 + 15)).Times(1);
+    EXPECT_CALL(mockSerial, write(_, 15)).Times(4);
+    HKComm::respondSerial();
+    
+
+}
+
 #endif
 
