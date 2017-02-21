@@ -275,8 +275,13 @@ TEST_F (Serial_RTH_method_Fixture, testRespond)
     std::copy(&data()[0], &data()[NUM_ELS(HKComm::g_data)], &HKComm::g_data[0]);
     HKComm::g_dataIt = dataSize();
     
-    EXPECT_CALL(mockSerial, write(_, 3 + 15)).Times(1);
+    EXPECT_CALL(mockSerial, write(_, 3 )).Times(1);
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(_))
+        .WillRepeatedly(Return(TempMeasure::TempRecord (8, 0x223c)));
     EXPECT_CALL(mockSerial, write(_, 15)).Times(4);
+    EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence) )).Times(1);
+
     HKComm::respondSerial();
     
 
