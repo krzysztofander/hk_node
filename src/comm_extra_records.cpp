@@ -32,20 +32,24 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
                                              uint16_t & inOutOffset, 
                                              uint8_t (&outData)[HKCommDefs::commandMaxDataSize])
 {
+    valid = 0;
     HKTime::SmallUpTime timeReturned;
     int16_t  value;
     if (dataReciever == 0 || recordsIt >= totalRecords  )
     {
-        valid = 0;
         return HKCommDefs::serialErr_None;
     }
     uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
     recordsIt++;
-    if (err)
+    if (err != HKCommDefs::serialErr_None)
     {
         return err;
     }
     err  = HKCommCommon::formatMeasurement(inOutOffset, outData, timeReturned, value);
+    if (err == HKCommDefs::serialErr_None)
+    {
+        valid = 1;
+    }
     return err;
 }
 

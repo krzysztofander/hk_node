@@ -107,7 +107,7 @@ class SerialFixture : public ::testing::Test
 {
 public: 
     MockSerial mockSerial;
-    InSequence dummy;
+
 
     virtual void SetUp()
     {

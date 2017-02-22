@@ -26,7 +26,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "supp.h"
 
 Sleeper::SleepTime Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much time has left to next call
-Sleeper::SleepTime Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how ofthen each exec is called
+Sleeper::SleepTime Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how often each exec is called
 ExecutingFn Executor::g_ExecutingFunctions[Executor::executorsNumber];
 
 uint8_t Executor::isExecutorActive(uint8_t executor)
