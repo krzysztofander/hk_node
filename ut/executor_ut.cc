@@ -3,6 +3,8 @@
 #include "Arduino.h"
 #include "executor.h"
 #include "temp_measurement.h"
+#include "temp_sensor.h"
+#include "executor_ut.h"
 
 using ::testing::AtLeast;  
 using ::testing::Return;
@@ -14,6 +16,29 @@ using ::testing::_;
 
 void someBlinker(void)
 {}
+
+void blinkBlue(void)
+{}
+
+void alert (unsigned char c, bool b)
+{
+    MockLooseFn::instance().alert(c, b);
+    assert(0);
+}
+void fake1(void)
+{
+    MockLooseFn::instance().fake1();
+}
+void fake2(void)
+{
+    MockLooseFn::instance().fake2();
+}
+void fake3(void)
+{
+    MockLooseFn::instance().fake3();
+}
+
+
 
 TEST(ExecutorTst, singleExecutor)
 {
@@ -59,53 +84,6 @@ TEST(ExecutorTst, singleExecutor)
 
 }
 
-
-
-
-
-class LooseFn_if
-{
-public:
-    virtual void alert (uint8_t c, bool b) = 0;
-    virtual void fake1(void) = 0;
-    virtual void fake2(void) = 0;
-    virtual void fake3(void) = 0;
-};
-
-
-class MockLooseFn : public LooseFn_if
-{
-public:
-    MOCK_METHOD2( alert, void(uint8_t, bool b));
-    MOCK_METHOD0( fake1, void(void));
-    MOCK_METHOD0( fake2, void(void));
-    MOCK_METHOD0( fake3, void(void));
-
-
-    static MockLooseFn & instance()
-    {
-        static MockLooseFn mlf;
-        return mlf;
-    }
-
-};
-void alert (unsigned char c, bool b)
-{
-    MockLooseFn::instance().alert(c, b);
-    assert(0);
-}
-void fake1(void)
-{
-    MockLooseFn::instance().fake1();
-}
-void fake2(void)
-{
-    MockLooseFn::instance().fake2();
-}
-void fake3(void)
-{
-    MockLooseFn::instance().fake3();
-}
 
 
 TEST(ExecutorTst, moreExecutors)
@@ -359,6 +337,9 @@ TEST(ExecutorTst, moreExecutors)
 
 
 }
+
+void ef (void)
+{}
 
 TEST(ExecutorTst, periodicInterrupts)
 {

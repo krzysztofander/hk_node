@@ -25,7 +25,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "supp.h"
 #include "temp_measurement.h"
 #include "sleeper.h"
-
+#include "temp_sensor.h"
 
 
 void setupBody() 
@@ -42,6 +42,8 @@ void setupBody()
     
     pinMode(buttonPin, INPUT);
     
+ 
+
     for (int i = 0; i < 10; i++)
     {
         toggleBlue();
@@ -114,9 +116,10 @@ void loopBody()
 void ledToggler(void);
 void initAllFunctions(void)
 {
+    TempSensor::init();
     TempMeasure::initMeasureTemperature();
-    Executor::init();
 
+    Executor::init();
     Executor::setupExecutingFn((uint8_t)Executor::blinker, 6, ledToggler);
     Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 5, TempMeasure::measureTemperature);
     Sleeper::init();

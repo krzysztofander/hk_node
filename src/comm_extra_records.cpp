@@ -18,67 +18,44 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#include "comm_extra_records.h"
+#include "comm_common.h"
 
-class HKTime
+
+int16_t                             HKCommExtraRecordsHDL::recordsIt   = 0;
+int16_t                             HKCommExtraRecordsHDL::totalRecords   = 0;
+HKCommExtraRecordsHDL::DataReciever  HKCommExtraRecordsHDL::dataReciever      = 0;
+
+//@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
+// in valid returs if record is valid or run ouf of scheduled elems
+uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
+                                             uint16_t & inOutOffset, 
+                                             uint8_t (&outData)[HKCommDefs::commandMaxDataSize])
 {
-public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    typedef int32_t SmallUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
-
-
-    //@brief returns time difference in ShortTimeDiff (int16_t)
-    //In case the actual difference is higher returns it saturated up to ShortTimeDiff range
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
+    valid = 0;
+    HKTime::SmallUpTime timeReturned;
+    int16_t  value;
+    if (dataReciever == 0 || recordsIt >= totalRecords  )
     {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
+        return HKCommDefs::serialErr_None;
     }
+    uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
+    recordsIt++;
+    if (err != HKCommDefs::serialErr_None)
+    {
+        return err;
+    }
+    err  = HKCommCommon::formatMeasurement(inOutOffset, outData, timeReturned, value);
+    if (err == HKCommDefs::serialErr_None)
+    {
+        valid = 1;
+    }
+    return err;
+}
 
-};
-
-
-void setupBody();
-void loopBody();
-
-//--------------------------------------------------
-typedef void (*ExecutingFn)(void);
-
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
-
-//--------------------------------------------------
-
-
-
-#endif
+void HKCommExtraRecordsHDL::setNumRecords(uint16_t records)
+{
+    totalRecords = records;
+    recordsIt = 0;
+}
 

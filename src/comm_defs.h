@@ -17,56 +17,61 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef HK_COMM_DEFS_H
+#define HK_COMM_DEFS_H
 
-#ifndef HK_TEMP_MEASUREMENT_H
-#define HK_TEMP_MEASUREMENT_H
 #include "hk_node.h"
 
-//--------------------------------------------------
-
-class TempMeasure
+class HKCommDefs
 {
 public:
-    
-    typedef int16_t TempMeasurement;  //change the tempMeasurement_invalid if changing this type
+    static const uint8_t preamble  = '!';
+    static const uint8_t commandEOLSignOnRecieve  = 0x0dU;
+    static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
 
-    static const int8_t maxMeasurements = 64;
-    static const int16_t tempMeasurement_invalid = -0x8000;  
 
-    struct TempRecord
+    enum ECommandsConsts
     {
-        TempRecord()
-            : timeStamp(0)
-            , tempFPCelcjus(TempMeasure::tempMeasurement_invalid)
-        {}
+        commandSize = 3,
+
+        commandIdentifierPos = 0,
+        command_subIdPos1 = 1,
+        command_subIdPos2 = 2,
 
 
-        TempRecord(HKTime::SmallUpTime timeStamp, TempMeasurement tempFPCelcjus)
-            : timeStamp(timeStamp)
-            , tempFPCelcjus(tempFPCelcjus)
-        {}
+        commandEOLSizeOnRecieve = sizeof(commandEOLSignOnRecieve), //how many uint8_tacters to expect on end of line
+        command_DataSize = 64 - commandEOLSizeOnRecieve - sizeof(uint16_t),
 
-        HKTime::SmallUpTime    timeStamp;
-        TempMeasurement        tempFPCelcjus;
+        commandEOLSizeOnResponce = sizeof( commandEOLOnResponceSequence),
+        commandMaxDataSize = command_DataSize + commandEOLSizeOnRecieve
+
     };
 
-    static TempMeasurement getSingleTempMeasurement(void);                     
-    static void getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime);
-    static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
-    static uint16_t capacity()
+    enum ESerialState
     {
-        return maxMeasurements;
-    }
+     //   serialState_Preable,
+        serialState_ReadCommand,
+        serialState_ReadData,
+        serialState_Action,
+        
+        serialState_Respond,
+        serialState_Error,
+    };
+    
+    enum ESerialErrors
+    {
+        serialErr_None,
 
+        serialErr_Assert = 1,           // some assertion triggered
 
-    static void initMeasureTemperature(void);                //init
-    static void measureTemperature(void);                    //measure no
+        serialErr_IncorrectNumberFormat = 2,  //format of the number from serial is incorrect. 
+        serialErr_NumberToShort =3 ,    //a number recieved from serial is to short. Recieved EOL to early
 
-public:
-    static TempRecord  g_tempMeasurements[maxMeasurements];
+        serialErr_eolInCommand =4 ,
+        serialErr_noEolFound = 5,
+        serialErr_UnknownCommand =6,   //a command recieved is not recognized
+        serialErr_WriteFail = 7,     //a number of bytes written is not same as expected
 
-    static uint16_t g_lastTempMeasurementIt;
+    };
 };
-//-------------------------------------------------
 #endif
-

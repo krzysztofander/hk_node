@@ -17,56 +17,14 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef HK_COMM_EXTRA_REC_HANDLERS_H
+#define HK_COMM_EXTRA_REC_HANDLERS_H
 
-#ifndef HK_TEMP_MEASUREMENT_H
-#define HK_TEMP_MEASUREMENT_H
 #include "hk_node.h"
 
-//--------------------------------------------------
-
-class TempMeasure
+class HKCommExtraHLRs
 {
 public:
-    
-    typedef int16_t TempMeasurement;  //change the tempMeasurement_invalid if changing this type
-
-    static const int8_t maxMeasurements = 64;
-    static const int16_t tempMeasurement_invalid = -0x8000;  
-
-    struct TempRecord
-    {
-        TempRecord()
-            : timeStamp(0)
-            , tempFPCelcjus(TempMeasure::tempMeasurement_invalid)
-        {}
-
-
-        TempRecord(HKTime::SmallUpTime timeStamp, TempMeasurement tempFPCelcjus)
-            : timeStamp(timeStamp)
-            , tempFPCelcjus(tempFPCelcjus)
-        {}
-
-        HKTime::SmallUpTime    timeStamp;
-        TempMeasurement        tempFPCelcjus;
-    };
-
-    static TempMeasurement getSingleTempMeasurement(void);                     
-    static void getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime);
-    static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
-    static uint16_t capacity()
-    {
-        return maxMeasurements;
-    }
-
-
-    static void initMeasureTemperature(void);                //init
-    static void measureTemperature(void);                    //measure no
-
-public:
-    static TempRecord  g_tempMeasurements[maxMeasurements];
-
-    static uint16_t g_lastTempMeasurementIt;
+    static uint8_t RTHdataReciever(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
 };
-//-------------------------------------------------
 #endif
-

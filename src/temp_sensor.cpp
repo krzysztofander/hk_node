@@ -18,67 +18,69 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#include <Arduino.h>
+#include <OneWire.h>
+#include <DS18B20.h>
+#include "temp_sensor.h"
 
-class HKTime
+class OneWireWrap
 {
 public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    typedef int32_t SmallUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
+    static const uint8_t  ONEWIRE_PIN = 4;
+    static OneWire onewire; 
 
-
-    //@brief returns time difference in ShortTimeDiff (int16_t)
-    //In case the actual difference is higher returns it saturated up to ShortTimeDiff range
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
-    {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
-    }
+    static DS18B20 sensor;
 
 };
 
+OneWire  OneWireWrap::onewire(OneWireWrap::ONEWIRE_PIN);
+DS18B20  OneWireWrap::sensor(&OneWireWrap::onewire);
 
-void setupBody();
-void loopBody();
+uint8_t TempSensor::address[8];
 
-//--------------------------------------------------
-typedef void (*ExecutingFn)(void);
+uint8_t TempSensor::init()
+{
+        
+    //sensor not found
+    if (!(findSensor()))
+    {
+        return 0;
+    }
+    OneWireWrap::sensor.begin(sensorResolution);
+    return 1;
+}
 
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
+//size of address array>=8
+uint8_t TempSensor::findSensor()
+{
+    while(OneWireWrap::onewire.search(address))
+    {
+        //not temp sensor
+        if (address[0] != 0x28)
+        {
+            continue;
+        }   
+        //Incorrect crc
+        if (OneWire::crc8(address, 7) != address[7])
+        {
+            continue;
+        }
+        else //found sensor
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
 
-//--------------------------------------------------
 
-
-
-#endif
+float TempSensor::readTemperature()
+{
+    OneWireWrap::sensor.request(address);
+    while(!OneWireWrap::sensor.available())
+    {
+        //timeout is included in the sensor
+    }
+    return OneWireWrap::sensor.readTemperature(address);
+}
 

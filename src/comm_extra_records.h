@@ -17,56 +17,31 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef HK_COMM_EXTRA_RECORDS_H
+#define HK_COMM_EXTRA_RECORDS_H
 
-#ifndef HK_TEMP_MEASUREMENT_H
-#define HK_TEMP_MEASUREMENT_H
 #include "hk_node.h"
+#include "comm_defs.h"
+#include "comm_extra_rec_handlers.h"
 
-//--------------------------------------------------
-
-class TempMeasure
+class HKCommExtraRecordsHDL
 {
 public:
-    
-    typedef int16_t TempMeasurement;  //change the tempMeasurement_invalid if changing this type
+    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
 
-    static const int8_t maxMeasurements = 64;
-    static const int16_t tempMeasurement_invalid = -0x8000;  
-
-    struct TempRecord
+    //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
+    // in valid returs if record is valid or run ouf of scheduled elems
+    static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
+    static void setNumRecords(uint16_t records);
+    static void setDataReciever(DataReciever newDataReciver)
     {
-        TempRecord()
-            : timeStamp(0)
-            , tempFPCelcjus(TempMeasure::tempMeasurement_invalid)
-        {}
-
-
-        TempRecord(HKTime::SmallUpTime timeStamp, TempMeasurement tempFPCelcjus)
-            : timeStamp(timeStamp)
-            , tempFPCelcjus(tempFPCelcjus)
-        {}
-
-        HKTime::SmallUpTime    timeStamp;
-        TempMeasurement        tempFPCelcjus;
-    };
-
-    static TempMeasurement getSingleTempMeasurement(void);                     
-    static void getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime);
-    static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
-    static uint16_t capacity()
-    {
-        return maxMeasurements;
+        dataReciever = newDataReciver;
     }
-
-
-    static void initMeasureTemperature(void);                //init
-    static void measureTemperature(void);                    //measure no
-
-public:
-    static TempRecord  g_tempMeasurements[maxMeasurements];
-
-    static uint16_t g_lastTempMeasurementIt;
+    
+    static int16_t recordsIt;
+    static int16_t totalRecords;
+    static DataReciever  dataReciever;
 };
-//-------------------------------------------------
-#endif
 
+
+#endif

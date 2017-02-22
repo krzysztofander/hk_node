@@ -18,67 +18,7 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#include "comm_defs.h"
 
-class HKTime
-{
-public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    typedef int32_t SmallUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
-
-
-    //@brief returns time difference in ShortTimeDiff (int16_t)
-    //In case the actual difference is higher returns it saturated up to ShortTimeDiff range
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
-    {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
-    }
-
-};
-
-
-void setupBody();
-void loopBody();
-
-//--------------------------------------------------
-typedef void (*ExecutingFn)(void);
-
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
-
-//--------------------------------------------------
-
-
-
-#endif
+const uint8_t  HKCommDefs::commandEOLOnResponceSequence[2] ={ '\n', '\r' }; //sequence send as an end of line on response
 

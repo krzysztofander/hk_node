@@ -17,68 +17,28 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef TEMP_SENSOR_H
+#define TEMP_SENSOR_H
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
-#include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#include <Arduino.h>
 
-class HKTime
+
+
+class TempSensor 
 {
 public:
-    typedef int64_t UpTime;             //signed!
-    //typedef uint32_t TimeDiff;
-    typedef int32_t SmallUpTime;
-    typedef int16_t ShortTimeDiff;      //signed!
-
-
-    //@brief returns time difference in ShortTimeDiff (int16_t)
-    //In case the actual difference is higher returns it saturated up to ShortTimeDiff range
-    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
+    enum
     {
-        UpTime diff = current - last;
-        if (diff >= 0)
-        {
-            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
-            {
-                //does not fit
-                return 0x7FFF;
-            }
-            else
-            {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
-            }
-        }
-        else
-        {
-           if (diff <= UpTime( -0x8000 ) )
-           {
-                 //does not fit
-                 return int16_t(-0x8000);
-           }
-           else
-           {
-                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
-           }
-        }
-    }
+        sensorResolution  = 12
+    };
 
+    static uint8_t init();
+    static float readTemperature();
+    
+private:
+    static uint8_t address[8];
+
+    static uint8_t findSensor();
 };
 
-
-void setupBody();
-void loopBody();
-
-//--------------------------------------------------
-typedef void (*ExecutingFn)(void);
-
-void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
-
-//--------------------------------------------------
-
-
-
 #endif
-

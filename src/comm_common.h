@@ -17,56 +17,33 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#ifndef HK_COMM_COMMON_H
+#define HK_COMM_COMMON_H
 
-#ifndef HK_TEMP_MEASUREMENT_H
-#define HK_TEMP_MEASUREMENT_H
 #include "hk_node.h"
+#include "comm_defs.h"
 
-//--------------------------------------------------
-
-class TempMeasure
+class HKCommCommon
 {
 public:
-    
-    typedef int16_t TempMeasurement;  //change the tempMeasurement_invalid if changing this type
+     
+    static uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet);
 
-    static const int8_t maxMeasurements = 64;
-    static const int16_t tempMeasurement_invalid = -0x8000;  
+    static uint8_t dataToUnsignedShort(uint16_t offset, 
+                                       const uint8_t (&inData)[HKCommDefs::commandMaxDataSize ],
+                                       uint16_t & retVal);
+    static uint8_t dataToUnsigned32(uint16_t offset,
+                                    const uint8_t (&inData)[HKCommDefs::commandMaxDataSize],
+                                    uint32_t & retVal);
 
-    struct TempRecord
-    {
-        TempRecord()
-            : timeStamp(0)
-            , tempFPCelcjus(TempMeasure::tempMeasurement_invalid)
-        {}
+    static uint8_t shortToData(uint16_t & inOutOffset, 
+                               uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                               const uint16_t  inVal);
 
-
-        TempRecord(HKTime::SmallUpTime timeStamp, TempMeasurement tempFPCelcjus)
-            : timeStamp(timeStamp)
-            , tempFPCelcjus(tempFPCelcjus)
-        {}
-
-        HKTime::SmallUpTime    timeStamp;
-        TempMeasurement        tempFPCelcjus;
-    };
-
-    static TempMeasurement getSingleTempMeasurement(void);                     
-    static void getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime);
-    static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
-    static uint16_t capacity()
-    {
-        return maxMeasurements;
-    }
+    static uint8_t formatMeasurement(uint16_t & inOutOffset, 
+                                     uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                     HKTime::SmallUpTime timeStamp, int16_t val);
 
 
-    static void initMeasureTemperature(void);                //init
-    static void measureTemperature(void);                    //measure no
-
-public:
-    static TempRecord  g_tempMeasurements[maxMeasurements];
-
-    static uint16_t g_lastTempMeasurementIt;
 };
-//-------------------------------------------------
 #endif
-

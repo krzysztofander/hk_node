@@ -10,8 +10,8 @@ using namespace std;
 class Serial_if
 {
 public:
-    virtual  uint8_t  read() = 0;
-    virtual  uint8_t  peek() = 0;
+    virtual  uint8_t read() = 0;
+    virtual  uint8_t peek() = 0;
     virtual  uint8_t write(const uint8_t * buff, size_t size ) = 0;
     virtual  uint8_t available() = 0;
 };
@@ -19,8 +19,8 @@ public:
 class TSerial
 {
 public:
-    uint8_t  read() { return s->read(); };
-    uint8_t  peek() { return s->peek(); };
+    uint8_t read() { return s->read(); };
+    uint8_t peek() { return s->peek(); };
     uint8_t available() { return s->available(); };
     uint8_t write(const uint8_t * buff, size_t size)
     {
