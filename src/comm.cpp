@@ -282,22 +282,21 @@ uint8_t  HKComm::respondSerial(void)
                     HKSerial::read();
                     return false;   // the upper condition may not be met. Returning to main loop
                 }
+                g_serialError = HKCommDefs::serialErr_None;
+                g_SerialState = HKCommDefs::serialState_ReadData;
+                g_dataIt      = 0;
 
                 for (uint8_t commandIt = 0; commandIt  < NUM_ELS(g_command); commandIt ++)
                 {
                     g_command[commandIt] = HKSerial::read();
-                    //in case of error here...
+                    //in case of error here
                     if (g_command[commandIt] == uint8_t(HKCommDefs::commandEOLSignOnRecieve))
                     {
                         g_serialError = HKCommDefs::serialErr_eolInCommand;
                         g_SerialState =  HKCommDefs::serialState_Error;
-                        return true;
+                        //loop will continue reading whole command (3 chars) anyway.
                     }
                 }
-                g_serialError = HKCommDefs::serialErr_None;
-                //all ok, switch to data
-                g_SerialState = HKCommDefs::serialState_ReadData;
-                g_dataIt = 0;
                 return 1;
             }
             
@@ -424,12 +423,22 @@ uint8_t  HKComm::respondSerial(void)
         default:
         case HKCommDefs::serialState_Error:
         {
-            
-            g_data[0] = ' ';
-            g_data[1] = g_command[0];
-            g_data[2] = g_command[1];
-            g_data[3] = g_command[2];
-            g_data[4] = '-';
+            g_dataIt = 0;
+            g_data[g_dataIt++] = ' ';
+            for (uint8_t i = 0; i < NUM_ELS(g_command); i++)
+            {
+                if (g_command[i] > uint8_t (' ') && g_command[i] < 127)
+                {
+                    g_data[g_dataIt++] = g_command[i];
+                }
+                else
+                {
+                    g_data[g_dataIt++] = '\\';
+                    HKCommCommon::uint8ToData(g_dataIt, g_data, g_command[i]);
+                }
+            }
+
+            g_data[g_dataIt++] = '-';
             if ((uint8_t)HKCommDefs::serialErr_WriteFail == g_serialError)
             {
                 //lets attempt to do something anyway...
@@ -442,7 +451,7 @@ uint8_t  HKComm::respondSerial(void)
             g_command[1]='R';
             g_command[2]='R';
 
-            g_dataIt = 5;
+          
             HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
             
 

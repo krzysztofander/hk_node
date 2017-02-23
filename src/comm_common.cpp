@@ -85,16 +85,27 @@ uint8_t HKCommCommon::dataToUnsigned32(uint16_t offset,
     return dataToType(offset, inData, retVal);
 }
 
-
-uint8_t HKCommCommon::shortToData(uint16_t & inOutOffset,
-                                  uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
-                                  const uint16_t  inVal )
+uint8_t HKCommCommon::dataToUnsigned8(uint16_t offset,
+                                       const uint8_t (&inData)[HKCommDefs::commandMaxDataSize], 
+                                       uint8_t & retVal )
 {
-    if (inOutOffset + sizeof(uint16_t) * 2 < sizeof(inOutData)  )
+    return dataToType(offset, inData, retVal);
+}
+
+
+
+//@Brief parses the write the type as ascii
+//@Returns 0 if ok, serialErr_Assert  if error would go out of band
+template <class C>
+uint8_t typeToData(uint16_t & inOutOffset,
+                                  uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                  const C inVal )
+{
+    if (inOutOffset + sizeof(inVal) * 2 < sizeof(inOutData)  )
     {
         for (uint8_t i = 0; i < sizeof(inVal); i++)
         {
-            uint8_t l = uint8_t(inVal >> (8 - (8 * i)));
+            uint8_t l = uint8_t(inVal >> (sizeof(inVal) - 1 - i) * 8);
             uint8_t highHex = l >> 4 ;
             highHex += highHex > uint8_t(9) ? uint8_t('a') - uint8_t(10) : uint8_t('0');
             uint8_t lowHex = l & uint8_t(0xF);
@@ -110,6 +121,23 @@ uint8_t HKCommCommon::shortToData(uint16_t & inOutOffset,
         return HKCommDefs::serialErr_Assert;
     }
 
+}
+
+
+
+uint8_t HKCommCommon::shortToData(uint16_t & inOutOffset,
+                                  uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                  const uint16_t  inVal )
+{
+    return typeToData(inOutOffset, inOutData, inVal);
+}
+
+
+uint8_t HKCommCommon::uint8ToData(uint16_t & inOutOffset,
+                                  uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                  const uint8_t  inVal )
+{
+    return typeToData(inOutOffset, inOutData, inVal);
 }
 
 //@brief formats the measurement time/val pair directly into buffer
@@ -139,7 +167,13 @@ uint8_t HKCommCommon::formatMeasurement(uint16_t & inOutOffset,
         inOutData[inOutOffset++]=chSeparator;
         shortToData(inOutOffset, inOutData, val);
         inOutData[inOutOffset++]=chEnd;
-        
+
+#if 1
+        for (uint8_t i = 0; i < NUM_ELS(HKCommDefs::commandEOLOnResponceSequence); i++)
+        {
+            inOutData[inOutOffset++] = HKCommDefs::commandEOLOnResponceSequence[i];
+        }
+#endif        
         return HKCommDefs::serialErr_None;
     }
     else
