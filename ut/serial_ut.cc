@@ -50,10 +50,10 @@ TEST(Serial, check_dataToUnsignedShort)
     // now fail scenarios
 
     errorCode = HKCommCommon::dataToUnsignedShort(0, inDataE, retVal);
-    ASSERT_EQ(errorCode, HKCommDefs::serialErr_IncorrectNumberFormat);
+    ASSERT_EQ(errorCode, HKCommDefs::serialErr_Number_IncorrectFormat);
 
     errorCode = HKCommCommon::dataToUnsignedShort(4, inDataE, retVal);
-    ASSERT_EQ(errorCode, HKCommDefs::serialErr_IncorrectNumberFormat);
+    ASSERT_EQ(errorCode, HKCommDefs::serialErr_Number_IncorrectFormat);
 
  
     inData[HKCommDefs::commandMaxDataSize - 5] = '0';

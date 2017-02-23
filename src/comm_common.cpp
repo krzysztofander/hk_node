@@ -56,7 +56,7 @@ uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKCommDefs::commandM
             uint8_t r = HKCommCommon::charToUnsigned(inData[offset + i], &v);
             if (!!r)
             {
-                return HKCommDefs::serialErr_IncorrectNumberFormat;
+                return HKCommDefs::serialErr_Number_IncorrectFormat;
             }
             retVal <<= 4; //bits per digit
             retVal |= (C)v;

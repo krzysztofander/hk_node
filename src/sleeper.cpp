@@ -150,19 +150,13 @@ void Sleeper::init(void)
 void Sleeper::gotToSleep(void)
 {
    
-   
-   //     HKComm::echoLetter('E');
-   //     HKComm::echoLetter(0);
-   //     HKComm::echoLetter(PCMSK2);
-   //     HKComm::echoLetter(PCIFR);
-   ///     HKComm::echoLetter(PCICR);
-   //     HKComm::echoLetter(Sleeper::gv_wdInterrupt);
-   //     HKComm::echoLetter(Sleeper::gv_wdInterrupt_B);
- //   blueOn();
+  
     HKTime::UpTime time = getUpTime();
     alert(uint8_t(time & 0xF), false);
-   // HKComm::echoLetter('A');
-   //  HKComm::echoLetter(g_sleepTime & 0xFF);
+    // HKComm::echoLetter('-');
+    // HKComm::echoLetter(g_sleepTime & 0xFF);
+    // HKComm::echoLetter((char)HKSerial::available());
+    // HKComm::echoLetter((char)HKComm::g_SerialState);
     
     if (1 
      //   && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.

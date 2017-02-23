@@ -42,3 +42,18 @@ uint8_t HKSerial::write(const uint8_t * buff, size_t size)
 {
     return Serial.write(buff, size);
 }
+
+void HKSerial::flush()
+{
+    //TODO Enable that. Somehow it corrupts g_Command
+
+   // Serial.flush();
+}
+void HKSerial::end()
+{
+   // Serial.end();
+}
+void HKSerial::begin(int speed)
+{
+   // Serial.begin(speed);
+}

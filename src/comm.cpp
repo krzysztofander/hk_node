@@ -106,9 +106,9 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             Sleeper::SleepTime sleepTime = 0;
             if (dataSize < sizeof(uint16_t) * 2)
             {
-                return HKCommDefs::serialErr_NumberToShort;
+                return HKCommDefs::serialErr_Number_Uint16ToShort;
             }
-            else if (dataSize == sizeof(uint16_t))
+            else if (dataSize == sizeof(uint16_t)*2)
             {
                 uint16_t tempMeasmntInterval;
                 uint8_t e = HKCommCommon::dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
@@ -118,7 +118,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
                 }
                 sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
             }
-            else if (dataSize == sizeof(int32_t))
+            else if (dataSize == sizeof(int32_t)*2)
             {
                 uint32_t tempMeasmntInterval;
                 uint8_t e = HKCommCommon::dataToUnsigned32(0, inOutData, tempMeasmntInterval);
@@ -130,7 +130,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             }
             else
             {
-                return HKCommDefs::serialErr_NumberToShort;
+                return HKCommDefs::serialErr_Number_NoCorrectLength;
             }
             Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer,sleepTime );
             //Response is same as command...
@@ -182,7 +182,7 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             //check for size correctness
             if (dataSize < sizeof(short) * 2)
             {
-                return HKCommDefs::serialErr_NumberToShort;
+                return HKCommDefs::serialErr_Number_Uint16ToShort;
             }
             uint16_t measurementsToReturn;
             uint8_t e = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
@@ -229,6 +229,8 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         default:
         {
             dataSize = 0;
+            inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
+            inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
             break;
         }
         }
@@ -298,6 +300,7 @@ uint8_t  HKComm::respondSerial(void)
                 g_dataIt = 0;
                 return 1;
             }
+            
             break;
         }
 
@@ -372,7 +375,7 @@ uint8_t  HKComm::respondSerial(void)
         {
 
             //write command then variable number of data then end of line sequence.
-            uint8_t written = HKSerial::write(g_command, NUM_ELS(g_command));
+            uint16_t written = HKSerial::write(g_command, NUM_ELS(g_command));
             if (g_dataIt != 0)
             {
                 written += HKSerial::write(g_data, g_dataIt);
@@ -422,20 +425,31 @@ uint8_t  HKComm::respondSerial(void)
         case HKCommDefs::serialState_Error:
         {
             
-            if (HKCommDefs::serialErr_WriteFail != g_serialError)
+            g_data[0] = ' ';
+            g_data[1] = g_command[0];
+            g_data[2] = g_command[1];
+            g_data[3] = g_command[2];
+            g_data[4] = '-';
+            if ((uint8_t)HKCommDefs::serialErr_WriteFail == g_serialError)
             {
-                g_command[0]='E';
-                g_command[1]='R';
-                g_command[2]='R';
-
-
-                g_dataIt = 0;
-                HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
-
-                g_SerialState = HKCommDefs::serialState_Respond;
-                g_serialError = HKCommDefs::serialErr_None;
-                return 1;
+                //lets attempt to do something anyway...
+                HKSerial::flush();
+                HKSerial::end();
+                HKSerial::begin(9600);
             }
+
+            g_command[0]='E';
+            g_command[1]='R';
+            g_command[2]='R';
+
+            g_dataIt = 5;
+            HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
+            
+
+            g_SerialState = HKCommDefs::serialState_Respond;
+            g_serialError = HKCommDefs::serialErr_None;
+            return 1;
+
             break;
         }
 

@@ -22,6 +22,21 @@ public:
     uint8_t read() { return s->read(); };
     uint8_t peek() { return s->peek(); };
     uint8_t available() { return s->available(); };
+
+    void flush()
+    {
+    
+    }
+    void end()
+    {
+        
+    }
+    void begin(int speed)
+    {
+            
+    }
+
+
     uint8_t write(const uint8_t * buff, size_t size)
     {
        return s->write(buff, size);

@@ -111,7 +111,7 @@ TEST_F (Serial_RTH_method_Fixture, readTMV_02)
 {
     dataPut() = { '1','2','3'};
     uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
-    ASSERT_EQ(retVal, HKCommDefs::serialErr_NumberToShort);
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_Number_Uint16ToShort);
 }
 
 //@brief checks the error when there is a request for 3 history elements
