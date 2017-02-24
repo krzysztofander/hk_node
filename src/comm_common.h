@@ -32,6 +32,10 @@ public:
     static uint8_t dataToUnsignedShort(uint16_t offset, 
                                        const uint8_t (&inData)[HKCommDefs::commandMaxDataSize ],
                                        uint16_t & retVal);
+    static uint8_t dataToUnsigned64(uint16_t offset,
+                                           const uint8_t (&inData)[HKCommDefs::commandMaxDataSize],
+                                           uint64_t & retVal);
+
     static uint8_t dataToUnsigned32(uint16_t offset,
                                     const uint8_t (&inData)[HKCommDefs::commandMaxDataSize],
                                     uint32_t & retVal);
@@ -49,6 +53,12 @@ public:
                                              uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
                                              const uint8_t  inVal);
 
+    static uint8_t uint32ToData(uint16_t & inOutOffset,
+                               uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                               const uint32_t  inVal);
+    static uint8_t uint64ToData(uint16_t & inOutOffset,
+                               uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                               const uint64_t  inVal);
 
     static uint8_t formatMeasurement(uint16_t & inOutOffset, 
                                      uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],

@@ -103,9 +103,27 @@ private:
 
 //------------------------------------------------------------------------
 
-class SerialFixture : public ::testing::Test
+class SerialFixtureComm : public ::testing::Test
+{
+public:
+    enum
+    {
+        serialResponce_OK_dataLength = 3
+
+    };
+
+};
+
+class SerialFixture : public SerialFixtureComm
 {
 public: 
+
+    enum
+    {
+        serialResponce_OK_dataLength = 3
+
+    };
+
     MockSerial mockSerial;
 
 
@@ -118,39 +136,18 @@ public:
     }
 };
 
-class NiceSerialFixture : public ::testing::Test
+class NiceSerialFixture : public SerialFixtureComm{
+public: 
+    NiceMock<MockSerial>  mockSerial;
+    InSequence dummy;    virtual void SetUp()    {
+        Serial.install(&mockSerial);        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;        HKComm::g_dataIt = 0;        HKComm::g_serialError = 0;    }
+};
+class StrictSerialFixture : public SerialFixtureComm
 {
-public: 
-    NiceMock<MockSerial>  mockSerial;
-    InSequence dummy;
-
-    virtual void SetUp()
-    {
-        Serial.install(&mockSerial);
-        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;
-        HKComm::g_dataIt = 0;
-        HKComm::g_serialError = 0;
-
-    }
-
-};
-
-class StrictSerialFixture : public ::testing::Test
-{
-public: 
-    StrictMock<MockSerial>  mockSerial;
-    InSequence dummy;
-
-    virtual void SetUp()
-    {
-        Serial.install(&mockSerial);
-
-        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;
-        HKComm::g_dataIt = 0;
-        HKComm::g_serialError = 0;
-    }
-
-};
+public: 
+    StrictMock<MockSerial>  mockSerial;
+    InSequence dummy;    virtual void SetUp()    {
+        Serial.install(&mockSerial);        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;        HKComm::g_dataIt = 0;        HKComm::g_serialError = 0;    }};
 
 class SerialBufferHandler : public SerialFixture
 {
@@ -200,6 +197,13 @@ public:
 class Serial_R_method_Fixture : public SerialBufferHandler
 {
 public:
+    
+    enum
+    {
+        serialResponce_Format4_8_dataLength = 1+4+1+8+1 + /*for eol:*/ 2
+
+    };
+
     MockTempMeasurement mckTm;
     MockSleeper mckS;
 

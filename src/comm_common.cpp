@@ -78,6 +78,14 @@ uint8_t HKCommCommon::dataToUnsignedShort(uint16_t offset,
 {
     return dataToType(offset, inData, retVal);
 }
+
+uint8_t HKCommCommon::dataToUnsigned64(uint16_t offset,
+                                       const uint8_t (&inData)[HKCommDefs::commandMaxDataSize], 
+                                       uint64_t & retVal )
+{
+    return dataToType(offset, inData, retVal);
+}
+
 uint8_t HKCommCommon::dataToUnsigned32(uint16_t offset,
                                        const uint8_t (&inData)[HKCommDefs::commandMaxDataSize], 
                                        uint32_t & retVal )
@@ -139,6 +147,21 @@ uint8_t HKCommCommon::uint8ToData(uint16_t & inOutOffset,
 {
     return typeToData(inOutOffset, inOutData, inVal);
 }
+
+uint8_t HKCommCommon::uint32ToData(uint16_t & inOutOffset,
+                                  uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                  const uint32_t  inVal )
+{
+    return typeToData(inOutOffset, inOutData, inVal);
+}
+
+uint8_t HKCommCommon::uint64ToData(uint16_t & inOutOffset,
+                                   uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+                                   const uint64_t  inVal )
+{
+    return typeToData(inOutOffset, inOutData, inVal);
+}
+
 
 //@brief formats the measurement time/val pair directly into buffer
 //@param [inout] inOutOffset:  base and new offset in buffer

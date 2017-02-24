@@ -63,10 +63,25 @@ Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 //http://www.gammon.com.au/forum/?id=11497
 
 
-void Sleeper::incUpTime(void)
+//@increases the system time by one
+//This function should NOT be called by ISR 
+void Sleeper::setTime(const volatile HKTime::UpTime newTime)
+{
+    do
+    {
+        Sleeper::g_upTime = newTime;
+    } while (Sleeper::g_upTime != newTime);
+}
+
+
+//@increases the system time by one
+//This function should be called ONLY by ISR handling time ticks
+void Sleeper::incUpTimeInISR(void)
 {
     Sleeper::g_upTime++;
 }
+
+
 
 // watchdog interrupt
 ISR (WDT_vect) 
@@ -74,7 +89,7 @@ ISR (WDT_vect)
     Sleeper::gv_wdInterrupt  = 1;        //annotate that the interrupt came from watchdog.
     Sleeper::gv_wdInterrupt_B  = 1;      //annotate that the interrupt came from watchdog.
 
-    Sleeper::incUpTime();
+    Sleeper::incUpTimeInISR();
 
 }  // end of WDT_vect
 

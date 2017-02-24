@@ -35,7 +35,8 @@ public:
 
 
     static HKTime::UpTime getUpTime(void);
-    static void incUpTime(void);
+    static void incUpTimeInISR(void);
+    static void setTime(const volatile HKTime::UpTime newTime);
 private:
 
     static void initWD(void);

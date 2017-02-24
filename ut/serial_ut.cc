@@ -377,7 +377,7 @@ TEST_F (Serial_D_method_Fixture, echoD)
     ASSERT_EQ(inOutCommand[0],'D');  //what to expect in command
     ASSERT_EQ(inOutCommand[1],'R');
     ASSERT_EQ(inOutCommand[2],'X');
-    ASSERT_EQ(dataSize, 0);  //no data
+    ASSERT_EQ(dataSize, serialResponce_OK_dataLength );  //no data
     ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
 
 }
@@ -418,12 +418,15 @@ TEST_F(StrictSerialFixture, changeStateToResponse_ForEcho)
     retVal = HKComm::respondSerial();
     ASSERT_EQ(HKComm::g_SerialState, HKCommDefs::serialState_Respond);
     ASSERT_EQ(retVal, 1);
-    ASSERT_EQ(HKComm::g_dataIt, 0);
+    ASSERT_EQ(HKComm::g_dataIt, serialResponce_OK_dataLength );
 
 
     {
         EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKComm::g_command))).
             WillOnce(Return(uint8_t(NUM_ELS(HKComm::g_command))));
+        
+        EXPECT_CALL(mockSerial, write(_, serialResponce_OK_dataLength)).
+            WillOnce(Return(uint8_t(serialResponce_OK_dataLength)));
         EXPECT_CALL(mockSerial, write(_, HKCommDefs::commandEOLSizeOnResponce)).
             WillOnce(Return(HKCommDefs::commandEOLSizeOnResponce));
 
