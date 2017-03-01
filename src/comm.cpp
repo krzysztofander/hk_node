@@ -129,7 +129,6 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
 {
     uint8_t err = HKCommDefs::serialErr_Assert;
 
-
     switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'T': //configure temperature
@@ -170,12 +169,14 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             }
             Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, sleepTime);
             err = formatResponceOK(inOutCommand,inOutData, dataSize);
-            break;
+          
         }
+        break;
         default:
             err = formatResponceUnkL2(inOutCommand, dataSize);
-            break;
+             break;
         }
+        break;
     case 'S' :
         switch (inOutCommand[HKCommDefs::command_subIdPos2])
         {

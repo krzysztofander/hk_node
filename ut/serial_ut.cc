@@ -472,4 +472,29 @@ TEST_F(StrictSerialFixture, testResponse)
 
 }
 
+TEST_F(NiceSerialFixture, testCTM0000)
+{
+    int8_t retVal = 0;
+
+    HKComm::g_command[0] = 'C';
+    HKComm::g_command[1] = 'T';
+    HKComm::g_command[2] = 'M';
+    HKComm::g_SerialState =  HKCommDefs::serialState_Action; 
+    HKComm::g_dataIt = 4;
+    HKComm::g_data[0] = '0';
+    HKComm::g_data[1] = '0';
+    HKComm::g_data[2] = '0';
+    HKComm::g_data[3] = '0';
+
+    {
+        retVal = HKComm::respondSerial();
+        ASSERT_EQ(HKComm::g_SerialState, HKCommDefs::serialState_Respond);
+        ASSERT_EQ(retVal, 1);
+        ASSERT_EQ(HKComm::g_serialError, HKCommDefs::serialErr_None);
+        ASSERT_EQ(HKComm::g_dataIt, 4);   //data zero after error
+
+    }
+
+}
+
 
