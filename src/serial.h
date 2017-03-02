@@ -29,5 +29,11 @@ public:
     static uint8_t available();
     static uint8_t peek();
     static uint8_t write(const uint8_t * buff, size_t size);
+
+    static void flush();
+    static void end();
+    static void begin(int speed);
+
+
 };
 #endif

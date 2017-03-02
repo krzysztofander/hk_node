@@ -50,12 +50,12 @@ public:
     enum ESerialState
     {
      //   serialState_Preable,
-        serialState_ReadCommand,
-        serialState_ReadData,
-        serialState_Action,
+        serialState_ReadCommand = 0,
+        serialState_ReadData = 1,
+        serialState_Action = 2,
         
-        serialState_Respond,
-        serialState_Error,
+        serialState_Respond = 3,
+        serialState_Error = 4,
     };
     
     enum ESerialErrors
@@ -64,13 +64,17 @@ public:
 
         serialErr_Assert = 1,           // some assertion triggered
 
-        serialErr_IncorrectNumberFormat = 2,  //format of the number from serial is incorrect. 
-        serialErr_NumberToShort =3 ,    //a number recieved from serial is to short. Recieved EOL to early
+        
+        serialErr_Number_IncorrectFormat = 0x20,  //format of the number from serial is incorrect. 
+        serialErr_Number_Uint16ToShort   =0x21 ,    //a number recieved from serial is to short. Recieved EOL to early
+        serialErr_Number_Uint32ToShort   =0x22 ,    //a number recieved from serial is to short. Recieved EOL to early
+        serialErr_Number_NoCorrectLength =0x23 ,
 
-        serialErr_eolInCommand =4 ,
-        serialErr_noEolFound = 5,
-        serialErr_UnknownCommand =6,   //a command recieved is not recognized
-        serialErr_WriteFail = 7,     //a number of bytes written is not same as expected
+
+        serialErr_eolInCommand =0x40 ,
+        serialErr_noEolFound = 0x50,
+        serialErr_UnknownCommand =0x60,   //a command recieved is not recognized
+        serialErr_WriteFail = 0x70,     //a number of bytes written is not same as expected
 
     };
 };

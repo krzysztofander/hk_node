@@ -60,6 +60,42 @@ void HKComm::echoLetter(uint8_t l)
     }  
 }
 
+//@brief Returns standardize responce for unknown command of given main cathegory
+uint8_t HKComm::formatResponceUnkL1(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize)
+{
+    //inOutCommand[HKCommDefs::commandIdentifierPos] = as is
+    inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
+    inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
+    dataSize = 0;
+    return HKCommDefs::serialErr_None;
+}
+
+//@brief Returns standardize responce for unknown command of given sub cathegory
+uint8_t HKComm::formatResponceUnkL2(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize)
+{
+    //inOutCommand[HKCommDefs::commandIdentifierPos] = as is
+    //inOutCommand[HKCommDefs::command_subIdPos1] = as us
+    inOutCommand[HKCommDefs::command_subIdPos2] =  'u';
+    dataSize = 0;
+    return HKCommDefs::serialErr_None;
+
+}
+
+//@brief Returns standardize responce when command is correct, especially for configure
+uint8_t HKComm::formatResponceOK(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    (void)inOutCommand;
+    //inOutCommand[HKCommDefs::commandIdentifierPos] = as is
+    //inOutCommand[HKCommDefs::command_subIdPos1] = as us
+    //inOutCommand[HKCommDefs::command_subIdPos2] = as is
+    inOutData[0] = ' ';
+    inOutData[1] = 'o';
+    inOutData[2] = 'k';
+    dataSize = 3;
+    return HKCommDefs::serialErr_None;
+}
+
+
 
 
 //------------------------------------------------------------------
@@ -67,8 +103,7 @@ void HKComm::echoLetter(uint8_t l)
 
 uint8_t HKComm::command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
-    (void)inOutData;
-
+    uint8_t err = HKCommDefs::serialErr_Assert;
     switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'E': //echo 
@@ -77,17 +112,13 @@ uint8_t HKComm::command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
           inOutCommand[HKCommDefs::command_subIdPos1] = 'R';
         //inOutCommand[command_subIdPos2] = as is
+        err = formatResponceOK(inOutCommand,inOutData, dataSize);
         break;
     default:  //unknown 'D' command
-        //Response:
-        //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-        inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
-        inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
+        err = formatResponceUnkL1(inOutCommand, dataSize);
         break;
     }
-    dataSize = 0;
-    return HKCommDefs::serialErr_None;  //no data set...
-    
+    return err;
 }
 
 //------------------------------------------------------------------
@@ -96,68 +127,91 @@ uint8_t HKComm::command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
 
 uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
-    (void)inOutData;
+    uint8_t err = HKCommDefs::serialErr_Assert;
+
     switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'T': //configure temperature
-        if (inOutCommand[HKCommDefs::command_subIdPos2] = 'M')
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
         {
-            //CTC
+        case 'M': //CTM
+        {
             Sleeper::SleepTime sleepTime = 0;
             if (dataSize < sizeof(uint16_t) * 2)
             {
-                return HKCommDefs::serialErr_NumberToShort;
+                err = HKCommDefs::serialErr_Number_Uint16ToShort;
+                break;
             }
-            else if (dataSize == sizeof(uint16_t))
+            else if (dataSize == sizeof(uint16_t) * 2)
             {
                 uint16_t tempMeasmntInterval;
-                uint8_t e = HKCommCommon::dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
-                if (e != HKCommDefs::serialErr_None)
+                err = HKCommCommon::dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
+                if (err != HKCommDefs::serialErr_None)
                 {
-                    return e;
+                    break;
                 }
                 sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
             }
-            else if (dataSize == sizeof(int32_t))
+            else if (dataSize == sizeof(int32_t) * 2)
             {
                 uint32_t tempMeasmntInterval;
-                uint8_t e = HKCommCommon::dataToUnsigned32(0, inOutData, tempMeasmntInterval);
-                if (e != HKCommDefs::serialErr_None)
+                err = HKCommCommon::dataToUnsigned32(0, inOutData, tempMeasmntInterval);
+                if (err != HKCommDefs::serialErr_None)
                 {
-                    return e;
+                    break;
                 }
                 sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
             }
             else
             {
-                return HKCommDefs::serialErr_NumberToShort;
+                err = HKCommDefs::serialErr_Number_NoCorrectLength;
+                break;
             }
-            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer,sleepTime );
-            //Response is same as command...
-            //todo actually read that and respond accordingly
-            //for now its just unchanged,
-            
-            return HKCommDefs::serialErr_None;
+            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, sleepTime);
+            err = formatResponceOK(inOutCommand,inOutData, dataSize);
+          
         }
-        inOutCommand[HKCommDefs::command_subIdPos2] = 'u';
-        dataSize = 0;
-        dataSize = HKCommDefs::serialErr_None;
-     
+        break;
+        default:
+            err = formatResponceUnkL2(inOutCommand, dataSize);
+             break;
+        }
+        break;
+    case 'S' :
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
+        {
+        case 'T':
+        {  //configire system time
+            uint64_t newTime;
+            err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
+            if (err != HKCommDefs::serialErr_None)
+            {
+                break;
+            }
+            Sleeper::setTime(HKTime::UpTime(newTime));
+            err = formatResponceOK(inOutCommand, inOutData, dataSize);
+        }
+        break;
+        default:
+            err = formatResponceUnkL2(inOutCommand, dataSize);
+            break;
+        }
+        break;
     default:  //unknown 'C' command
         //Response:
-        inOutCommand[HKCommDefs::command_subIdPos1] =  'u';
-        inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
-        dataSize = 0;
-        return HKCommDefs::serialErr_None;
+        err = formatResponceUnkL1(inOutCommand, dataSize);
+        break;
     }
-
+    return err;
 }
 
 
 
 uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
-    uint8_t retVal;
+    uint8_t err = HKCommDefs::serialErr_Assert;
+    
+
     switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
     case 'T':
@@ -167,49 +221,49 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         case 'M':   //make a measurement
         {
             TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
-            inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
             dataSize = 0;
-            retVal = HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()) , singleTempMeasurement);
-            if (retVal != HKCommDefs::serialErr_None)
-            {
-                return retVal;
-            }
+            inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+            err = HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()), singleTempMeasurement);
             break;
         }
         case 'R':
         case 'H':  //temperatue history
         {
-            //check for size correctness
+         //check for size correctness
             if (dataSize < sizeof(short) * 2)
             {
-                return HKCommDefs::serialErr_NumberToShort;
+                err = HKCommDefs::serialErr_Number_Uint16ToShort;
+                break;
             }
             uint16_t measurementsToReturn;
-            uint8_t e = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
-            if (e != HKCommDefs::serialErr_None)
+            err  = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
+            if (err != HKCommDefs::serialErr_None)
             {
-                return e;
+                break;
             }
             //make it sane
             if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
             { //it its zero return all.
                 measurementsToReturn = TempMeasure::capacity();
             }
+            
             dataSize = 0;
             inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
-
-
 
             //measurementsToReturn contains how many. First one returns difference of current to timestamp
             HKTime::UpTime diff = Sleeper::getUpTime();
             TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
             diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
-            retVal = HKCommCommon::formatMeasurement(dataSize,
-                                       inOutData,
-                                       HKTime::SmallUpTime(diff),
-                                       tempRecord.tempFPCelcjus);
-            
-            
+            err = HKCommCommon::formatMeasurement(dataSize,
+                                                     inOutData,
+                                                     HKTime::SmallUpTime(diff),
+                                                     tempRecord.tempFPCelcjus);
+
+            if (err != HKCommDefs::serialErr_None)
+            {
+                break;
+            }
+
             measurementsToReturn--; //one is returned in inOutData
 
             //now set up records handler
@@ -218,37 +272,43 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
                 HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
                 HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
             }
-            if (retVal != HKCommDefs::serialErr_None)
-            {
-                return retVal;
-            }
+
             break;
 
         }
-
         default:
         {
-            dataSize = 0;
+            err = formatResponceUnkL2(inOutCommand, dataSize);
             break;
         }
         }
         break;
+    case 'S':
+    {
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
+        {
+            case 'T':
+                //read system time
+               inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+               err = HKCommCommon::uint64ToData(dataSize, inOutData, Sleeper::getUpTime());
+               break;
+            default:
+               err = formatResponceUnkL2(inOutCommand, dataSize);
+               break;
+
+        }
+    }
+    break;
     default:  //unknown 'T' command
     {
-              //Response:
-              //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-        inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
-        inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
+        err = formatResponceUnkL1(inOutCommand, dataSize);
         break;
     }
     }
-    return HKCommDefs::serialErr_None;  //no data set...
+    return err;  
 }
 
-
-
 //------------------------------------------------------------------
-
 
 uint8_t HKComm::isActive(void)
 {
@@ -280,24 +340,24 @@ uint8_t  HKComm::respondSerial(void)
                     HKSerial::read();
                     return false;   // the upper condition may not be met. Returning to main loop
                 }
+                g_serialError = HKCommDefs::serialErr_None;
+                g_SerialState = HKCommDefs::serialState_ReadData;
+                g_dataIt      = 0;
 
                 for (uint8_t commandIt = 0; commandIt  < NUM_ELS(g_command); commandIt ++)
                 {
                     g_command[commandIt] = HKSerial::read();
-                    //in case of error here...
+                    //in case of error here
                     if (g_command[commandIt] == uint8_t(HKCommDefs::commandEOLSignOnRecieve))
                     {
                         g_serialError = HKCommDefs::serialErr_eolInCommand;
                         g_SerialState =  HKCommDefs::serialState_Error;
-                        return true;
+                        //loop will continue reading whole command (3 chars) anyway.
                     }
                 }
-                g_serialError = HKCommDefs::serialErr_None;
-                //all ok, switch to data
-                g_SerialState = HKCommDefs::serialState_ReadData;
-                g_dataIt = 0;
                 return 1;
             }
+            
             break;
         }
 
@@ -372,7 +432,7 @@ uint8_t  HKComm::respondSerial(void)
         {
 
             //write command then variable number of data then end of line sequence.
-            uint8_t written = HKSerial::write(g_command, NUM_ELS(g_command));
+            uint16_t written = HKSerial::write(g_command, NUM_ELS(g_command));
             if (g_dataIt != 0)
             {
                 written += HKSerial::write(g_data, g_dataIt);
@@ -421,21 +481,42 @@ uint8_t  HKComm::respondSerial(void)
         default:
         case HKCommDefs::serialState_Error:
         {
-            
-            if (HKCommDefs::serialErr_WriteFail != g_serialError)
+            g_dataIt = 0;
+            g_data[g_dataIt++] = ' ';
+            for (uint8_t i = 0; i < NUM_ELS(g_command); i++)
             {
-                g_command[0]='E';
-                g_command[1]='R';
-                g_command[2]='R';
-
-
-                g_dataIt = 0;
-                HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
-
-                g_SerialState = HKCommDefs::serialState_Respond;
-                g_serialError = HKCommDefs::serialErr_None;
-                return 1;
+                if (g_command[i] > uint8_t (' ') && g_command[i] < 127)
+                {
+                    g_data[g_dataIt++] = g_command[i];
+                }
+                else
+                {
+                    g_data[g_dataIt++] = '\\';
+                    HKCommCommon::uint8ToData(g_dataIt, g_data, g_command[i]);
+                }
             }
+
+            g_data[g_dataIt++] = '-';
+            if ((uint8_t)HKCommDefs::serialErr_WriteFail == g_serialError)
+            {
+                //lets attempt to do something anyway...
+                HKSerial::flush();
+                HKSerial::end();
+                HKSerial::begin(9600);
+            }
+
+            g_command[0]='E';
+            g_command[1]='R';
+            g_command[2]='R';
+
+          
+            HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
+            
+
+            g_SerialState = HKCommDefs::serialState_Respond;
+            g_serialError = HKCommDefs::serialErr_None;
+            return 1;
+
             break;
         }
 

@@ -29,6 +29,14 @@ HKTime::UpTime Sleeper::getUpTime()
     MockSleeper & i = MockSleeper::instance();
     return i.getUpTime();
 }
+void Sleeper::setTime(const volatile HKTime::UpTime newTime)
+{
+    //TODO:
+    //MockSleeper & i = MockSleeper::instance();
+    //return i.setTime(newTime);
+}
+
+
 MockSleeper* MockSleeper::pInst = 0;
 MockTempMeasurement* MockTempMeasurement::pInst = 0;
 
