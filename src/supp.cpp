@@ -107,7 +107,7 @@ void alert(register AlertReason reason, bool hold)
           
        }
        if (
-        0 && // disaled for now
+        1 && // disaled for now
         hold)
        {
            volatile uint8_t buttonState = 1;

@@ -47,18 +47,16 @@ void setupBody()
     {
         toggleBlue();
         digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-        delay(20);                       // wait for a second
+        delay(200);                       // wait for a second
         digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-        delay(20);                       // wait for a second
+        delay(200);                       // wait for a second
+        alert(i, false);
     }
-    alert(14, true);
     //end of test
     Serial.println("hello world");
 
-    alert(0, false);
 #endif
     initAllFunctions();
-
     
 }
 
@@ -66,17 +64,14 @@ void loopBody()
 {
     //just woke up
 
-    //alert(AlertReason_Step1, false);
     Sleeper::SleepTime timeSlept = Sleeper::howMuchDidWeSleep();
     Executor::adjustToElapsedTime(timeSlept);
 
     while(
             HKComm::respondSerial()  //loop until returns true
          );  //if this was serial, handle that
-   
     //now execute what needs to be executed...
     uint8_t executor = Executor::giveExecutorToCall();
-
     if (executor < (uint8_t) Executor::executorsNumber)
     {
         Executor::rescheduleExecutor(executor);
@@ -101,15 +96,16 @@ void loopBody()
 void initAllFunctions(void)
 {
     TempSensor::init();
+        //@todo do something when init is not successfull
     TempMeasure::initMeasureTemperature();
-
+ 
     Executor::init();
     Executor::setupExecutingFn((uint8_t)Executor::blinker, 2, ledToggler);
         //@todo read that from NV
     Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 7, TempMeasure::measureTemperature); 
         //@todo read value from NV
-
+    
     Sleeper::init();
-   
+
 }
 //---------------------------------------------------------------

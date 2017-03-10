@@ -22,6 +22,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <OneWire.h>
 #include <DS18B20.h>
 #include "temp_sensor.h"
+#include "supp.h"
 
 class OneWireWrap
 {
@@ -36,7 +37,7 @@ public:
 OneWire  OneWireWrap::onewire(OneWireWrap::ONEWIRE_PIN);
 DS18B20  OneWireWrap::sensor(&OneWireWrap::onewire);
 
-uint8_t TempSensor::address[8];
+uint8_t TempSensor::address[8] = {0,0,0,0,0,0,0,0};
 
 uint8_t TempSensor::init()
 {
@@ -53,8 +54,10 @@ uint8_t TempSensor::init()
 //size of address array>=8
 uint8_t TempSensor::findSensor()
 {
+    //alert(8,true);
     while(OneWireWrap::onewire.search(address))
     {
+        //alert(15,true);
         //not temp sensor
         if (address[0] != 0x28)
         {
@@ -67,20 +70,34 @@ uint8_t TempSensor::findSensor()
         }
         else //found sensor
         {
+            //alert(9,true);
             return 1;
         }
     }
+    //alert(10,true);
     return 0;
 }
 
 
 float TempSensor::readTemperature()
 {
-    OneWireWrap::sensor.request(address);
-    while(!OneWireWrap::sensor.available())
-    {
-        //timeout is included in the sensor
+    //alert(5,true);
+    bool requestRet = OneWireWrap::sensor.request(address);
+    if (requestRet)
+    {   
+      //alert(11,true);
+
+        while (!OneWireWrap::sensor.available())
+        {
+            //timeout is included in the sensor
+        }
     }
+    else
+    {
+       //alert(12,true);
+    }
+    
+    //alert(7,true);
     return OneWireWrap::sensor.readTemperature(address);
 }
 
