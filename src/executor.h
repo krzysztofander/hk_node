@@ -48,6 +48,7 @@ public:
     
     static Sleeper::SleepTime getNextSleepTime(void);
     static void setExecutionTime(uint8_t executorToSet, Sleeper::SleepTime newTime);
+    static Sleeper::SleepTime  giveExecutionTime(uint8_t executorToRead);
     static void rescheduleExecutor(uint8_t executor);
     static void setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime,  ExecutingFn f );
     static ExecutingFn giveExecutorHandleToCall(uint8_t executor);

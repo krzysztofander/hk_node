@@ -20,9 +20,40 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "supp.h"
+#include "comm_common.h"
+#include "comm.h"
 //------------------------------------------------------------------
 
 volatile static uint8_t gv_blueState = 0;
+
+void ledToggler(void)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        digitalWrite(LED_BUILTIN, 1);
+        delay(20);
+        digitalWrite(LED_BUILTIN, 0);
+        delay(40);
+    }
+    uint8_t buttonState;
+    buttonState = digitalRead(buttonPin);
+    if (!buttonState)
+    {
+        static int8_t couter = 0;
+
+        uint16_t dataSize = 0;
+        HKComm::g_data[dataSize++] = 'A';
+        HKComm::g_data[dataSize++] = 'H';
+        HKComm::g_data[dataSize++] = 'L';
+        HKCommCommon::uint8ToData(dataSize, HKComm::g_data, couter ++);
+        
+        Serial.write(HKComm::g_data,dataSize);
+        Serial.write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence) );
+    };
+
+
+}
+
 
 void toggleBlue(void)
 {

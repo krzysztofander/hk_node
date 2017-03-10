@@ -44,6 +44,8 @@ void Sleeper::setNextSleep(Sleeper::SleepTime  st)
 {
     g_sleepTime = st;
 }
+//---------------------------------------------------------------
+
 Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 {
     Sleeper::SleepTime retVal;
@@ -62,6 +64,7 @@ Sleeper::SleepTime Sleeper::howMuchDidWeSleep(void)
 }
 //http://www.gammon.com.au/forum/?id=11497
 
+//---------------------------------------------------------------
 
 //@increases the system time by one
 //This function should NOT be called by ISR 
@@ -73,6 +76,8 @@ void Sleeper::setTime(const volatile HKTime::UpTime newTime)
     } while (Sleeper::g_upTime != newTime);
 }
 
+//---------------------------------------------------------------
+
 
 //@increases the system time by one
 //This function should be called ONLY by ISR handling time ticks
@@ -81,7 +86,7 @@ void Sleeper::incUpTimeInISR(void)
     Sleeper::g_upTime++;
 }
 
-
+//---------------------------------------------------------------
 
 // watchdog interrupt
 ISR (WDT_vect) 
@@ -93,6 +98,7 @@ ISR (WDT_vect)
 
 }  // end of WDT_vect
 
+//---------------------------------------------------------------
 
 //Pin interrupt. will be trigerred (or not...) from serial
 //
@@ -106,8 +112,7 @@ ISR (PCINT2_vect)
                            // not nessesarily here and in main loop.
   
 }
-
-
+//---------------------------------------------------------------
 
 HKTime::UpTime Sleeper::getUpTime(void)
 {
@@ -120,6 +125,7 @@ HKTime::UpTime Sleeper::getUpTime(void)
     } while (tempTime1 != tempTime2);
     return tempTime1;
 }
+//---------------------------------------------------------------
 
 void Sleeper::setWDScale(int8_t scale)
 {
@@ -128,7 +134,6 @@ void Sleeper::setWDScale(int8_t scale)
         WDTCSR = bit (WDCE) | bit (WDE);
         // set interrupt mode and an interval 
         //WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
-       // WDTCSR = bit (WDIE) | bit (WDP3); 
         WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1) ;    // set WDIE, and 1 seconds delay
     
         g_upTime = 0U;
@@ -138,19 +143,21 @@ void Sleeper::setWDScale(int8_t scale)
     wdt_reset();  // pat the dog
 
 }
+//---------------------------------------------------------------
 
 int8_t Sleeper::getWDScale(int8_t scale)
 {
-    return 6;
+    return 6; //@todo use the value
 }
-
+//---------------------------------------------------------------
 
 void Sleeper::initWD(void)
 {
     
-    setWDScale(6);
+    setWDScale(6); //@todo use the value from NV
 
 }
+//---------------------------------------------------------------
 
 void Sleeper::init(void)
 {
@@ -161,17 +168,13 @@ void Sleeper::init(void)
     PCMSK2 = bit (PCINT16) | bit(PCINT19);  // want pin 0 and 3 ONLY
     //interrupts will be enabled just before sleep
 }
+//---------------------------------------------------------------
 
 void Sleeper::gotToSleep(void)
 {
-   
-  
+     
     HKTime::UpTime time = getUpTime();
     alert(uint8_t(time & 0xF), false);
-    // HKComm::echoLetter('-');
-    // HKComm::echoLetter(g_sleepTime & 0xFF);
-    // HKComm::echoLetter((char)HKSerial::available());
-    // HKComm::echoLetter((char)HKComm::g_SerialState);
     
     if (1 
      //   && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
@@ -180,7 +183,7 @@ void Sleeper::gotToSleep(void)
         )
     {
         //finish off serial
-        //NOTE: Apparently serial have to be on to call flush or end. Otherwise locks here...
+        //NOTE: Apparently serial have to be ON to call flush or end. Otherwise locks here...
         Serial.flush();
         Serial.end();
 
@@ -194,7 +197,7 @@ void Sleeper::gotToSleep(void)
             blueOff();
             set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
 
-            //when waking up from powed down some characters 
+            //when waking up from powed down some characters get lost on serial input
 
             //other periph could be powered donw here.
         }
@@ -204,13 +207,10 @@ void Sleeper::gotToSleep(void)
             //serial or button. Standby for now
             set_sleep_mode (SLEEP_MODE_STANDBY);  
 
-            /*if we 1 tick from action the periph could be woken up here*/
+            //if we 1 tick from action the periph could be woken up here
 
         }
         
-        //set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
-        
-        //set_sleep_mode(SLEEP_MODE_IDLE);
         digitalWrite(LED_BUILTIN, 0);
 
         // clear various "reset" flags
@@ -223,8 +223,8 @@ void Sleeper::gotToSleep(void)
 
         sleep_enable();
 
-  
-            // turn off brown-out enable in software
+        
+            //@TODO turn off brown-out enable in software
             //MCUCR = bit (BODS) | bit (BODSE);
             //MCUCR = bit (BODS); 
         sleep_cpu ();  
@@ -242,7 +242,6 @@ void Sleeper::gotToSleep(void)
             //this can and should be done reqardless whether ISR picked that 
 
             PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-          
             
             //periph should be woken up here
 
@@ -253,28 +252,23 @@ void Sleeper::gotToSleep(void)
         {
             //it was from watchdog. Clear the indication flag so it gets set again in WD ISR
             gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
-
             //periph could be woken up if just 1 tick to WD wake
-
         }
 
 
 
-        //TODO investigate whether is better to use that...
+        //@TODO investigate whether is better to use that...
         //       UCSR0B |= bit (RXEN0);  // enable receiver
         //       UCSR0B |= bit (TXEN0);  // enable transmitter
 
         Serial.begin(9600);
         digitalWrite(LED_BUILTIN, 1);
-    
     }
     else
     {
         digitalWrite(LED_BUILTIN, 1);
         //we do not go to sleep. The tick will return some time passed eventually
     }
-  
-
 }
 
 

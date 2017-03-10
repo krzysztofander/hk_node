@@ -59,6 +59,7 @@ void toggleBlue(void);
 void blueOff(void);
 void blueOn(void);
 void blinkBlue(void);
+void ledToggler(void);
 
 //--------------------------------------------------
 

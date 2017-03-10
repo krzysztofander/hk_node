@@ -66,11 +66,26 @@ class MockExecutor
 public:
     MOCK_METHOD2(setExecutionTime, void(uint8_t, uint16_t));
 
+    MockExecutor()
+    {
+        pInst = this;
+    }
+    ~MockExecutor()
+    {
+        pInst = 0;
+    }
+
     static MockExecutor & instance()
     {
-        static MockExecutor  f;
-        return f;
+        if (!pInst) 
+            throw std::exception("getting instance when mock is not instantiated");
+        return *pInst;   
     }
+
+private:
+    static MockExecutor *pInst;
+
+
 };
 
 
@@ -118,11 +133,6 @@ class SerialFixture : public SerialFixtureComm
 {
 public: 
 
-    enum
-    {
-        serialResponce_OK_dataLength = 3
-
-    };
 
     MockSerial mockSerial;
 

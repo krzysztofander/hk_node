@@ -143,8 +143,23 @@ void Executor::setExecutionTime(uint8_t executorToSet, Sleeper::SleepTime newTim
     {
         alert(AlertReason_BadParam, true);
     }
+}
+
+//@brief Reads time given to particular executor
+//@returns value or -1 if particular executor is not active
+Sleeper::SleepTime  Executor::giveExecutionTime(uint8_t executorToRead)
+{
+    if (isExecutorActive(executorToRead))
+    {
+        return g_ExecutorsPeriods[executorToRead];
+    }
+    else
+    {
+        return -1;
+    }
 
 }
+
 void Executor::rescheduleExecutor(uint8_t executor)
 {
     if (isExecutorActive(executor))

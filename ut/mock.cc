@@ -39,6 +39,8 @@ void Sleeper::setTime(const volatile HKTime::UpTime newTime)
 
 MockSleeper* MockSleeper::pInst = 0;
 MockTempMeasurement* MockTempMeasurement::pInst = 0;
+MockExecutor* MockExecutor::pInst = 0;
+
 
 //------------------------------------------------------------------------
 TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
@@ -55,6 +57,13 @@ void Executor::setExecutionTime(uint8_t t, Sleeper::SleepTime  s)
 {
     MockExecutor::instance().setExecutionTime(t, s);
 }
+
+Sleeper::SleepTime Executor::giveExecutionTime(uint8_t t)
+{
+    return 0; //nothing in mock for now.
+    //return MockExecutor::instance().giveExecutionTime(t);
+}
+
 
 
 
