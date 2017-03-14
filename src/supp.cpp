@@ -272,3 +272,37 @@ void ledToggler(void)
 
 }
 
+static bool greenState = 0;
+
+void Supp::greenOn()
+{
+    greenState = 0;
+    digitalWrite(AlPinGreen, greenState); //ON
+}
+void Supp::greenOff()
+{
+    greenState = 0;
+    digitalWrite(AlPinGreen, greenState); //ON
+
+}
+void Supp::toggleGreen()
+{
+
+    greenState = !greenState ;
+    digitalWrite(AlPinGreen, greenState); //ON
+
+}
+
+static bool lastNotWD= 0;
+static void Supp::notWDWakeUp()
+{
+    if (!lastNotWD)
+    {
+        toggleGreen();
+    }
+    lastNotWD = 1;
+}
+static void Supp::watchdogWakeUp()
+{
+    lastNotWD = 0;
+}

@@ -177,7 +177,7 @@ void Sleeper::gotToSleep(void)
     
     
     if (1 
-     //   && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
+        && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
         && g_sleepTime > 0          //we want to sleep
         && ! HKComm::isActive()     //serial does command processing now
         )
@@ -244,13 +244,32 @@ void Sleeper::gotToSleep(void)
             //periph should be woken up here
 
             //WARNING: This flag is cleared only here....
+            
+            
+
+            Supp::notWDWakeUp();
+
+            //we need to introduce a delay here
+            //in case when serial woken up, the char would get lost
+            //and we would enter this loop immeditely
+            //to avoid it we just hold up with sleeping for 
+            //the time to >2 chars to arrive
+            //in 9600 we have apx 0.1ms per char so wait of 3 ms would be fine
+            //for terminal, manual operations,
+            //a 50ms should do
+            delay(50);
+            //plus wait till next WD tick
             gv_wdInterrupt_B  = 0; // say to this function not to enter sleep before next WD tick      
+            
+            //@todo make it a counter and just wait for 2 WD kicks.
+            //@todo while waiting for serial we can still go PWR down IDLE mode
         }
         else
         {
             //it was from watchdog. Clear the indication flag so it gets set again in WD ISR
             gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
             //periph could be woken up if just 1 tick to WD wake
+            Supp::watchdogWakeUp();
         }
 
 
@@ -259,7 +278,9 @@ void Sleeper::gotToSleep(void)
         //       UCSR0B |= bit (RXEN0);  // enable receiver
         //       UCSR0B |= bit (TXEN0);  // enable transmitter
 
-        Serial.begin(9600);
+        Serial.begin(9600); //@todo check whether we need a delay from power up 
+                            //from serial pin int up to calling Serial.Begin
+                            //Apparently char is not being lost., but how?
         Supp::justPoweredUp();
     }
     else

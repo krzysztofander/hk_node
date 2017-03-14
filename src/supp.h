@@ -116,6 +116,16 @@ public:
     // at least one more MSB bit set as 1
     static void blinkLed(uint8_t pattern); 
 
+    static void notWDWakeUp();
+
+    static void watchdogWakeUp();
+
+
+
+    static void greenOn();
+    static void greenOff();
+    static void toggleGreen();
+
 
     //@a button state
     static bool getButtonState();
@@ -130,6 +140,7 @@ private:
         AlPin2 = 7,
         AlPin3 = 6,
         AlPin4 = 5,
+        AlPinGreen = 5,
         PowerUpDown = 8,
         buttonPin = 3
 
