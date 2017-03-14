@@ -174,7 +174,7 @@ void Sleeper::gotToSleep(void)
 {
      
     HKTime::UpTime time = getUpTime();
-    alert(uint8_t(time & 0xF), false);
+    
     
     if (1 
      //   && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
@@ -194,7 +194,6 @@ void Sleeper::gotToSleep(void)
         {
             //last time it was watchdog that woke up
             //total down
-            blueOff();
             set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
 
             //when waking up from powed down some characters get lost on serial input
@@ -210,8 +209,7 @@ void Sleeper::gotToSleep(void)
             //if we 1 tick from action the periph could be woken up here
 
         }
-        
-        digitalWrite(LED_BUILTIN, 0);
+        Supp::aboutToPowerDown();
 
         // clear various "reset" flags
         MCUSR = 0;    
@@ -262,11 +260,11 @@ void Sleeper::gotToSleep(void)
         //       UCSR0B |= bit (TXEN0);  // enable transmitter
 
         Serial.begin(9600);
-        digitalWrite(LED_BUILTIN, 1);
+        Supp::justPoweredUp();
     }
     else
     {
-        digitalWrite(LED_BUILTIN, 1);
+        Supp::noPowerDownHappened();
         //we do not go to sleep. The tick will return some time passed eventually
     }
 }

@@ -30,32 +30,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void setupBody() 
 {
-    // test
-    Serial.begin(9600);
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(AlPin1, OUTPUT);
-    pinMode(AlPin2, OUTPUT);
-    pinMode(AlPin3, OUTPUT);
-    pinMode(AlPin4, OUTPUT);
-    pinMode(AlPinBlue, OUTPUT);
 
-    
-    pinMode(buttonPin, INPUT);
-    
-#if 0
-    for (int i = 0; i < 10; i++)
-    {
-        toggleBlue();
-        digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-        delay(200);                       // wait for a second
-        digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-        delay(200);                       // wait for a second
-        alert(i, false);
-    }
-    //end of test
-    Serial.println("hello world");
-
-#endif
     initAllFunctions();
     
 }
@@ -63,6 +38,7 @@ void setupBody()
 void loopBody() 
 {
     //just woke up
+    Supp::mainLoopStart((uint8_t)Sleeper::getUpTime());
 
     Sleeper::SleepTime timeSlept = Sleeper::howMuchDidWeSleep();
     Executor::adjustToElapsedTime(timeSlept);
@@ -71,13 +47,15 @@ void loopBody()
             HKComm::respondSerial()  //loop until returns true
          );  //if this was serial, handle that
     //now execute what needs to be executed...
-    uint8_t executor = Executor::giveExecutorToCall();
+    ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
     if (executor < (uint8_t) Executor::executorsNumber)
     {
         Executor::rescheduleExecutor(executor);
         //execute the executor now... 
         ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+        Supp::executorPreAction(executor);
         f();
+        Supp::executorPostAction(executor);
     }
     else
     {
@@ -95,6 +73,8 @@ void loopBody()
 
 void initAllFunctions(void)
 {
+    Supp::init();
+
     TempSensor::init();
         //@todo do something when init is not successfull
     TempMeasure::initMeasureTemperature();

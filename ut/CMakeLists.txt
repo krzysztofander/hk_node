@@ -82,6 +82,7 @@ project (unit_tests)
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/executor.h
+        ${TOP}/hk_node/src/executor_base.h
         ${TOP}/hk_node/src/temp_measurement.h
         
 

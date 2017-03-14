@@ -44,7 +44,7 @@ void Executor::setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime
     }
     else
     {
-        alert(AlertReason_BadParam, true);
+        Supp::dbgAlert(Supp::AlertReason_BadParam, true);
     }
 
 }
@@ -62,19 +62,19 @@ void Executor::init (void)
 
 //@Brief Returns a executor to call now
 // It is expected that ones executor was called it gets rescheduled
-uint8_t Executor::giveExecutorToCall(void)
+ExecutorBase::EExecutors Executor::giveExecutorToCall(void)
 {
     for (uint8_t i = 0; i < (uint8_t)executorsNumber; i++)
     {
         if (isExecutorActive (i) && g_ExecutorsTimeLeft[i] == 0 )
         {
-            return i;
+            return (ExecutorBase::EExecutors)i;
         }
     }
     return executorNone;
 }
 
-ExecutingFn Executor::giveExecutorHandleToCall(uint8_t executor)
+ExecutingFn Executor::giveExecutorHandleToCall(ExecutorBase::EExecutors executor)
 {
     if (isExecutorActive (executor)  )
     {
@@ -82,7 +82,7 @@ ExecutingFn Executor::giveExecutorHandleToCall(uint8_t executor)
     }
     else
     {
-        alert(AlertReason_BadParam, true);
+        Supp::dbgAlert(Supp::AlertReason_BadParam, true);
         return 0;
     }
 }
@@ -141,7 +141,7 @@ void Executor::setExecutionTime(uint8_t executorToSet, Sleeper::SleepTime newTim
     }
     else
     {
-        alert(AlertReason_BadParam, true);
+        Supp::dbgAlert(Supp::AlertReason_BadParam, true);
     }
 }
 
@@ -168,6 +168,6 @@ void Executor::rescheduleExecutor(uint8_t executor)
     }
     else
     {
-        alert(AlertReason_BadParam, true);
+        Supp::dbgAlert(Supp::AlertReason_BadParam, true);
     }
 }
