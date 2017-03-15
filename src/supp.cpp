@@ -250,7 +250,7 @@ void Supp::greenOn()
 }
 void Supp::greenOff()
 {
-    greenState = 0;
+    greenState = 1;
     digitalWrite(AlPinGreen, greenState); //ON
 
 }
