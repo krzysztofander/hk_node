@@ -180,22 +180,55 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     case 'S' :
         switch (inOutCommand[HKCommDefs::command_subIdPos2])
         {
-        case 'T':
-        {  //configire system time
-            uint64_t newTime;
-            err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
-            if (err != HKCommDefs::serialErr_None)
-            {
-                break;
+            case 'T':
+            {  //configire system time
+                uint64_t newTime;
+                err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Sleeper::setTime(HKTime::UpTime(newTime));
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
             }
-            Sleeper::setTime(HKTime::UpTime(newTime));
-            err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            break;
+            default:
+                err = formatResponceUnkL2(inOutCommand, dataSize);
+                break;
         }
         break;
-        default:
-            err = formatResponceUnkL2(inOutCommand, dataSize);
+    case 'P' : //power saving mode
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
+        {
+            case 'M': //mode
+            {
+                uint8_t PsMode;
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, PsMode);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Sleeper::setPowerSaveMode((Sleeper::PowerSaveMode)PsMode);
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            }
             break;
+            case 'A': //power awake time after non-wd wake up
+            {
+                uint8_t PMAwake;
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, PMAwake);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Sleeper::setNoPowerDownPeriod(PMAwake);
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            }
+            break;
+            default:
+                err = formatResponceUnkL2(inOutCommand, dataSize);
+                break;
         }
+    
         break;
     default:  //unknown 'C' command
         //Response:
@@ -286,6 +319,16 @@ uint8_t HKComm::command_RBC(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)tempMeasurementTime);
 }
 
+uint8_t HKComm::command_RPM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    return HKCommCommon::uint8ToData(dataSize, inOutData, Sleeper::getPowerSaveMode());
+}
+uint8_t HKComm::command_RPA(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    return HKCommCommon::uint8ToData(dataSize, inOutData, Sleeper::getNoPowerDownPeriod());
+}
 
 //https://forum.arduino.cc/index.php?topic=38119.0
 
@@ -338,7 +381,23 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
 
             }
             break;
-        default:  //unknown 'T' command
+        case 'P':
+            switch (inOutCommand[HKCommDefs::command_subIdPos2])
+            {
+                case 'M':
+                    err = command_RPM(inOutCommand, inOutData, dataSize);
+                    break;
+                case 'A':
+                    err = command_RPA(inOutCommand, inOutData, dataSize);
+                    break;
+                default:
+                    err = formatResponceUnkL2(inOutCommand, dataSize);
+                    break;
+
+            }
+            break;
+
+        default:  //unknown 'R' command
             err = formatResponceUnkL1(inOutCommand, dataSize);
             break;
 

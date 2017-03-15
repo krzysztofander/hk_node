@@ -294,15 +294,20 @@ void Supp::toggleGreen()
 }
 
 static bool lastNotWD= 0;
-static void Supp::notWDWakeUp()
+void Supp::notWDWakeUp()
 {
     if (!lastNotWD)
     {
-        toggleGreen();
+       // toggleGreen();
     }
     lastNotWD = 1;
 }
-static void Supp::watchdogWakeUp()
+void Supp::watchdogWakeUp()
 {
     lastNotWD = 0;
+}
+
+void Supp::powerSaveHigh()
+{
+    greenOn();
 }

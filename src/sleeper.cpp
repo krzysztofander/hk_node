@@ -33,11 +33,14 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm.h"
 //---------------------------------------------------------------
 Sleeper::SleepTime Sleeper::g_sleepTime     = 0;
-uint8_t            Sleeper::scale           = 6;
 volatile HKTime::UpTime  Sleeper::g_upTime          = 0;
 HKTime::UpTime Sleeper::g_lastUpTime               = 0;
 volatile uint8_t Sleeper::gv_wdInterrupt = 0; //raised ones WD triggers an interrupt.
 volatile uint8_t Sleeper::gv_wdInterrupt_B = 0; //raised ones WD triggers an interrupt.
+volatile uint8_t Sleeper::gv_NoPowerDownPeriod = 0;   //!counts down WD ticks how long to stay awake 
+ uint8_t Sleeper::g_NoPowerDownPeriodSetting = 1;   //!counts down WD ticks how long to stay awake 
+Sleeper::PowerSaveMode Sleeper::g_PowerSaveMode = Sleeper::PowerSaveMedium;
+
 //---------------------------------------------------------------
 
 void Sleeper::setNextSleep(Sleeper::SleepTime  st)
@@ -95,7 +98,11 @@ ISR (WDT_vect)
     Sleeper::gv_wdInterrupt_B  = 1;      //annotate that the interrupt came from watchdog.
 
     Sleeper::incUpTimeInISR();
-
+    
+    if (Sleeper::gv_NoPowerDownPeriod > 0)
+    {
+        Sleeper::gv_NoPowerDownPeriod --;
+    }
 }  // end of WDT_vect
 
 //---------------------------------------------------------------
@@ -145,9 +152,9 @@ void Sleeper::setWDScale(int8_t scale)
 }
 //---------------------------------------------------------------
 
-int8_t Sleeper::getWDScale(int8_t scale)
+int8_t Sleeper::getWDScale()
 {
-    return 6; //@todo use the value
+    return 6; //@todo read the value from registers
 }
 //---------------------------------------------------------------
 
@@ -170,14 +177,14 @@ void Sleeper::init(void)
 }
 //---------------------------------------------------------------
 
-void Sleeper::gotToSleep(void)
+void Sleeper::goToSleep(void)
 {
      
     HKTime::UpTime time = getUpTime();
     
     
     if (1 
-        && gv_wdInterrupt_B != 0    //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
+        && gv_NoPowerDownPeriod == 0 //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
         && g_sleepTime > 0          //we want to sleep
         && ! HKComm::isActive()     //serial does command processing now
         )
@@ -188,11 +195,11 @@ void Sleeper::gotToSleep(void)
         Serial.end();
 
         //select sleep mode depending on WD
-        if (
-          0 //disabled this for now
-           && gv_wdInterrupt_B != 0  /* && see extra node in else */)
+        if (PowerSaveHigh == g_PowerSaveMode
+           && gv_wdInterrupt_B != 0  /* last time it was watchdog that woke up, serial calm, so entering here*/)
         {
-            //last time it was watchdog that woke up
+            Supp::powerSaveHigh();
+        
             //total down
             set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
 
@@ -202,10 +209,17 @@ void Sleeper::gotToSleep(void)
         }
         else
         {
-            
-            //serial or button. Standby for now
-            set_sleep_mode (SLEEP_MODE_STANDBY);  
-
+            if (    PowerSaveMedium == g_PowerSaveMode
+                ||  PowerSaveHigh   == g_PowerSaveMode
+                )
+            {
+                //serial or button. Standby for now
+                set_sleep_mode (SLEEP_MODE_STANDBY);
+            }
+            else
+            {
+                set_sleep_mode (SLEEP_MODE_IDLE);
+            }
             //if we 1 tick from action the periph could be woken up here
 
         }
@@ -259,9 +273,14 @@ void Sleeper::gotToSleep(void)
             //a 50ms should do
             delay(50);
             //plus wait till next WD tick
-            gv_wdInterrupt_B  = 0; // say to this function not to enter sleep before next WD tick      
+            gv_wdInterrupt_B  = 0; //Used for HIGH power donw, delayin it for one tick     
             
-            //@todo make it a counter and just wait for 2 WD kicks.
+            do
+            {
+                gv_NoPowerDownPeriod = g_NoPowerDownPeriodSetting;
+            } while (gv_NoPowerDownPeriod != g_NoPowerDownPeriodSetting);
+
+          
             //@todo while waiting for serial we can still go PWR down IDLE mode
         }
         else
@@ -290,4 +309,24 @@ void Sleeper::gotToSleep(void)
     }
 }
 
+void Sleeper::setNoPowerDownPeriod(uint8_t noPowerDownTicks)
+{
+    g_NoPowerDownPeriodSetting  = noPowerDownTicks;
+}
 
+uint8_t Sleeper::getNoPowerDownPeriod()
+{
+    return g_NoPowerDownPeriodSetting;
+}
+
+
+
+void Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode powerSaveMode)
+{
+    g_PowerSaveMode = powerSaveMode;
+}
+
+uint8_t Sleeper::getPowerSaveMode()
+{
+    return g_PowerSaveMode;
+}

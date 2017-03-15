@@ -63,7 +63,27 @@ Sleeper::SleepTime Executor::giveExecutionTime(uint8_t t)
     return 0; //nothing in mock for now.
     //return MockExecutor::instance().giveExecutionTime(t);
 }
+//------------------------------
+void Sleeper::setNoPowerDownPeriod(uint8_t noPowerDownTicks)
+{
+    ;
+}
+
+uint8_t Sleeper::getNoPowerDownPeriod()
+{
+    return 0;
+}
 
 
+
+void Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode powerSaveMode)
+{
+    
+}
+
+uint8_t Sleeper::getPowerSaveMode()
+{
+    return 0;
+}
 
 

@@ -119,8 +119,9 @@ public:
     static void notWDWakeUp();
 
     static void watchdogWakeUp();
-
-
+    
+    //@called when entered high sleep
+    static void powerSaveHigh();
 
     static void greenOn();
     static void greenOff();

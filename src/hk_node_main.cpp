@@ -67,7 +67,7 @@ void loopBody()
     Sleeper::setNextSleep(sleepTime);
 
     //go to sleep
-    Sleeper::gotToSleep(); //if its set to 0 it wont...
+    Sleeper::goToSleep(); //if its set to 0 it wont...
     
 }
 
