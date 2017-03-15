@@ -19,74 +19,68 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 #include <Arduino.h>
 #include "hk_node.h"
-#include "executor.h"
-#include "serial.h"
-#include "comm.h"
 #include "supp.h"
-#include "temp_measurement.h"
-#include "sleeper.h"
-#include "temp_sensor.h"
 #include "blinker.h"
-
-
-void setupBody() 
+#include "comm_common.h"
+#include "comm.h"
+//------------------------------------------------------------------
+uint8_t Blinker::g_blinkSetting = 1;
+void Blinker::init()
 {
-
-    initAllFunctions();
-    
+    g_blinkSetting = 1;
 }
 
-void loopBody() 
+void Blinker::blinkAction()
 {
-    //just woke up
-    Supp::mainLoopStart((uint8_t)Sleeper::getUpTime());
-
-    Sleeper::SleepTime timeSlept = Sleeper::howMuchDidWeSleep();
-    Executor::adjustToElapsedTime(timeSlept);
-
-    while(
-            HKComm::respondSerial()  //loop until returns true
-         );  //if this was serial, handle that
-    //now execute what needs to be executed...
-    ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
-    if (executor < (uint8_t) Executor::executorsNumber)
+    if (Supp::isButtonPressed())
     {
-        Executor::rescheduleExecutor(executor);
-        //execute the executor now... 
-        ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
-        Supp::executorPreAction(executor);
-        f();
-        Supp::executorPostAction(executor);
+        g_blinkSetting++;
+        if (g_blinkSetting > 4)
+        {
+            g_blinkSetting  = 0;
+            Supp::blinkLed(0x81); //just confirm here and forget till changed
+        }
     }
-    else
-    {
-        //nothing to call, it might have been from serial
-    }
-    Sleeper::SleepTime sleepTime = Executor::getNextSleepTime();
-        //sleepTime would be 0 if there is more executors to call.
-
-    Sleeper::setNextSleep(sleepTime);
-
-    //go to sleep
-    Sleeper::goToSleep(); //if its set to 0 it wont...
-    
-}
-
-void initAllFunctions(void)
-{
-    Supp::init();
-    Blinker::init();
-    TempSensor::init();
-        //@todo do something when init is not successfull
-    TempMeasure::initMeasureTemperature();
  
-    Executor::init();
-    Executor::setupExecutingFn((uint8_t)Executor::blinker, 3, Blinker::blinkAction );
-        //@todo read that from NV
-    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 12, TempMeasure::measureTemperature); 
-        //@todo read value from NV
-    
-    Sleeper::init();
 
+    uint8_t pattern = 0;
+    for (uint8_t i = 0; i < g_blinkSetting && i < 8; i++)
+    {
+        pattern <<= 1;
+        pattern  |= 1;
+    }
+
+    Supp::blinkLed(pattern);
+    
+
+    if (!Supp::isButtonPressed())
+    {
+        //various ag_blinkSettingctions for particular settings, that has been selected blink ago
+        switch (g_blinkSetting)
+        {
+            case 2: //keep sending messages to serial
+            {
+                static int8_t couter = 0;
+
+                uint16_t dataSize = 0;
+                HKComm::g_data[dataSize++] = 'A';
+                HKComm::g_data[dataSize++] = 'H';
+                HKComm::g_data[dataSize++] = 'L';
+                HKCommCommon::uint8ToData(dataSize, HKComm::g_data, couter++);
+
+                Serial.write(HKComm::g_data, dataSize);
+                Serial.write(HKCommDefs::commandEOLOnResponceSequence, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
+            }
+
+            break;
+            case 3: 
+                g_blinkSetting = 1;
+                break; 
+                //do not do anuthing for now
+            case 4:  
+                g_blinkSetting = 1;
+                break; 
+            //if it was sth else leave it.
+        }
+    }
 }
-//---------------------------------------------------------------

@@ -213,11 +213,16 @@ void Sleeper::goToSleep(void)
                 ||  PowerSaveHigh   == g_PowerSaveMode
                 )
             {
+
+                Supp::powerSaveMedium();
+
                 //serial or button. Standby for now
                 set_sleep_mode (SLEEP_MODE_STANDBY);
             }
             else
             {
+                Supp::powerSaveLow();
+
                 set_sleep_mode (SLEEP_MODE_IDLE);
             }
             //if we 1 tick from action the periph could be woken up here

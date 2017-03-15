@@ -22,40 +22,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HK_SUPP_H
 
 //--------------------------------------------------
-#if 0
-typedef  uint8_t AlertReason;
 
-enum EAlertReasons
-{
-    AlertReason_Step1 = 1,
-    AlertReason_Step2 = 2,
-    AlertReason_Step3 = 3,
-    
-    AlertReason_serialSend  = 4,
-    AlertReason_serialuint8_t  = 5,
-    AlertReason_serialwriteProblem = 6,
-    AlertReason_serialReadProblem = 7,
-    AlertReason_intervalSet = 8,
-    
-    AlertReason_PassedOverTime = 9,
-    AlertReason_BadParam = 10,
-
-    AlertReason_ExecutorCalled = 11,
-    AlertReason_serialChar = 12
-
-
-};
-
-void alert(register AlertReason reason, bool hold);
-void toggleBlue(void);
-void blueOff(void);
-void blueOn(void);
-void blinkBlue(void);
-void ledToggler(void);
-#endif
 #include "executor_base.h"
-
-void ledToggler(void);
 
 class Supp
 {
@@ -122,6 +90,11 @@ public:
     
     //@called when entered high sleep
     static void powerSaveHigh();
+    static void powerSaveMedium();
+    static void powerSaveLow();
+
+
+
 
     static void greenOn();
     static void greenOff();
@@ -129,7 +102,7 @@ public:
 
 
     //@a button state
-    static bool getButtonState();
+    static bool isButtonPressed();
 private:
     //@Pin assignment
     //this will depend on a platform I guess.

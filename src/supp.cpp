@@ -20,8 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "supp.h"
-#include "comm_common.h"
-#include "comm.h"
+
 //------------------------------------------------------------------
 uint8_t Supp::prevTimeMod256 = 111; //some value not probable after reset
 
@@ -215,62 +214,32 @@ void Supp::executorPostAction(ExecutorBase::EExecutors eexecutor)
 // at least one more MSB bit set as 1
 void Supp::blinkLed(uint8_t pattern)
 {
-    while (pattern)
+    while(pattern)
     {
-        if (pattern & 1)
+        if (pattern & 1 == 1)
         {
-            digitalWrite(LED_BUILTIN, 1);
+            digitalWrite(LED_BUILTIN, HIGH);
+            delay(40);
+            digitalWrite(LED_BUILTIN, LOW);
+            delay(60);
         }
         else
         {
-            digitalWrite(LED_BUILTIN, 0);
+            delay(100);
         }
-        delay(20);
         pattern >>= 1;
     }
     digitalWrite(LED_BUILTIN, 0);
 }
 
 //@a button state
-bool Supp::getButtonState()
+bool Supp::isButtonPressed()
 {
     volatile uint8_t buttonState = digitalRead(buttonPin);
-    return !!buttonState;
+    return !buttonState;
 
 }
 
-
-
-
-
-
-void ledToggler(void)
-{
-    for (int i = 0; i < 3; i++)
-    {
-        digitalWrite(LED_BUILTIN, 1);
-        delay(20);
-        digitalWrite(LED_BUILTIN, 0);
-        delay(40);
-    }
-    uint8_t buttonState;
-    buttonState = Supp::getButtonState();
-    if (!buttonState)
-    {
-        static int8_t couter = 0;
-
-        uint16_t dataSize = 0;
-        HKComm::g_data[dataSize++] = 'A';
-        HKComm::g_data[dataSize++] = 'H';
-        HKComm::g_data[dataSize++] = 'L';
-        HKCommCommon::uint8ToData(dataSize, HKComm::g_data, couter ++);
-        
-        Serial.write(HKComm::g_data,dataSize);
-        Serial.write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence) );
-    };
-
-
-}
 
 static bool greenState = 0;
 
@@ -308,6 +277,15 @@ void Supp::watchdogWakeUp()
 }
 
 void Supp::powerSaveHigh()
+{
+    greenOff();
+}
+
+void Supp::powerSaveMedium()
+{
+    greenOn();
+}
+void Supp::powerSaveLow()
 {
     greenOn();
 }
