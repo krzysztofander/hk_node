@@ -17,87 +17,72 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-
 #include <Arduino.h>
-#include <OneWire.h>
-#include <DS18B20.h>
-#include "temp_sensor.h"
+#include "hk_node.h"
 #include "supp.h"
-
-class OneWireWrap
+#include "blinker.h"
+#include "comm_common.h"
+#include "comm.h"
+//------------------------------------------------------------------
+uint8_t Blinker::g_blinkSetting = 1;
+void Blinker::init()
 {
-public:
-    static const uint8_t  ONEWIRE_PIN = 4;
-    static OneWire onewire; 
-
-    static DS18B20 sensor;
-
-};
-
-OneWire  OneWireWrap::onewire(OneWireWrap::ONEWIRE_PIN);
-DS18B20  OneWireWrap::sensor(&OneWireWrap::onewire);
-
-uint8_t TempSensor::address[8] = {0,0,0,0,0,0,0,0};
-
-uint8_t TempSensor::init()
-{
-        
-    //sensor not found
-    if (!(findSensor()))
-    {
-        return 0;
-    }
-    OneWireWrap::sensor.begin(sensorResolution);
-    return 1;
+    g_blinkSetting = 1;
 }
 
-//size of address array>=8
-uint8_t TempSensor::findSensor()
+void Blinker::blinkAction()
 {
-    //alert(8,true);
-    while(OneWireWrap::onewire.search(address))
+    if (Supp::isButtonPressed())
     {
-        //alert(15,true);
-        //not temp sensor
-        if (address[0] != 0x28)
+        g_blinkSetting++;
+        if (g_blinkSetting > 4)
         {
-            continue;
-        }   
-        //Incorrect crc
-        if (OneWire::crc8(address, 7) != address[7])
-        {
-            continue;
-        }
-        else //found sensor
-        {
-            //alert(9,true);
-            return 1;
+            g_blinkSetting  = 0;
+            Supp::blinkLed(0x81); //just confirm here and forget till changed
         }
     }
-    //alert(10,true);
-    return 0;
-}
+ 
 
-
-float TempSensor::readTemperature()
-{
-    //alert(5,true);
-    bool requestRet = OneWireWrap::sensor.request(address);
-    if (requestRet)
-    {   
-      //alert(11,true);
-
-        while (!OneWireWrap::sensor.available())
-        {
-            //timeout is included in the sensor
-        }
-    }
-    else
+    uint8_t pattern = 0;
+    for (uint8_t i = 0; i < g_blinkSetting && i < 8; i++)
     {
-       //alert(12,true);
+        pattern <<= 1;
+        pattern  |= 1;
     }
+
+    Supp::blinkLed(pattern);
     
-    //alert(7,true);
-    return OneWireWrap::sensor.readTemperature(address);
-}
 
+    if (!Supp::isButtonPressed())
+    {
+        //various ag_blinkSettingctions for particular settings, that has been selected blink ago
+        switch (g_blinkSetting)
+        {
+            case 2: //keep sending messages to serial
+            {
+                static int8_t couter = 0;
+
+                uint16_t dataSize = 0;
+                HKComm::g_data[dataSize++] = 'A';
+                HKComm::g_data[dataSize++] = 'H';
+                HKComm::g_data[dataSize++] = 'L';
+                HKCommCommon::uint8ToData(dataSize, HKComm::g_data, couter++);
+
+                Serial.write(HKComm::g_data, dataSize);
+                Serial.write(HKCommDefs::commandEOLOnResponceSequence, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
+            }
+
+            break;
+            case 3: 
+                HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
+
+                
+                break; 
+                //do not do anuthing for now
+            case 4:  
+                g_blinkSetting = 1;
+                break; 
+            //if it was sth else leave it.
+        }
+    }
+}

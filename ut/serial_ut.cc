@@ -486,14 +486,16 @@ TEST_F(NiceSerialFixture, testCTM0000)
     HKComm::g_data[2] = '0';
     HKComm::g_data[3] = '0';
 
-    {
+    
+        MockExecutor mockExecutor;
+ //       EXPECT_CALL(mockExecutor, setExecutionTime((uint8_t)Executor::temperatureMeasurer, 0)).Times(1);
+        EXPECT_CALL(mockExecutor, setExecutionTime('\x1', 0)).Times(1);
         retVal = HKComm::respondSerial();
         ASSERT_EQ(HKComm::g_SerialState, HKCommDefs::serialState_Respond);
         ASSERT_EQ(retVal, 1);
         ASSERT_EQ(HKComm::g_serialError, HKCommDefs::serialErr_None);
-        ASSERT_EQ(HKComm::g_dataIt, 4);   //data zero after error
+        ASSERT_EQ(HKComm::g_dataIt, serialResponce_OK_dataLength);   //data zero after error
 
-    }
 
 }
 

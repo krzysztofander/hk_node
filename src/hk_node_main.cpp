@@ -26,113 +26,88 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "temp_measurement.h"
 #include "sleeper.h"
 #include "temp_sensor.h"
+#include "blinker.h"
+
+/*
+    Version notes:
+
+    Things to do
+    - Update documentation
+    - Measure batery level
+    - Use EEPROM to store configuration
+    -- reset eeprom
+    - Improve power saving
+    --   Software
+    --   HW
+    --- remove led
+    --- remove USB serial & stuff
+    --- make BT on/off
+    - Set Bluetooth properlu
+    -- configure for given host
+    -- reset on reset
+    -- turn off led
+
+*/
 
 
 void setupBody() 
 {
-    // test
-    Serial.begin(9600);
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(AlPin1, OUTPUT);
-    pinMode(AlPin2, OUTPUT);
-    pinMode(AlPin3, OUTPUT);
-    pinMode(AlPin4, OUTPUT);
-    pinMode(AlPinBlue, OUTPUT);
 
-    
-    pinMode(buttonPin, INPUT);
-    
- 
-
-    for (int i = 0; i < 10; i++)
-    {
-        toggleBlue();
-        digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-        delay(20);                       // wait for a second
-        digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-        delay(20);                       // wait for a second
-    }
-    alert(14, true);
-    
-    //end of test
-    Serial.println("hello world");
-
-    alert(0, false);
     initAllFunctions();
-
     
 }
 
 void loopBody() 
 {
     //just woke up
+    Supp::mainLoopStart((uint8_t)Sleeper::getUpTime());
 
-    //alert(AlertReason_Step1, false);
     Sleeper::SleepTime timeSlept = Sleeper::howMuchDidWeSleep();
     Executor::adjustToElapsedTime(timeSlept);
 
-    while(HKComm::respondSerial());  //if this was serial, handle that
-    if (1)
+    while(
+            HKComm::respondSerial()  //loop until returns true
+         );  //if this was serial, handle that
+    //now execute what needs to be executed...
+    ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
+    if (executor < (uint8_t) Executor::executorsNumber)
     {
-       // alert(AlertReason_Step2, true);
-        //now execute what needs to be executed...
-        uint8_t executor = Executor::giveExecutorToCall();
-       // alert(AlertReason_Step3, true);
-        if (executor < (uint8_t) Executor::executorsNumber)
-        {
-            //alert(AlertReason_Step2, true);
-            Executor::rescheduleExecutor(executor);
-            //execute the executor now... 
-            //alert(AlertReason_Step3, true);
-
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
-            //alert(AlertReason_Step2, true);
-
-            f();
-            //alert(AlertReason_Step3, true);
-        }
-        else
-        {
-            //nothing to call, it might have been from serial
-            //  alert(0, false);
-        }
-        //alert(AlertReason_Step2, false);
-        Sleeper::SleepTime sleepTime = Executor::getNextSleepTime();
-        if (0 && sleepTime < 15)
-        {
-           //alert (sleepTime, false);
-        }
-        Sleeper::setNextSleep(sleepTime);
-
-        //go to sleep
-        Sleeper::gotToSleep(); //if its set to 0 it wont...
+        Executor::rescheduleExecutor(executor);
+        //execute the executor now... 
+        ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+        Supp::executorPreAction(executor);
+        f();
+        Supp::executorPostAction(executor);
     }
+    else
+    {
+        //nothing to call, it might have been from serial
+    }
+    Sleeper::SleepTime sleepTime = Executor::getNextSleepTime();
+        //sleepTime would be 0 if there is more executors to call.
+
+    Sleeper::setNextSleep(sleepTime);
+
+    //go to sleep
+    Sleeper::goToSleep(); //if its set to 0 it wont...
+    
 }
-//------------------------------------------------------------------
 
-
-
-//---------------------------------------------------------------
-void ledToggler(void);
 void initAllFunctions(void)
 {
+    Supp::init();
+    Blinker::init();
     TempSensor::init();
+        //@todo do something when init is not successfull
     TempMeasure::initMeasureTemperature();
-
+ 
     Executor::init();
-    Executor::setupExecutingFn((uint8_t)Executor::blinker, 6, ledToggler);
-    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 5, TempMeasure::measureTemperature);
+    Executor::setupExecutingFn((uint8_t)Executor::blinker, 3, Blinker::blinkAction );
+        //@todo read that from NV
+    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 12, TempMeasure::measureTemperature); 
+        //@todo read value from NV
+    
     Sleeper::init();
-   
+
 }
 //---------------------------------------------------------------
-void ledToggler(void)
-{
-    for (int i = 0; i < 3; i++)
-    {
-        digitalWrite(LED_BUILTIN, 1);
-        delay(20);
-        digitalWrite(LED_BUILTIN, 0);
-        delay(40);
-    }  
-}

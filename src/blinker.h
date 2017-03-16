@@ -18,86 +18,24 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#include <Arduino.h>
-#include <OneWire.h>
-#include <DS18B20.h>
-#include "temp_sensor.h"
-#include "supp.h"
+#ifndef HK_BLINKER_H
+#define HK_SUPP_H
 
-class OneWireWrap
+//--------------------------------------------------
+
+class Blinker
 {
 public:
-    static const uint8_t  ONEWIRE_PIN = 4;
-    static OneWire onewire; 
-
-    static DS18B20 sensor;
+    static void init();
+    static void blinkAction();
+private:
+    static uint8_t g_blinkSetting;
 
 };
 
-OneWire  OneWireWrap::onewire(OneWireWrap::ONEWIRE_PIN);
-DS18B20  OneWireWrap::sensor(&OneWireWrap::onewire);
-
-uint8_t TempSensor::address[8] = {0,0,0,0,0,0,0,0};
-
-uint8_t TempSensor::init()
-{
-        
-    //sensor not found
-    if (!(findSensor()))
-    {
-        return 0;
-    }
-    OneWireWrap::sensor.begin(sensorResolution);
-    return 1;
-}
-
-//size of address array>=8
-uint8_t TempSensor::findSensor()
-{
-    //alert(8,true);
-    while(OneWireWrap::onewire.search(address))
-    {
-        //alert(15,true);
-        //not temp sensor
-        if (address[0] != 0x28)
-        {
-            continue;
-        }   
-        //Incorrect crc
-        if (OneWire::crc8(address, 7) != address[7])
-        {
-            continue;
-        }
-        else //found sensor
-        {
-            //alert(9,true);
-            return 1;
-        }
-    }
-    //alert(10,true);
-    return 0;
-}
+//--------------------------------------------------
 
 
-float TempSensor::readTemperature()
-{
-    //alert(5,true);
-    bool requestRet = OneWireWrap::sensor.request(address);
-    if (requestRet)
-    {   
-      //alert(11,true);
 
-        while (!OneWireWrap::sensor.available())
-        {
-            //timeout is included in the sensor
-        }
-    }
-    else
-    {
-       //alert(12,true);
-    }
-    
-    //alert(7,true);
-    return OneWireWrap::sensor.readTemperature(address);
-}
+#endif
 

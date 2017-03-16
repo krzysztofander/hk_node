@@ -17,34 +17,25 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_EXECUTORS_H
-#define HK_EXECUTORS_H
+#ifndef HK_EXECUTOR_BASE_H
+#define HK_EXECUTOR_BASE_H
 
-#include <Arduino.h>
-#include "hk_node.h"
-#include "sleeper.h"
-#include "executor_base.h"
-class Executor : public ExecutorBase
+class ExecutorBase
 {
 public:
+    enum EExecutors
+    {
+        blinker = 0,
+        temperatureMeasurer,
+        fakeExecutor1,
+        fakeExecutor2,
+        fakeExecutor3,
 
-    static void init (void);
+        executorsNumber,
 
-    static void adjustToElapsedTime(Sleeper::SleepTime timePassed);
-    static ExecutorBase::EExecutors giveExecutorToCall(void);
-    
-    static Sleeper::SleepTime getNextSleepTime(void);
-    static void setExecutionTime(uint8_t executorToSet, Sleeper::SleepTime newTime);
-    static Sleeper::SleepTime  giveExecutionTime(uint8_t executorToRead);
-    static void rescheduleExecutor(uint8_t executor);
-    static void setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime,  ExecutingFn f );
-    static ExecutingFn giveExecutorHandleToCall(ExecutorBase::EExecutors executor);
-    static uint8_t isExecutorActive(uint8_t executor);
+        executorNone = 255
+    };
 
-public:
-    static Sleeper::SleepTime g_ExecutorsTimeLeft[executorsNumber];  // how much time has left to next call
-    static Sleeper::SleepTime g_ExecutorsPeriods[executorsNumber];  //how ofthen each exec is called
-    static ExecutingFn g_ExecutingFunctions[executorsNumber];
 };
 
 #endif

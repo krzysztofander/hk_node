@@ -82,6 +82,7 @@ project (unit_tests)
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/executor.h
+        ${TOP}/hk_node/src/executor_base.h
         ${TOP}/hk_node/src/temp_measurement.h
         
 
@@ -92,12 +93,14 @@ project (unit_tests)
     set(MAIN_SOURCES
         ${TOP}/hk_node/src/hk_node_main.cpp
         ${TOP}/hk_node/src/supp.cpp
+        ${TOP}/hk_node/src/blinker.cpp
         ${TOP}/hk_node/src/sleeper.cpp
         ${TOP}/hk_node/src/temp_sensor.cpp
         ${TOP}/hk_node/src/nv.cpp
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/supp.h
+        ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/sleeper.h
         ${TOP}/hk_node/src/nv.h
     )

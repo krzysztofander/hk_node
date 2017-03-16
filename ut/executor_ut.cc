@@ -5,6 +5,7 @@
 #include "temp_measurement.h"
 #include "temp_sensor.h"
 #include "executor_ut.h"
+#include "supp.h"
 
 using ::testing::AtLeast;  
 using ::testing::Return;
@@ -20,11 +21,12 @@ void someBlinker(void)
 void blinkBlue(void)
 {}
 
-void alert (unsigned char c, bool b)
+void Supp::dbgAlert(uint8_t alertVal, bool hold)
 {
-    MockLooseFn::instance().alert(c, b);
+    MockLooseFn::instance().alert(alertVal, hold);
     assert(0);
 }
+
 void fake1(void)
 {
     MockLooseFn::instance().fake1();

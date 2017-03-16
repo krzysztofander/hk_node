@@ -180,22 +180,55 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     case 'S' :
         switch (inOutCommand[HKCommDefs::command_subIdPos2])
         {
-        case 'T':
-        {  //configire system time
-            uint64_t newTime;
-            err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
-            if (err != HKCommDefs::serialErr_None)
-            {
-                break;
+            case 'T':
+            {  //configire system time
+                uint64_t newTime;
+                err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Sleeper::setTime(HKTime::UpTime(newTime));
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
             }
-            Sleeper::setTime(HKTime::UpTime(newTime));
-            err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            break;
+            default:
+                err = formatResponceUnkL2(inOutCommand, dataSize);
+                break;
         }
         break;
-        default:
-            err = formatResponceUnkL2(inOutCommand, dataSize);
+    case 'P' : //power saving mode
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
+        {
+            case 'M': //mode
+            {
+                uint8_t PsMode;
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, PsMode);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Sleeper::setPowerSaveMode((Sleeper::PowerSaveMode)PsMode);
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            }
             break;
+            case 'A': //power awake time after non-wd wake up
+            {
+                uint8_t PMAwake;
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, PMAwake);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Sleeper::setNoPowerDownPeriod(PMAwake);
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            }
+            break;
+            default:
+                err = formatResponceUnkL2(inOutCommand, dataSize);
+                break;
         }
+    
         break;
     default:  //unknown 'C' command
         //Response:
@@ -205,6 +238,147 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     return err;
 }
 
+//@brief Read Version Information
+//Returns version of this software
+uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    dataSize = 0;
+    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+    inOutData[dataSize++] = ' ';
+    inOutData[dataSize++] = '0';
+    inOutData[dataSize++] = '.';
+    inOutData[dataSize++] = '5';
+    inOutData[dataSize++] = '.';
+    inOutData[dataSize++] = '0';
+
+
+    /*Releases
+    0.5.0:
+        + version information
+        + shortened RTH
+        + sending temperature readings set up by blinker
+    0.5.1 (planned)
+        improved power save mode
+    0.?.0 (planned)
+        + batery reading
+    0.?.1
+        + Any AC value reading with autoscale
+    0.?.1
+        + Bluetooth settings
+    0.?.1 
+        + eeprom
+    1.0.0 all above works
+
+
+
+    */
+  
+}
+
+
+uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
+    dataSize = 0;
+    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+    return  HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()), singleTempMeasurement);
+    
+}
+
+uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    uint8_t err;
+    //fake for quick query
+    if (dataSize == 0)
+    {
+        inOutData[0] = '0';
+        inOutData[1] = '0';
+        inOutData[2] = '1';
+        inOutData[3] = '0';
+        dataSize = 4;
+    }
+
+    //check for size correctness
+    if (dataSize < sizeof(short) * 2)
+    {
+        err = HKCommDefs::serialErr_Number_Uint16ToShort;
+        return err;
+    }
+    uint16_t measurementsToReturn;
+    err  = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
+    if (err != HKCommDefs::serialErr_None)
+    {
+        return err;
+    }
+    //make it sane
+    if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
+    { //it its zero return all.
+        measurementsToReturn = TempMeasure::capacity();
+    }
+
+    dataSize = 0;
+    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+
+    //measurementsToReturn contains how many. First one returns difference of current to timestamp
+    HKTime::UpTime diff = Sleeper::getUpTime();
+    TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
+    diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
+    err = HKCommCommon::formatMeasurement(dataSize,
+                                          inOutData,
+                                          HKTime::SmallUpTime(diff),
+                                          tempRecord.tempFPCelcjus);
+
+    if (err != HKCommDefs::serialErr_None)
+    {
+        return err;
+    }
+
+    measurementsToReturn--; //one is returned in inOutData
+
+                            //now set up records handler
+    if (measurementsToReturn > 0)
+    {
+        HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
+        HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+    }
+    return err;
+}
+
+uint8_t HKComm::command_RTC(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    Sleeper::SleepTime tempMeasurementTime = Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer);
+    dataSize = 0;
+    return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)tempMeasurementTime);
+}
+
+
+uint8_t HKComm::command_RST(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    return HKCommCommon::uint64ToData(dataSize, inOutData, Sleeper::getUpTime());
+}
+
+uint8_t HKComm::command_RBC(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    Sleeper::SleepTime tempMeasurementTime = Executor::giveExecutionTime((uint8_t)Executor::blinker);
+    dataSize = 0;
+    return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)tempMeasurementTime);
+}
+
+uint8_t HKComm::command_RPM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    return HKCommCommon::uint8ToData(dataSize, inOutData, Sleeper::getPowerSaveMode());
+}
+uint8_t HKComm::command_RPA(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    return HKCommCommon::uint8ToData(dataSize, inOutData, Sleeper::getNoPowerDownPeriod());
+}
+
+//https://forum.arduino.cc/index.php?topic=38119.0
 
 
 uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
@@ -214,96 +388,69 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
 
     switch (inOutCommand[HKCommDefs::command_subIdPos1])
     {
-    case 'T':
-
-        switch (inOutCommand[HKCommDefs::command_subIdPos2])
-        {
-        case 'M':   //make a measurement
-        {
-            TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
-            dataSize = 0;
-            inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
-            err = HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()), singleTempMeasurement);
+        case 'T': //temperature measurer
+            switch (inOutCommand[HKCommDefs::command_subIdPos2])
+            {
+                case 'M':   //make a measurement
+                    err = command_RTM(inOutCommand, inOutData, dataSize);
+                    break;
+                case 'R':
+                case 'H':  //temperatue history
+                    err =  command_RTH(inOutCommand, inOutData, dataSize);
+                    break;
+                case 'C':  //temperatue configuration
+                    err =  command_RTC(inOutCommand, inOutData, dataSize);
+                    break;
+                default:
+                    err = formatResponceUnkL2(inOutCommand, dataSize);
+                    break;
+            }
             break;
-        }
-        case 'R':
-        case 'H':  //temperatue history
-        {
-         //check for size correctness
-            if (dataSize < sizeof(short) * 2)
+        case 'B': //blinker
+            switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
-                err = HKCommDefs::serialErr_Number_Uint16ToShort;
-                break;
+                case 'C':
+                    err = command_RBC(inOutCommand, inOutData, dataSize);
+                    break;
+                default:
+                    err = formatResponceUnkL2(inOutCommand, dataSize);
             }
-            uint16_t measurementsToReturn;
-            err  = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
-            if (err != HKCommDefs::serialErr_None)
+            break;
+        case 'S':
+            switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
-                break;
-            }
-            //make it sane
-            if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
-            { //it its zero return all.
-                measurementsToReturn = TempMeasure::capacity();
-            }
-            
-            dataSize = 0;
-            inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+                case 'T':
+                    //read system time
+                    err = command_RST(inOutCommand, inOutData, dataSize);
+                    break;
+                default:
+                    err = formatResponceUnkL2(inOutCommand, dataSize);
+                    break;
 
-            //measurementsToReturn contains how many. First one returns difference of current to timestamp
-            HKTime::UpTime diff = Sleeper::getUpTime();
-            TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
-            diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
-            err = HKCommCommon::formatMeasurement(dataSize,
-                                                     inOutData,
-                                                     HKTime::SmallUpTime(diff),
-                                                     tempRecord.tempFPCelcjus);
-
-            if (err != HKCommDefs::serialErr_None)
+            }
+            break;
+        case 'P':
+            switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
-                break;
+                case 'M':
+                    err = command_RPM(inOutCommand, inOutData, dataSize);
+                    break;
+                case 'A':
+                    err = command_RPA(inOutCommand, inOutData, dataSize);
+                    break;
+                default:
+                    err = formatResponceUnkL2(inOutCommand, dataSize);
+                    break;
+
             }
-
-            measurementsToReturn--; //one is returned in inOutData
-
-            //now set up records handler
-            if (measurementsToReturn > 0)
-            {
-                HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
-                HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
-            }
-
+            break;
+        case 'V':  //Read Version
+            err = command_RVI(inOutCommand, inOutData, dataSize);
+            break;
+        default:  //unknown 'R' command
+            err = formatResponceUnkL1(inOutCommand, dataSize);
             break;
 
-        }
-        default:
-        {
-            err = formatResponceUnkL2(inOutCommand, dataSize);
-            break;
-        }
-        }
-        break;
-    case 'S':
-    {
-        switch (inOutCommand[HKCommDefs::command_subIdPos2])
-        {
-            case 'T':
-                //read system time
-               inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-               err = HKCommCommon::uint64ToData(dataSize, inOutData, Sleeper::getUpTime());
-               break;
-            default:
-               err = formatResponceUnkL2(inOutCommand, dataSize);
-               break;
-
-        }
-    }
-    break;
-    default:  //unknown 'T' command
-    {
-        err = formatResponceUnkL1(inOutCommand, dataSize);
-        break;
-    }
     }
     return err;  
 }
@@ -318,6 +465,24 @@ uint8_t HKComm::isActive(void)
     else
         return 0;
 }
+
+void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const uint16_t dataSize)
+{
+    g_serialError = HKCommDefs::serialErr_None;
+    g_SerialState = HKCommDefs::serialState_Action;
+    g_dataIt      = 0;
+
+    g_command[0] = command[0];
+    g_command[1] = command[1];
+    g_command[2] = command[2];
+
+    for (g_dataIt = 0; g_dataIt < dataSize && g_dataIt < NUM_ELS(g_data); g_dataIt++)
+    {
+        *g_data = *data;
+    }
+
+}
+
 
 // @brief Main function responding to serial data
 // @returns True if switched state and shall be called immediately.
