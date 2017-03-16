@@ -249,7 +249,9 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     inOutData[dataSize++] = '.';
     inOutData[dataSize++] = '5';
     inOutData[dataSize++] = '.';
-    inOutData[dataSize++] = '0';
+    inOutData[dataSize++] = '1';
+    inOutData[dataSize++] = '.';
+    inOutData[dataSize++] = '1';
 
 
     /*Releases
@@ -257,10 +259,20 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         + version information
         + shortened RTH
         + sending temperature readings set up by blinker
-    0.5.1 (planned)
+    
+    0.5.1 Development
+    0.5.1.1 Development
+        + Improved current power saving algo. 
+        + Starting serial now in main loop after non-wd power up 
+          and waiting a delay afterwards
+
+    0.5.2 (planned)
         improved power save mode
+        //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
+
     0.?.0 (planned)
         + batery reading
+            // see https://forum.arduino.cc/index.php?topic=38119.0
     0.?.1
         + Any AC value reading with autoscale
     0.?.1

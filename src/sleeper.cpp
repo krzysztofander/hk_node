@@ -115,8 +115,6 @@ ISR (WDT_vect)
 ISR (PCINT2_vect)
 {
    PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
-   Serial.begin(9600);     // start serial
-                           // not nessesarily here and in main loop.
   
 }
 //---------------------------------------------------------------
@@ -268,6 +266,11 @@ void Sleeper::goToSleep(void)
 
             Supp::notWDWakeUp();
 
+            Serial.begin(9600); //@TODO investigate whether is better to use that...
+                                //       UCSR0B |= bit (RXEN0);  // enable receiver
+                                //       UCSR0B |= bit (TXEN0);  // enable transmitter
+
+
             //we need to introduce a delay here
             //in case when serial woken up, the char would get lost
             //and we would enter this loop immeditely
@@ -277,7 +280,9 @@ void Sleeper::goToSleep(void)
             //for terminal, manual operations,
             //a 50ms should do
             delay(50);
-            //plus wait till next WD tick
+
+
+
             gv_wdInterrupt_B  = 0; //Used for HIGH power donw, delayin it for one tick     
             
             do
@@ -285,8 +290,6 @@ void Sleeper::goToSleep(void)
                 gv_NoPowerDownPeriod = g_NoPowerDownPeriodSetting;
             } while (gv_NoPowerDownPeriod != g_NoPowerDownPeriodSetting);
 
-          
-            //@todo while waiting for serial we can still go PWR down IDLE mode
         }
         else
         {
@@ -298,13 +301,6 @@ void Sleeper::goToSleep(void)
 
 
 
-        //@TODO investigate whether is better to use that...
-        //       UCSR0B |= bit (RXEN0);  // enable receiver
-        //       UCSR0B |= bit (TXEN0);  // enable transmitter
-
-        Serial.begin(9600); //@todo check whether we need a delay from power up 
-                            //from serial pin int up to calling Serial.Begin
-                            //Apparently char is not being lost., but how?
         Supp::justPoweredUp();
     }
     else
