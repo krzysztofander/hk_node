@@ -238,6 +238,44 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     return err;
 }
 
+//@brief Read Version Information
+//Returns version of this software
+uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    dataSize = 0;
+    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+    inOutData[dataSize++] = ' ';
+    inOutData[dataSize++] = '0';
+    inOutData[dataSize++] = '.';
+    inOutData[dataSize++] = '5';
+    inOutData[dataSize++] = '.';
+    inOutData[dataSize++] = '0';
+
+
+    /*Releases
+    0.5.0:
+        + version information
+        + shortened RTH
+        + sending temperature readings set up by blinker
+    0.5.1 (planned)
+        improved power save mode
+    0.?.0 (planned)
+        + batery reading
+    0.?.1
+        + Any AC value reading with autoscale
+    0.?.1
+        + Bluetooth settings
+    0.?.1 
+        + eeprom
+    1.0.0 all above works
+
+
+
+    */
+  
+}
+
+
 uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
@@ -406,7 +444,9 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
 
             }
             break;
-
+        case 'V':  //Read Version
+            err = command_RVI(inOutCommand, inOutData, dataSize);
+            break;
         default:  //unknown 'R' command
             err = formatResponceUnkL1(inOutCommand, dataSize);
             break;
