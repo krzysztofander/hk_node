@@ -74,7 +74,9 @@ void Blinker::blinkAction()
 
             break;
             case 3: 
-                g_blinkSetting = 1;
+                HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
+
+                
                 break; 
                 //do not do anuthing for now
             case 4:  

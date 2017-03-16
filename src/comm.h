@@ -46,6 +46,10 @@ public:
     static uint8_t command_RPA(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_RPM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
 
+    //sets serial state to action after specific command
+    //can be used to send responsce w/o  request for debug purposes
+    static void jumpToAction(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize);
+
     static uint8_t respondSerial(void);
     static void echoLetter(uint8_t l);
     static uint8_t isActive(void);

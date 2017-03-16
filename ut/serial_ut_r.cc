@@ -105,6 +105,19 @@ TEST_F (Serial_RTH_method_Fixture, readTMV_01)
     ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
 
 }
+//@brief checks the quick access
+TEST_F (Serial_RTH_method_Fixture, readTMV_quickAccess)
+{
+    dataPut() = { };
+    EXPECT_CALL(mckS, getUpTime())
+        .WillOnce(Return(16));
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(0))
+        .WillOnce(Return(TempMeasure::TempRecord (10, 0x0111)));
+
+    uint8_t retVal = HKComm::command_R(inOutCommand, data(), dataSize());
+    ASSERT_EQ(retVal, HKCommDefs::serialErr_None);
+}
 
 //@brief checks the error when there is not enouth chars in data
 TEST_F (Serial_RTH_method_Fixture, readTMV_02)

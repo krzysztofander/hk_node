@@ -250,6 +250,16 @@ uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
 uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     uint8_t err;
+    //fake for quick query
+    if (dataSize == 0)
+    {
+        inOutData[0] = '0';
+        inOutData[1] = '0';
+        inOutData[2] = '1';
+        inOutData[3] = '0';
+        dataSize = 4;
+    }
+
     //check for size correctness
     if (dataSize < sizeof(short) * 2)
     {
@@ -415,6 +425,24 @@ uint8_t HKComm::isActive(void)
     else
         return 0;
 }
+
+void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const uint16_t dataSize)
+{
+    g_serialError = HKCommDefs::serialErr_None;
+    g_SerialState = HKCommDefs::serialState_Action;
+    g_dataIt      = 0;
+
+    g_command[0] = command[0];
+    g_command[1] = command[1];
+    g_command[2] = command[2];
+
+    for (g_dataIt = 0; g_dataIt < dataSize && g_dataIt < NUM_ELS(g_data); g_dataIt++)
+    {
+        *g_data = *data;
+    }
+
+}
+
 
 // @brief Main function responding to serial data
 // @returns True if switched state and shall be called immediately.

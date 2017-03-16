@@ -28,6 +28,27 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "temp_sensor.h"
 #include "blinker.h"
 
+/*
+    Version notes:
+
+    Things to do
+    - Update documentation
+    - Measure batery level
+    - Use EEPROM to store configuration
+    -- reset eeprom
+    - Improve power saving
+    --   Software
+    --   HW
+    --- remove led
+    --- remove USB serial & stuff
+    --- make BT on/off
+    - Set Bluetooth properlu
+    -- configure for given host
+    -- reset on reset
+    -- turn off led
+
+*/
+
 
 void setupBody() 
 {
