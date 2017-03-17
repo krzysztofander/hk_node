@@ -252,6 +252,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     inOutData[dataSize++] = '1';
     inOutData[dataSize++] = '.';
     inOutData[dataSize++] = '1';
+// Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 
 
     /*Releases

@@ -204,6 +204,14 @@ void Sleeper::goToSleep(void)
             //when waking up from powed down some characters get lost on serial input
 
             //other periph could be powered donw here.
+
+            //@TODO turn off brown-out enable in software
+            //MCUCR = bit (BODS) | bit (BODSE);
+            //MCUCR = bit (BODS); 
+
+            //AC
+
+            //
         }
         else
         {
@@ -239,10 +247,7 @@ void Sleeper::goToSleep(void)
         sleep_enable();
 
         
-            //@TODO turn off brown-out enable in software
-            //MCUCR = bit (BODS) | bit (BODSE);
-            //MCUCR = bit (BODS); 
-        sleep_cpu ();  
+         sleep_cpu ();  
         //SLEEPING HERE
         // ......
         //GOT SOME wake
