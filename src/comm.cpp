@@ -271,7 +271,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     inOutData[dataSize++] = '.';
     inOutData[dataSize++] = '1';
     inOutData[dataSize++] = '.';
-    inOutData[dataSize++] = '2';
+    inOutData[dataSize++] = '3';
 // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 
 
@@ -288,6 +288,8 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
           and waiting a delay afterwards
     0.5.1.2 Development
         +Improved blinker setting
+    0.5.1.3 Development
+        +Improved blinker setting, fixed auto send
     0.5.2 (planned)
         improved power save mode
         //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
@@ -528,6 +530,14 @@ void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const ui
     }
 
 }
+
+void HKComm::jumpToResp(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize)
+{
+    jumpToAction(command, data, dataSize);
+    g_SerialState = HKCommDefs::serialState_Respond;
+
+}
+
 
 
 // @brief Main function responding to serial data

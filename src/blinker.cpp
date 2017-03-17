@@ -83,7 +83,7 @@ void Blinker::blinkAction()
                 {
                     uint16_t dataSize = 0;
                     HKCommCommon::uint8ToData(dataSize, HKComm::g_data, counter);
-                    HKComm::jumpToAction((const uint8_t*)"AHL",HKComm::g_data , dataSize);
+                    HKComm::jumpToResp((const uint8_t*)"AHL",HKComm::g_data , dataSize);
                 }
                 counter++;
             }
