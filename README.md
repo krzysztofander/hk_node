@@ -1,5 +1,5 @@
 # hk_node
-
+[toc]
 Introduction
 ===============
 
@@ -15,16 +15,16 @@ The software should be run with the following HW platform:
 
 @todo 
 
-	image
+	add image
 
 Overview
 ----------
 Software runs bare metal. 
 In a main loop there are following operations:
-- check for the command from serial,
-- calculate time since last loop,
-- execute operations scheduled by executor,
-- go to power saving mode,
+  - check for the command from serial,
+  - calculate time since last loop,
+  - execute operations scheduled by executor,
+  - go to power saving mode,
 
 Serial is responding on commands send from master controller.
 Commands are described in  `Commands` chapter
@@ -51,9 +51,9 @@ Version 1.0 and above will also have the executor
 measuring battery level as well as 1-3 AC inputs.
 
 The priority of executors is hard coded
-highest - blinker
-then - measurement of temperature 
-then - battery measurement
+* highest - blinker
+* then - measurement of temperature 
+* then - battery measurement
 
 Power saving mode
 -------------------
@@ -66,17 +66,15 @@ There are 3 selectable power saving modes
 Refer to the ATMega documentation for reference
 Default is the STANDBY. It does immediate recognition for serial commands.
 
-In POWED_DOWN mode serial needs to be woken up (it depends on system oscillator 
+In POWER_DOWN mode serial needs to be woken up (it depends on system oscillator 
 which gets powered down). In this mode at least 1 character on serial is getting lost.
 
-When serial command is not pending e.g. nothing is being send/read the
-device goes to sleep and the watchdog's interrupts wakes it up.
+When serial command is not pending e.g. nothing is being send/read the device goes to sleep and the watchdog's interrupts wakes it up.
 
 When there is any character available in the receiver device does
 not go to sleep up to receiving and handing full command.
 
-@todo
-	Add timeout
+> todo Add timeout
 	
 Serial nor power saving mode does not influence executor e.g. it executes tasks periodically
 regardless of characters in receiver
@@ -88,13 +86,13 @@ There is no pre-emption.
 Main loop first handles serial commands if any and then executor
 When there is only part of command available main loop continues with executor 
 e.g. does not wait with execution of task for full command.
-@note
+> @note
 	There is only one executor task executed in a single loop. Ones its done device
 	either goes to sleep or if there is another/same executor scheduled 
 	loop round, handles serial, and executes a task belonging to highest
 	priority executor. 
 
-@warning
+> @warning
 	Setting up the execution time to 0 will cause all lower priority
 	executors to starve.
 
@@ -105,8 +103,8 @@ invoked e.g. there will be gaps between particular executor activity
 One Wire
 -------------
 Tho libraries are used 
-OneWire
-DS18B20
+- OneWire
+- DS18B20
 
 Communication
 ===============
@@ -123,7 +121,7 @@ Data is always ASCII. Numbers are send as human readable hexadecimal notation (A
 Command may be prefixed by preamble:
 
 Command structure:
-	[preamble] 3_letter_cmd_it data termination_sign(s)
+	> [preamble] 3_letter_cmd_it data termination_sign(s)
 
 Commands are divided into categories. First letter of command prefix describes a 
 category:
@@ -147,7 +145,7 @@ Command termination
 When device receives the command it must be terminated with '\x0d'  sign.
 Device itself terminates its own command (mostly responses) with series of '\x0d''\x0a' 
 
-@todo
+> @todo
 	Accept and ignore 0xa on receive?
 
 Data types
@@ -175,43 +173,41 @@ Response
 
 Error codes
 ---------------
-There are following error codes defined
-	`Cun`	:	unrecognised 'C' command
-	`C[A-Z]u: 	unrecognized third letter of 'C' command
-	`Run`	:	unrecognized 'R' command
-	`R[A-Z]u:
-	`Dun`	: 	unrecognized 'D' command
-	`D[A-Z]u:
-	`ERR {last cmd}-{error code}` where,
-		- {last cmd} is whatever device seen as last command. 
+There are following error codes defined: 
+	- `Cun`	:	unrecognised 'C' command
+	- `C[A-Z]u`: 	unrecognized third letter of 'C' command
+	- `Run`	:	unrecognized 'R' command
+	- `R[A-Z]u`:
+	- `Dun`	: 	unrecognized 'D' command
+	- `D[A-Z]u`:
+	- `ERR {last cmd}-{error code}` where,
+		-- {last cmd} is whatever device seen as last command. 
 			Non visible characters are presented as backslash followed by hexadecimal code 
-		- error code is hexadecimal value. Meanings are as follows: 
+		-- error code is hexadecimal value. Meanings are as follows: 
 	
 Commands List
 ---------------
 
-Notation
-+++++++++++
-
-	*command identifier* [*data*]
+###Notation###
+ 
+ > 	*command identifier* [*data*]
 
 or in case of common data:
 
-	*{CRV} command identifier remained* *data*
+>  *{CRV} command identifier remained* *data*
 	
-Preamble and termination are is not included in this notation
+Preamble and termination are is not included in this notation.
 
-{CRV}TM,
-++++++++++++++
+###{CRV}TM###
 
-@todo 
+> @todo 
 	write about it
 
 
 Other control
 ===============
 
-@todo 
+> @todo 
 	write about it
 
 
@@ -219,6 +215,3 @@ References
 =============
  http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 
-
-
-//TODO
