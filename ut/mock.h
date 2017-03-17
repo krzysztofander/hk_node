@@ -16,29 +16,6 @@ using ::testing::InSequence;
 using ::testing::NiceMock;
 using ::testing::StrictMock;
 
-class MockSleeper
-{
-public:
-    MOCK_METHOD0( getUpTime, HKTime::UpTime(void));
-   
-    MockSleeper()
-    {
-        pInst = this;
-    }
-    ~MockSleeper()
-    {
-        pInst = 0;
-    }
-
-    static MockSleeper & instance()
-    {
-        if (!pInst) 
-            throw std::exception("getting instance when mock is not instantiated");
-        return *pInst;
-    }
-private:
-    static MockSleeper *pInst;
-};
 
 class MockSerial : public Serial_if
 {
@@ -50,100 +27,78 @@ public:
 
 };
 
-class MockLooseFn 
+#define FF_GMOCK_METHOD1(Method, ...) \
+  MOCK_METHOD1( Method, __VA_ARGS__); \
+  friend GMOCK_RESULT_(, __VA_ARGS__)  Method (  GMOCK_ARG_( , 1, __VA_ARGS__) param1 ) \
+  { \
+      return  instance().Method(param1); \
+  } \
+
+
+
+template <class MockClass>
+class UPMock
 {
 public:
-    MOCK_METHOD2(alert, void(uint8_t, bool b));
-    static MockLooseFn & instance()
+    UPMock() 
     {
-        static MockLooseFn  f;
-        return f;
+        pInst = static_cast<MockClass * >(this);
     }
-};
-
-class MockExecutor
-{
-public:
-    MOCK_METHOD2(setExecutionTime, void(uint8_t, uint16_t));
-
-    MockExecutor()
+    explicit UPMock(MockClass *obj) 
     {
-        pInst = this;
+        pInst = obj;
     }
-    ~MockExecutor()
+    ~UPMock()
     {
         pInst = 0;
     }
 
-    static MockExecutor & instance()
-    {
-        if (!pInst) 
-            throw std::exception("getting instance when mock is not instantiated");
-        return *pInst;   
-    }
-
-private:
-    static MockExecutor *pInst;
-
-
-};
-
-class MockSupp
-{
-public:
-    MOCK_METHOD1(blinkLed, void(uint8_t));
-    MOCK_METHOD0(isButtonPressed, bool());
-
-
-    MockSupp()
-    {
-        pInst = this;
-    }
-    ~MockSupp()
-    {
-        pInst = 0;
-    }
-
-    static MockSupp & instance()
-    {
-        if (!pInst) 
-            throw std::exception("getting instance when mock is not instantiated");
-        return *pInst;   
-    }
-
-private:
-    static MockSupp *pInst;
-
-
-};
-
-
-
-class MockTempMeasurement
-{
-public:
-    MOCK_METHOD0(getSingleTempMeasurement, uint16_t(void));
-    MOCK_METHOD1(getTempMeasurementRecord, TempMeasure::TempRecord(uint16_t));
-    
-    MockTempMeasurement()
-    {
-        pInst = this;
-    }
-    ~MockTempMeasurement()
-    {
-        pInst = 0;
-    }
-
-    static MockTempMeasurement & instance()
+    static MockClass & instance()
     {
         if (!pInst) 
             throw std::exception("getting instance when mock is not instantiated");
         return *pInst;
     }
-private:
-    static MockTempMeasurement *pInst;
+    static MockClass *pInst;
+};
+
+
+class MockSleeper : public UPMock<MockSleeper>
+{
+public:
+    MOCK_METHOD0( getUpTime, HKTime::UpTime(void));
+};
+
+
+
+class MockExecutor : public UPMock<MockExecutor>
+{
+public:
+    MOCK_METHOD2(setExecutionTime, void(uint8_t, uint16_t));
 
 };
+
+
+class MockSupp : public UPMock<MockSupp>
+{
+public:
+
+    MOCK_METHOD1(blinkLed, void(uint8_t));
+    MOCK_METHOD0(isButtonPressed, bool());
+
+};
+
+
+
+class MockTempMeasurement : public UPMock<MockTempMeasurement>
+{
+    
+public:
+    MOCK_METHOD0(getSingleTempMeasurement, uint16_t(void));
+    MOCK_METHOD1(getTempMeasurementRecord, TempMeasure::TempRecord(uint16_t));
+ 
+};
+
 
 
 //------------------------------------------------------------------------
@@ -165,8 +120,7 @@ public:
 
 
     MockSerial mockSerial;
-
-
+    
     virtual void SetUp()
     {
         Serial.install(&mockSerial);
@@ -175,6 +129,7 @@ public:
         HKComm::g_serialError = 0;
     }
 };
+
 
 class NiceSerialFixture : public SerialFixtureComm{
 public: 

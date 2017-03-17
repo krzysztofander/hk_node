@@ -29,7 +29,7 @@ TEST_F(SerialFixture, Blinker01)
 {
     MockSupp mckSupp;
     MockTempMeasurement mckTM;
-    MockSleeper mckSLP;
+    NiceMock <MockSleeper > mckSLP;
 
     Blinker::setBlinkPattern(0x3);
 

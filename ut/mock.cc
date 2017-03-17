@@ -38,10 +38,10 @@ void Sleeper::setTime(const volatile HKTime::UpTime newTime)
 }
 
 
-MockSleeper* MockSleeper::pInst = 0;
-MockTempMeasurement* MockTempMeasurement::pInst = 0;
-MockExecutor* MockExecutor::pInst = 0;
-MockSupp * MockSupp::pInst = 0;
+MockSleeper* UPMock<MockSleeper>::pInst = 0;
+MockTempMeasurement* UPMock<MockTempMeasurement>::pInst = 0;
+MockExecutor* UPMock<MockExecutor>::pInst = 0;
+MockSupp * UPMock<MockSupp>::pInst = 0;
 
 //------------------------------------------------------------------------
 TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
@@ -92,6 +92,7 @@ bool Supp::isButtonPressed()
 {
     return MockSupp::instance().isButtonPressed();
 }
+
 void Supp::blinkLed(uint8_t pattern)
 {
     MockSupp::instance().blinkLed(pattern);
