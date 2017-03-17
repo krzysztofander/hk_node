@@ -46,6 +46,10 @@ Thumbs.db
 # Stack usage files
 *.su
 
+# Backup files
+*.orig
+*~
+
 # external libs
 OneWire/
 DS18B20/
