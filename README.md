@@ -148,7 +148,7 @@ When device receives the command it must be terminated with '\x0d'  sign.
 Device itself terminates its own command (mostly responses) with series of '\x0d''\x0a' 
 
 @todo
-Accept and ignore 0xa on receive?
+	Accept and ignore 0xa on receive?
 
 Data types
 ----------------
@@ -183,8 +183,9 @@ There are following error codes defined
 	`Dun`	: 	unrecognized 'D' command
 	`D[A-Z]u:
 	`ERR {last cmd}-{error code}` where,
-		-- {last cmd} is whatever device seen as last command. 
-			Non visible characters are presented as backslash followed 
+		- {last cmd} is whatever device seen as last command. 
+			Non visible characters are presented as backslash followed by hexadecimal code 
+		- error code is hexadecimal value. Meanings are as follows: 
 	
 Commands List
 ---------------
@@ -200,16 +201,19 @@ or in case of common data:
 	
 Preamble and termination are is not included in this notation
 
-CTM, RTH, VTH
+{CRV}TM,
 ++++++++++++++
 
-
-
- 
+@todo 
+	write about it
 
 
 Other control
 ===============
+
+@todo 
+	write about it
+
 
 References
 =============
