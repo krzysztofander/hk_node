@@ -62,8 +62,8 @@ public:
     {
         serialErr_None,
 
-        serialErr_Assert = 10,           // some assertion triggered
-        serialErr_Assert_NotImpl = 11,           // not implemented yet
+        serialErr_Assert = 0x10,           // some assertion triggered
+        serialErr_Assert_NotImpl = 0x11,           // not implemented yet
 
         
         serialErr_Number_IncorrectFormat = 0x20,  //format of the number from serial is incorrect. 
