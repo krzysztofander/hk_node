@@ -121,15 +121,16 @@ Data is always ASCII. Numbers are send as human readable hexadecimal notation (A
 Command may be prefixed by preamble:
 
 Command structure:
-	> [preamble] 3_letter_cmd_it data termination_sign(s)
+
+> [preamble] 3_letter_cmd_it data termination_sign(s)
 
 Commands are divided into categories. First letter of command prefix describes a 
 category:
-	- D: Debug
-	- C: Configuration
-	- R: Request to read measurement or configuration parameter
-	- V: Value returned in response to 'R' command
-	- A: Auxiliary, e.g. commands requesting some action
+- D: Debug
+- C: Configuration
+- R: Request to read measurement or configuration parameter
+- V: Value returned in response to 'R' command
+- A: Auxiliary, e.g. commands requesting some action
 
 Preamble
 -----------
@@ -151,10 +152,10 @@ Device itself terminates its own command (mostly responses) with series of '\x0d
 Data types
 ----------------
 Possible values:
-	- [u]int[8,16,32,64]_t: hexadecimal value in ASCII characters. Only lowercase are used.
-	- {u,s}Ni.Nf: fixed point e.g s12.4 means signed fixed point 12bit integer 4 bit fractional
-	- string: a series of ASCII 
-	- combined (string and data)
+ - [u]int[8,16,32,64]_t: hexadecimal value in ASCII characters. Only lowercase are used.
+ - {u,s}Ni.Nf: fixed point e.g s12.4 means signed fixed point 12bit integer 4 bit fractional
+ - string: a series of ASCII 
+ - combined (string and data)
 	
 Negative values are U2 encoded.
 
@@ -162,39 +163,39 @@ Response
 ---------------
 
 - Response to 'C' command is 
-	-- same Command identified repeated followed by a string ` ok`
-		for example for the command `CTM0010` response is `CTM ok`
-	-- error code (see error codes)
+ -- same Command identified repeated followed by a string ` ok`
+    for example for the command `CTM0010` response is `CTM ok`
+ -- error code (see error codes)
 - Response to 'R' command is either
-    -- corresponding 'V' command
-	-- error code (see error codes)
+ -- corresponding 'V' command
+ -- error code (see error codes)
 - Response to other command is command specific
 
 
 Error codes
 ---------------
 There are following error codes defined: 
-	- `Cun`	:	unrecognised 'C' command
-	- `C[A-Z]u`: 	unrecognized third letter of 'C' command
-	- `Run`	:	unrecognized 'R' command
-	- `R[A-Z]u`:
-	- `Dun`	: 	unrecognized 'D' command
-	- `D[A-Z]u`:
-	- `ERR {last cmd}-{error code}` where,
-		-- {last cmd} is whatever device seen as last command. 
-			Non visible characters are presented as backslash followed by hexadecimal code 
-		-- error code is hexadecimal value. Meanings are as follows: 
+- `Cun`	:	unrecognised 'C' command
+- `C[A-Z]u`: 	unrecognized third letter of 'C' command
+- `Run`	:	unrecognized 'R' command
+- `R[A-Z]u`:
+- `Dun`	: 	unrecognized 'D' command
+- `D[A-Z]u`:
+- `ERR {last cmd}-{error code}` where,
+   -- {last cmd} is whatever device seen as last command. 
+      Non visible characters are presented as backslash followed by hexadecimal code 
+   -- error code is hexadecimal value. Meanings are as follows: 
 	
 Commands List
 ---------------
 
 ###Notation###
  
- > 	*command identifier* [*data*]
+> *command identifier* [*data*]
 
 or in case of common data:
 
->  *{CRV} command identifier remained* *data*
+> *{CRV} command identifier remained* *data*
 	
 Preamble and termination are is not included in this notation.
 
