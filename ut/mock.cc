@@ -6,6 +6,7 @@
 #include "sleeper.h"
 #include "temp_measurement.h"
 #include "mock.h"
+#include "supp.h"
 
 using ::testing::AtLeast;  
 using ::testing::Return;
@@ -40,7 +41,7 @@ void Sleeper::setTime(const volatile HKTime::UpTime newTime)
 MockSleeper* MockSleeper::pInst = 0;
 MockTempMeasurement* MockTempMeasurement::pInst = 0;
 MockExecutor* MockExecutor::pInst = 0;
-
+MockSupp * MockSupp::pInst = 0;
 
 //------------------------------------------------------------------------
 TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
@@ -87,3 +88,11 @@ uint8_t Sleeper::getPowerSaveMode()
 }
 
 
+bool Supp::isButtonPressed()
+{
+    return MockSupp::instance().isButtonPressed();
+}
+void Supp::blinkLed(uint8_t pattern)
+{
+    MockSupp::instance().blinkLed(pattern);
+}

@@ -302,6 +302,11 @@ void Sleeper::goToSleep(void)
             gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
             //periph could be woken up if just 1 tick to WD wake
             Supp::watchdogWakeUp();
+
+            Serial.begin(9600); //@TODO investigate whether is better to use that...
+                                //       UCSR0B |= bit (RXEN0);  // enable receiver
+                                //       UCSR0B |= bit (TXEN0);  // enable transmitter
+
         }
 
 

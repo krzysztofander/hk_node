@@ -28,6 +28,13 @@ class Blinker
 public:
     static void init();
     static void blinkAction();
+    
+    //@sets the bliking pattern. Each bit set means blick, each 0 means gap
+    //
+    //@warning
+    //Parameters 0x03, 0x07, 0xF have special meaning 
+    static void setBlinkPattern(uint8_t pattern);
+    static uint8_t getBlinkPattern();
 private:
     static uint8_t g_blinkSetting;
 

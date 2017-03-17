@@ -25,17 +25,33 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm.h"
 //------------------------------------------------------------------
 uint8_t Blinker::g_blinkSetting = 1;
+//------------------------------------------------------------------
 void Blinker::init()
 {
     g_blinkSetting = 1;
 }
+//------------------------------------------------------------------
+void Blinker::setBlinkPattern(uint8_t pattern)
+{
+    g_blinkSetting = pattern;
+}
+//------------------------------------------------------------------
+uint8_t Blinker::getBlinkPattern()
+{
+    return g_blinkSetting;
+}
+//------------------------------------------------------------------
 
 void Blinker::blinkAction()
 {
     if (Supp::isButtonPressed())
     {
-        g_blinkSetting++;
-        if (g_blinkSetting > 4)
+        //This is to manually change blink setting to something recognizable
+
+        g_blinkSetting <<= 1;
+        g_blinkSetting  |=  1;
+        
+        if ((uint8_t)(g_blinkSetting & (uint8_t)0x1F) == (uint8_t)0x1F) //4 bits set
         {
             g_blinkSetting  = 0;
             Supp::blinkLed(0x81); //just confirm here and forget till changed
@@ -43,14 +59,7 @@ void Blinker::blinkAction()
     }
  
 
-    uint8_t pattern = 0;
-    for (uint8_t i = 0; i < g_blinkSetting && i < 8; i++)
-    {
-        pattern <<= 1;
-        pattern  |= 1;
-    }
-
-    Supp::blinkLed(pattern);
+    Supp::blinkLed(g_blinkSetting);
     
 
     if (!Supp::isButtonPressed())
@@ -58,31 +67,38 @@ void Blinker::blinkAction()
         //various ag_blinkSettingctions for particular settings, that has been selected blink ago
         switch (g_blinkSetting)
         {
-            case 2: //keep sending messages to serial
+            case 0x0: 
+                break;
+            case 0x1: 
+                break;
+            case 0x3: //keep sending messages to serial
             {
-                static int8_t couter = 0;
-
-                uint16_t dataSize = 0;
-                HKComm::g_data[dataSize++] = 'A';
-                HKComm::g_data[dataSize++] = 'H';
-                HKComm::g_data[dataSize++] = 'L';
-                HKCommCommon::uint8ToData(dataSize, HKComm::g_data, couter++);
-
-                Serial.write(HKComm::g_data, dataSize);
-                Serial.write(HKCommDefs::commandEOLOnResponceSequence, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
+                static uint8_t counter = 0;
+                if (0 ||
+                    (uint8_t)(counter & (uint8_t)0x03) == (uint8_t)0)
+                {
+                    HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
+                }
+                else
+                {
+                    uint16_t dataSize = 0;
+                    HKCommCommon::uint8ToData(dataSize, HKComm::g_data, counter);
+                    HKComm::jumpToAction((const uint8_t*)"AHL",HKComm::g_data , dataSize);
+                }
+                counter++;
             }
 
             break;
-            case 3: 
-                HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
-
-                
+            case 7: 
+                //some action can be added here e.g. reset BT & stuff to default
+                //    
                 break; 
-                //do not do anuthing for now
-            case 4:  
-                g_blinkSetting = 1;
+            case 0xf: 
+                //some action can be added here e.g. reset BT & stuff to default
+                g_blinkSetting = 1;                
                 break; 
-            //if it was sth else leave it.
+                //do not do anything for now
         }
     }
 }
+//------------------------------------------------------------------

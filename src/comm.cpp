@@ -28,6 +28,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_common.h"
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
+#include "blinker.h"
 
 uint8_t  HKComm::g_SerialState = HKCommDefs::serialState_ReadCommand;
 uint8_t  HKComm::g_command[HKCommDefs::commandSize];
@@ -228,7 +229,26 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
                 err = formatResponceUnkL2(inOutCommand, dataSize);
                 break;
         }
-    
+        break;
+    case 'B' : //power saving mode
+        switch (inOutCommand[HKCommDefs::command_subIdPos2])
+        {
+            case 'P': //mode
+            {
+                uint8_t pattern;
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, pattern);
+                if (err != HKCommDefs::serialErr_None)
+                {
+                    break;
+                }
+                Blinker::setBlinkPattern(pattern);
+                err = formatResponceOK(inOutCommand, inOutData, dataSize);
+            }
+            break;
+            default:
+                err = formatResponceUnkL2(inOutCommand, dataSize);
+                break;
+        }
         break;
     default:  //unknown 'C' command
         //Response:
@@ -251,7 +271,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     inOutData[dataSize++] = '.';
     inOutData[dataSize++] = '1';
     inOutData[dataSize++] = '.';
-    inOutData[dataSize++] = '1';
+    inOutData[dataSize++] = '2';
 // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 
 
@@ -266,7 +286,8 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         + Improved current power saving algo. 
         + Starting serial now in main loop after non-wd power up 
           and waiting a delay afterwards
-
+    0.5.1.2 Development
+        +Improved blinker setting
     0.5.2 (planned)
         improved power save mode
         //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
@@ -285,7 +306,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
 
 
     */
-  
+    return HKCommDefs::serialErr_None;
 }
 
 
@@ -294,6 +315,10 @@ uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
     dataSize = 0;
     inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+ 
+    HKCommExtraRecordsHDL::setNumRecords(0);
+    HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+    
     return  HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()), singleTempMeasurement);
     
 }
@@ -379,6 +404,11 @@ uint8_t HKComm::command_RBC(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     dataSize = 0;
     return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)tempMeasurementTime);
 }
+uint8_t HKComm::command_RBP(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+{
+    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+    return HKCommCommon::uint8ToData(dataSize, inOutData, Blinker::getBlinkPattern());
+}
 
 uint8_t HKComm::command_RPM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
@@ -424,6 +454,9 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             {
                 case 'C':
                     err = command_RBC(inOutCommand, inOutData, dataSize);
+                    break;
+                case 'P':
+                    err = command_RBP(inOutCommand, inOutData, dataSize);
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
@@ -489,7 +522,7 @@ void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const ui
     g_command[1] = command[1];
     g_command[2] = command[2];
 
-    for (g_dataIt = 0; g_dataIt < dataSize && g_dataIt < NUM_ELS(g_data); g_dataIt++)
+    for (g_dataIt = 0; (g_dataIt < dataSize) && (g_dataIt < NUM_ELS(g_data)); g_dataIt++)
     {
         *g_data = *data;
     }

@@ -88,6 +88,36 @@ private:
 
 };
 
+class MockSupp
+{
+public:
+    MOCK_METHOD1(blinkLed, void(uint8_t));
+    MOCK_METHOD0(isButtonPressed, bool());
+
+
+    MockSupp()
+    {
+        pInst = this;
+    }
+    ~MockSupp()
+    {
+        pInst = 0;
+    }
+
+    static MockSupp & instance()
+    {
+        if (!pInst) 
+            throw std::exception("getting instance when mock is not instantiated");
+        return *pInst;   
+    }
+
+private:
+    static MockSupp *pInst;
+
+
+};
+
+
 
 class MockTempMeasurement
 {
