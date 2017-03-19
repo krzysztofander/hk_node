@@ -1,0 +1,58 @@
+# Prerequisities
+*.d
+
+# Bin files
+*.o
+*.obj
+*.so
+*.out
+*.exe
+*.elf
+*.hex
+*.bin
+*.lib
+*.a
+*.objdump
+*.mif
+
+# Linker files
+*.map
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Editor etc. files
+*.swp
+*.out
+
+# Archives
+*.gz
+*.zip
+*.tar
+*.7z
+
+# Logs
+*.log
+
+# OS files
+Thumbs.db
+.Trashes
+._*
+
+# Python
+*.pyc
+
+# Stack usage files
+*.su
+
+# Backup files
+*.orig
+*~
+
+# external libs
+OneWire/
+DS18B20/
+OneWire.zip
+DS18B20.zip
+

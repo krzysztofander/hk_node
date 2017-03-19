@@ -59,7 +59,7 @@ TEST(ExecutorTst, singleExecutor)
 
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
         {
@@ -111,7 +111,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor1);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -138,7 +138,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor2);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -164,7 +164,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor3);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -193,7 +193,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor3);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -222,7 +222,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor1);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -251,7 +251,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor2);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -280,7 +280,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, Executor::fakeExecutor3);
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -315,7 +315,7 @@ TEST(ExecutorTst, moreExecutors)
     {
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         ASSERT_EQ(executor, uint8_t(255));
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
@@ -360,7 +360,7 @@ TEST(ExecutorTst, periodicInterrupts)
 
         Executor::adjustToElapsedTime(timeSlept);
 
-        uint8_t executor = Executor::giveExecutorToCall();
+        ExecutorBase::EExecutors executor = Executor::giveExecutorToCall();
         // alert(AlertReason_Step3, true);
         if (executor < (uint8_t)Executor::executorsNumber)
         {

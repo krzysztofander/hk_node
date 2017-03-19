@@ -221,11 +221,11 @@ void Supp::blinkLed(uint8_t pattern)
             digitalWrite(LED_BUILTIN, HIGH);
             delay(40);
             digitalWrite(LED_BUILTIN, LOW);
-            delay(60);
+            delay(80);
         }
         else
         {
-            delay(100);
+            delay(120);
         }
         pattern >>= 1;
     }
