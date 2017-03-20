@@ -210,7 +210,7 @@ Preamble and termination are is not included in this notation.
 > Debug Echo 
 
     Parameter: none
-    Responce:  DR(same third letter)
+    Response:  DR(same third letter)
 
 ###DR.
 > Debug Reply
@@ -227,7 +227,7 @@ See CTP. This command is deprecated and would be removed.
 
     Parameter: Setting of temperature period in system watchdog's ticks.
                Parameter can be either 16 or 32 bits (4 or 8 hex digits)
-    Responce: See `Responce` section
+    Response: See `Response` section
 
 ###VTM uint32_t
 > Value Temperature Measurement
@@ -257,7 +257,7 @@ Request to make a single temperature measurement immediately
 The measurement is not stored in history.
 
     Parameter: None
-    Responce: VTM
+    Response: VTM
 
 ###RTH uint16_t
 > Read Temperature History
@@ -308,10 +308,10 @@ Handles power saving modes.
 
     Parameter:
                 00 - IDLE
-                01 - STANDBY (defaukt)
+                01 - STANDBY (default)
                 02 - POWER_DOWN
     Note: When in POWER_DOWN mode the clock gets shut down, therefore subsequent command
-          Have to be prefixed with preable.
+          Have to be prefixed with preamble.
 
 ###{CRV}PA uint_8_t
 > Configure/Read/Value Power Activity (time)
@@ -323,20 +323,20 @@ stays awake if woken up by something else than watchdog timer (system tick)
                 01 - stay awake till next system tick (default)
                 02 - stay awake for one tick after next system tick
                 ...
-    Note: The following tick may still happen immediatelly after wake comming from something 
+    Note: The following tick may still happen immediately after wake coming from something 
           else than system watchdog (source of ticks)
 
 
 ###VTH combined
 > Values Temperature History
 
-Delivers historical recors in a format (no spaces in real format):
-'(' uint32_t ',' s12.4 ')'  *delimeter* ...
+Delivers historical records in a format (no spaces in real format):
+'(' uint32_t ',' s12.4 ')'  *delimiter* ...
     Parameter:
                 - First parameter is a time difference is system ticks since previous measurement.
                   If its a first record it is a difference to current time.
                 - Second parameter is temperature value in fixed point
-                - delimeter is an end of line sequence
+                - delimiter is an end of line sequence
 
     
     
