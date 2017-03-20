@@ -189,7 +189,7 @@ There are following error codes defined:
 Commands List
 ---------------
 
-###Notation
+###Notation###
  
 > *command identifier* [*data*]
 
@@ -206,51 +206,51 @@ A curly braces indicates alternative.
     
 Preamble and termination are is not included in this notation.
 
-###DE.
+###DE.###
 > Debug Echo 
 
     Parameter: none
     Response:  DR(same third letter)
 
-###DR.
+###DR.###
 > Debug Reply
 
 See DE.
 
-###CTM {uint16_t, uint32_t}
+###CTM {uint16_t, uint32_t}###
 > Configure Temperature Measurement
 
 See CTP. This command is deprecated and would be removed.
 
-###CTP
+###CTP###
 > Configure Temperature (measurement) Period
 
     Parameter: Setting of temperature period in system watchdog's ticks.
                Parameter can be either 16 or 32 bits (4 or 8 hex digits)
     Response: See `Response` section
 
-###VTM uint32_t
+###VTM uint32_t###
 > Value Temperature Measurement
 
 See VTP. This command is deprecated and would be removed.
 
-###{RV}TP uint32_t
+###{RV}TP uint32_t###
 > Read/Value Temperature (measurement) Period
 
     Parameter: None on read, value of temperature measurement period.
 
-###RTC
+###RTC###
 > Read Temperature Configuration (of measurements)
 
 See {RV}TP. This command is deprecated and would be removed.
 
     
-###{RV}VI {*none*,string}
+###{RV}VI {*none*,string}###
 > Read/Value Version Information
 
     Parameter: None on read, a string containing version information on reply (VVI command)
 
-###RTM
+###RTM###
 > Read Temperature Measurement
 
 Request to make a single temperature measurement immediately
@@ -259,7 +259,7 @@ The measurement is not stored in history.
     Parameter: None
     Response: VTM
 
-###RTH uint16_t
+###RTH uint16_t###
 > Read Temperature History
 
 Request for historical measurements.
@@ -267,23 +267,23 @@ Request for historical measurements.
     Parameter: Number of measurements to read
                Value of 0 or above capacity will request all capacity
 
-###RTH
+###RTH###
 > Read Temperature History
 
 Request for 16 last measurements.
 
     Parameter: None
 
-###VTH combined
+###VTH combined###
 > Values (of) Temperature History
 
 
-###{CRV}ST uint64_t
+###{CRV}ST uint64_t###
 > Configure/Read/Value System Time
 
     Parameter: None on read, new value to set or current value of system tick counter
 
-###{RV}BP uint32_t
+###{RV}BP uint32_t###
 > Read Blinker Period
 
 Request/Value of the period of blinker.
@@ -291,7 +291,7 @@ There is no configuration command as it is fixed
 
     Parameter: None on read, value of blinker in system ticks
     
-###{CRV}BT uint8_t
+###{CRV}BT uint8_t###
 > Configure/Read/Value Blinker paTtern
 
 Blinker pattern is the mode of blinking.
@@ -301,7 +301,7 @@ significant bits
     
     Parameter: Blink pattern.
 
-###{CRV}PM uint8_t
+###{CRV}PM uint8_t###
 > Configure/Read/Value Power Mode
 
 Handles power saving modes. 
@@ -313,7 +313,7 @@ Handles power saving modes.
     Note: When in POWER_DOWN mode the clock gets shut down, therefore subsequent command
           Have to be prefixed with preamble.
 
-###{CRV}PA uint_8_t
+###{CRV}PA uint_8_t###
 > Configure/Read/Value Power Activity (time)
 Activity is a parameter saying for how many system ticks device
 stays awake if woken up by something else than watchdog timer (system tick)
@@ -327,11 +327,12 @@ stays awake if woken up by something else than watchdog timer (system tick)
           else than system watchdog (source of ticks)
 
 
-###VTH combined
+###VTH combined###
 > Values Temperature History
 
 Delivers historical records in a format (no spaces in real format):
-'(' uint32_t ',' s12.4 ')'  *delimiter* ...
+> '(' uint32_t ',' s12.4 ')'  *delimiter* ...
+  
     Parameter:
                 - First parameter is a time difference is system ticks since previous measurement.
                   If its a first record it is a difference to current time.
