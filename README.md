@@ -181,7 +181,7 @@ There are following error codes defined:
 - `R[A-Z]u`:
 - `Dun`	: 	unrecognized 'D' command
 - `D[A-Z]u`:
-- `ERR {last cmd}-{error code}` where,
+- `ERR{:space:}{last cmd}-{error code}` where,
    -- {last cmd} is whatever device seen as last command. 
       Non visible characters are presented as backslash followed by hexadecimal code 
    -- error code is hexadecimal value. Meanings are as follows: 
@@ -189,22 +189,75 @@ There are following error codes defined:
 Commands List
 ---------------
 
-###Notation###
+###Notation
  
 > *command identifier* [*data*]
 
 or in case of common data:
 
 > *{CRV} command identifier remained* *data*
+
+A dot ('.') indicates any character.
+A curly braces indicates alternative
+
+> @warning
+	Unless stated otherwise, there is no space between command identifier and data
+	Here, for visibility of notation only, data format is stated after space.
 	
 Preamble and termination are is not included in this notation.
 
-###{CRV}TM###
+###DE.
+> Debug Echo 
 
-> @todo 
-	write about it
+	Parameter: none
+	Reply DR(same third letter)
+
+###DR.
+> Debug Reply
+
+	See DE.
+
+###{CV}TM {uint16_t, uint32_t}
+>Configure/Value Temperature Measurement
+
+	Parameter
+
+###{RV}VI
+> Read/Value Version Information
+
+###RTM
+> Read Temperature Measurement
+
+###RTH uint16_t
+> Read Temperature History
+
+###VTH combined
+> Values (of) Temperature History
+
+###RTC
+> Read Temperature Configuration (of measurements)
+
+###{CRV}ST uint64_t
+> Configure/Read/Value System Time
+
+###RBC
+> Read Blinker Configuration
+
+###{CRV}BP
+>Configure/Read/Value Blinker Patter
+
+###{CRV}PM
+>Configure/Read/Value Power Mode
+
+###{CRV}PA
+>Configure/Read/Value Power Activity (time)
 
 
+###VTH combined
+> Values Temperature History
+
+	
+	
 Other control
 ===============
 
