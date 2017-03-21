@@ -274,10 +274,6 @@ Request for 16 last measurements.
 
     Parameter: None
 
-###VTH combined###
-> Values (of) Temperature History
-
-
 ### {CRV}ST uint64_t
 > Configure/Read/Value System Time
 
