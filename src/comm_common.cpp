@@ -48,6 +48,7 @@ uint8_t HKCommCommon::charToUnsigned(uint8_t givenChar, uint8_t *valToSet)
 template <class C>
 uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKCommDefs::commandMaxDataSize], C & retVal )
 {
+#if 1
     if (offset <= HKCommDefs::commandMaxDataSize - sizeof(C) * 2 - HKCommDefs::commandEOLSizeOnRecieve)
     {
         for (uint8_t i = 0; i < sizeof(C) * 2; i++)
@@ -67,6 +68,8 @@ uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKCommDefs::commandM
     {
         return HKCommDefs::serialErr_Assert;
     }
+#else
+#endif
 }
 
 
