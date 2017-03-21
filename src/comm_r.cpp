@@ -29,14 +29,56 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
+namespace
+{
+    void inline commandR_start(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize)
+    {
+        dataSize = 0;   
+        //start from offset 0
+        inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
+        //replace R with V as Read and Value ar simmetrical
+    }
+}
+
+template<typename ReadingFunctor>
+uint8_t command_ReadSimple(
+    uint8_t (&inOutCommand)[HKCommDefs::commandSize],
+    uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+    uint16_t & dataSize,
+    ReadingFunctor (&funtorToCall)(void)
+    )
+{
+    commandR_start(inOutCommand, dataSize);
+
+    return HKCommCommon::typeToData(dataSize, inOutData, funtorToCall() );
+        //call the functor/function and make return as formatted hex
+    
+}
+
+template<typename ReadingFunctor, typename ParameterType>
+uint8_t command_ReadSimple(
+    uint8_t (&inOutCommand)[HKCommDefs::commandSize],
+    uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
+    uint16_t & dataSize,
+    ReadingFunctor (&funtorToCall)(ParameterType),
+    ParameterType parameter
+)
+{
+    commandR_start(inOutCommand, dataSize);
+
+    return HKCommCommon::typeToData(dataSize, inOutData, funtorToCall(parameter) );
+    //call the functor/function and make return as formatted hex
+
+}
+
 
 
 //@brief Read Version Information
 //Returns version of this software
 uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
-    dataSize = 0;
-    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+    commandR_start(inOutCommand, dataSize);
+
     inOutData[dataSize++] = ' ';
     inOutData[dataSize++] = '0';
     inOutData[dataSize++] = '.';
@@ -64,7 +106,8 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     0.5.1.3 Development
         +Improved blinker setting, fixed auto send
     0.5.1.4 Development
-        +Added compatible commands
+        +Added compatible commands as macro
+        !not tested on system
 
     0.5.2 (planned)
         improved power save mode
@@ -90,10 +133,10 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
 
 uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
+    commandR_start(inOutCommand, dataSize);
+
     TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
-    dataSize = 0;
-    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
- 
+
     HKCommExtraRecordsHDL::setNumRecords(0);
     HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
     
@@ -132,8 +175,7 @@ uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         measurementsToReturn = TempMeasure::capacity();
     }
 
-    dataSize = 0;
-    inOutCommand[HKCommDefs::commandIdentifierPos] =  'V';
+    commandR_start(inOutCommand, dataSize);
 
     //measurementsToReturn contains how many. First one returns difference of current to timestamp
     HKTime::UpTime diff = Sleeper::getUpTime();
@@ -160,47 +202,7 @@ uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     return err;
 }
 
-uint8_t HKComm::command_RTP(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    Sleeper::SleepTime tempMeasurementTime = Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer);
-    dataSize = 0;
-    return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)tempMeasurementTime);
-}
-
-
-uint8_t HKComm::command_RST(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    return HKCommCommon::uint64ToData(dataSize, inOutData, Sleeper::getUpTime());
-}
-
-uint8_t HKComm::command_RBP(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    Sleeper::SleepTime blinkerPediod = Executor::giveExecutionTime((uint8_t)Executor::blinker);
-    dataSize = 0;
-    return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)blinkerPediod);
-}
-uint8_t HKComm::command_RBA(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    return HKCommCommon::uint8ToData(dataSize, inOutData, Blinker::getBlinkPattern());
-}
-
-uint8_t HKComm::command_RPM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    return HKCommCommon::uint8ToData(dataSize, inOutData, Sleeper::getPowerSaveMode());
-}
-uint8_t HKComm::command_RPA(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    return HKCommCommon::uint8ToData(dataSize, inOutData, Sleeper::getNoPowerDownPeriod());
-}
-
 //https://forum.arduino.cc/index.php?topic=38119.0
-
 
 uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
@@ -212,16 +214,21 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         case 'T': //temperature measurer
             switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
-                case 'M':   //make a measurement
-                    err = command_RTM(inOutCommand, inOutData, dataSize);
+                case 'M':  //Read Temperature Measurement (make a measurement)
+                    err =  command_RTM(inOutCommand, inOutData, dataSize);
                     break;
-                case 'R':
-                case 'H':  //temperatue history
+                case 'H':  //Read Temperatue History
                     err =  command_RTH(inOutCommand, inOutData, dataSize);
                     break;
+                
                 case 'C':  //temperatue configuration (deprecated)
-                case 'P':  //R/V temperature period
-                    err =  command_RTP(inOutCommand, inOutData, dataSize);
+                case 'P':  //Read Temperature Period
+                    err = command_ReadSimple(inOutCommand,
+                                             inOutData, 
+                                             dataSize, 
+                                             Executor::giveExecutionTime,
+                                             ((uint8_t)Executor::temperatureMeasurer) );
+
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
@@ -232,10 +239,15 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
                 case 'P':
-                    err = command_RBP(inOutCommand, inOutData, dataSize);
+                    err = command_ReadSimple(inOutCommand,
+                                             inOutData, 
+                                             dataSize, 
+                                             Executor::giveExecutionTime,
+                                             ((uint8_t)Executor::blinker) );
+
                     break;
-                case 'A':
-                    err = command_RBA(inOutCommand, inOutData, dataSize);
+                case 'A': //Read Blinker pAttern
+                    err = command_ReadSimple(inOutCommand, inOutData, dataSize, Blinker::getBlinkPattern);
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
@@ -246,7 +258,7 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             {
                 case 'T':
                     //read system time
-                    err = command_RST(inOutCommand, inOutData, dataSize);
+                    err = command_ReadSimple(inOutCommand, inOutData, dataSize, Sleeper::getUpTime);
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
@@ -257,11 +269,11 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         case 'P':
             switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
-                case 'M':
-                    err = command_RPM(inOutCommand, inOutData, dataSize);
+                case 'M': //read Power mode
+                    err = command_ReadSimple(inOutCommand, inOutData, dataSize, Sleeper::getPowerSaveMode);
                     break;
-                case 'A':
-                    err = command_RPA(inOutCommand, inOutData, dataSize);
+                case 'A': //read Power Active
+                    err = command_ReadSimple(inOutCommand, inOutData, dataSize, Sleeper::getPowerSaveMode);
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
