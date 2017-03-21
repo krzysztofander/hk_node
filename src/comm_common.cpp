@@ -69,6 +69,31 @@ uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKCommDefs::commandM
         return HKCommDefs::serialErr_Assert;
     }
 #else
+    //
+    if (offset <= HKCommDefs::commandMaxDataSize - sizeof(C) * 2 - HKCommDefs::commandEOLSizeOnRecieve)
+    {
+        for (uint8_t i = 0; 
+                inData[offset + i] != uint8_t(HKCommDefs::commandEOLSignOnRecieve)
+             && i < sizeof(C) * 2; 
+             i++)
+        {
+            uint8_t v;
+            uint8_t r = HKCommCommon::charToUnsigned(inData[offset + i], &v);
+            if (!!r)
+            {
+                return HKCommDefs::serialErr_Number_IncorrectFormat;
+            }
+            retVal <<= 4; //bits per digit
+            retVal |= (C)v;
+        }
+        return 0;
+    }
+    else
+    {
+        return HKCommDefs::serialErr_Assert;
+    }
+
+
 #endif
 }
 
