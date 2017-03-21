@@ -147,7 +147,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             else if (dataSize == sizeof(uint16_t) * 2)
             {
                 uint16_t tempMeasmntInterval;
-                err = HKCommCommon::dataToType(0, inOutData, tempMeasmntInterval);
+                err = HKCommCommon::dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
                 if (err != HKCommDefs::serialErr_None)
                 {
                     break;
@@ -157,7 +157,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             else if (dataSize == sizeof(int32_t) * 2)
             {
                 uint32_t tempMeasmntInterval;
-                err = HKCommCommon::dataToType(0, inOutData, tempMeasmntInterval);
+                err = HKCommCommon::dataToUnsigned32(0, inOutData, tempMeasmntInterval);
                 if (err != HKCommDefs::serialErr_None)
                 {
                     break;
@@ -185,7 +185,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             case 'T':
             {  //configire system time
                 uint64_t newTime;
-                err = HKCommCommon::dataToType(0, inOutData, newTime);
+                err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
                 if (err != HKCommDefs::serialErr_None)
                 {
                     break;
@@ -205,7 +205,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             case 'M': //mode
             {
                 uint8_t PsMode;
-                err = HKCommCommon::dataToType(0, inOutData, PsMode);
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, PsMode);
                 if (err != HKCommDefs::serialErr_None)
                 {
                     break;
@@ -217,7 +217,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             case 'A': //power awake time after non-wd wake up
             {
                 uint8_t PMAwake;
-                err = HKCommCommon::dataToType(0, inOutData, PMAwake);
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, PMAwake);
                 if (err != HKCommDefs::serialErr_None)
                 {
                     break;
@@ -237,7 +237,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
             case 'P': //mode
             {
                 uint8_t pattern;
-                err = HKCommCommon::dataToType(0, inOutData, pattern);
+                err = HKCommCommon::dataToUnsigned8(0, inOutData, pattern);
                 if (err != HKCommDefs::serialErr_None)
                 {
                     break;
@@ -470,7 +470,7 @@ uint8_t  HKComm::respondSerial(void)
                 else
                 {
                     g_data[g_dataIt++] = '\\';
-                    HKCommCommon::dataToType(g_dataIt, g_data, g_command[i]);
+                    HKCommCommon::uint8ToData(g_dataIt, g_data, g_command[i]);
                 }
             }
 
@@ -488,7 +488,7 @@ uint8_t  HKComm::respondSerial(void)
             g_command[2]='R';
 
           
-            HKCommCommon::dataToType(g_dataIt, g_data, g_serialError);
+            HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
             
 
             g_SerialState = HKCommDefs::serialState_Respond;

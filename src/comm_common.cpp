@@ -43,7 +43,31 @@ uint8_t HKCommCommon::charToUnsigned(uint8_t givenChar, uint8_t *valToSet)
 
 
 
-#if 0
+//@Brief parses the ASCII and fills the reference with value
+//@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
+template <class C>
+uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKCommDefs::commandMaxDataSize], C & retVal )
+{
+    if (offset <= HKCommDefs::commandMaxDataSize - sizeof(C) * 2 - HKCommDefs::commandEOLSizeOnRecieve)
+    {
+        for (uint8_t i = 0; i < sizeof(C) * 2; i++)
+        {
+            uint8_t v;
+            uint8_t r = HKCommCommon::charToUnsigned(inData[offset + i], &v);
+            if (!!r)
+            {
+                return HKCommDefs::serialErr_Number_IncorrectFormat;
+            }
+            retVal <<= 4; //bits per digit
+            retVal |= (C)v;
+        }
+        return 0;
+    }
+    else
+    {
+        return HKCommDefs::serialErr_Assert;
+    }
+}
 
 
 //@Brief parses the ASCII and fills the reference with value
@@ -79,6 +103,7 @@ uint8_t HKCommCommon::dataToUnsigned8(uint16_t offset,
 
 
 
+
 uint8_t HKCommCommon::shortToData(uint16_t & inOutOffset,
                                   uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
                                   const uint16_t  inVal )
@@ -108,7 +133,7 @@ uint8_t HKCommCommon::uint64ToData(uint16_t & inOutOffset,
     return typeToData(inOutOffset, inOutData, inVal);
 }
 
-#endif
+
 
 //@brief formats the measurement time/val pair directly into buffer
 //@param [inout] inOutOffset:  base and new offset in buffer
@@ -132,10 +157,10 @@ uint8_t HKCommCommon::formatMeasurement(uint16_t & inOutOffset,
         + sizeof(chEnd) < sizeof(inOutData))
     {
         inOutData[inOutOffset++]=chStart;
-        typeToData(inOutOffset, inOutData, uint16_t(timeStamp >> 16)); //MSB first
-        typeToData(inOutOffset, inOutData, uint16_t(timeStamp));       //LSB
+        shortToData(inOutOffset, inOutData, uint16_t(timeStamp >> 16)); //MSB first
+        shortToData(inOutOffset, inOutData, uint16_t(timeStamp));       //LSB
         inOutData[inOutOffset++]=chSeparator;
-        typeToData(inOutOffset, inOutData, val);
+        shortToData(inOutOffset, inOutData, val);
         inOutData[inOutOffset++]=chEnd;
 
 #if 1

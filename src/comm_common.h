@@ -28,7 +28,7 @@ class HKCommCommon
 public:
      
     static uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet);
-#if 0
+
     static uint8_t dataToUnsignedShort(uint16_t offset, 
                                        const uint8_t (&inData)[HKCommDefs::commandMaxDataSize ],
                                        uint16_t & retVal);
@@ -59,7 +59,7 @@ public:
     static uint8_t uint64ToData(uint16_t & inOutOffset,
                                uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
                                const uint64_t  inVal);
-#endif 
+  
     static uint8_t formatMeasurement(uint16_t & inOutOffset, 
                                      uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize],
                                      HKTime::SmallUpTime timeStamp, int16_t val);
@@ -92,31 +92,6 @@ public:
 
     }
 
-    //@Brief parses the ASCII and fills the reference with value
-    //@Returns 0 if ok, serialErr_IncorrectNumberFormat  if error
-    template <class C>
-    static uint8_t dataToType(uint16_t offset, const uint8_t (&inData)[HKCommDefs::commandMaxDataSize], C & retVal )
-    {
-        if (offset <= HKCommDefs::commandMaxDataSize - sizeof(C) * 2 - HKCommDefs::commandEOLSizeOnRecieve)
-        {
-            for (uint8_t i = 0; i < sizeof(C) * 2; i++)
-            {
-                uint8_t v;
-                uint8_t r = HKCommCommon::charToUnsigned(inData[offset + i], &v);
-                if (!!r)
-                {
-                    return HKCommDefs::serialErr_Number_IncorrectFormat;
-                }
-                retVal <<= 4; //bits per digit
-                retVal |= (C)v;
-            }
-            return 0;
-        }
-        else
-        {
-            return HKCommDefs::serialErr_Assert;
-        }
-    }
 
 
 };

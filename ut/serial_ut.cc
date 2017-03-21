@@ -19,9 +19,9 @@ using ::testing::_;
 
 
 
-TEST(Serial, check_dataToType)
+TEST(Serial, check_dataToUnsignedShort)
 {
-    //uint8_t HKComm::dataToType(uint8_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
+    //uint8_t HKComm::dataToUnsignedShort(uint8_t offset, const uint8_t (&inData)[commandMaxDataSize], uint16_t & retVal )
 
     uint8_t inData[HKCommDefs::commandMaxDataSize] = { '1', '2', '3' ,'4', 'f', 'f' ,'f' ,'f' , '0'}; //not really a valid data, should be terminated by EOL
     uint8_t inData2[HKCommDefs::commandMaxDataSize] ={ 'a', 'b', 'a' ,'1', 'c', '2' ,'4' ,'f' , '\n' };
@@ -32,27 +32,27 @@ TEST(Serial, check_dataToType)
     uint16_t retVal;
     uint8_t errorCode;
 
-    errorCode = HKCommCommon::dataToType(0, inData, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(0, inData, retVal);
     ASSERT_EQ(retVal, 0x1234u);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_None);
 
-    errorCode = HKCommCommon::dataToType(4, inData, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(4, inData, retVal);
     ASSERT_EQ(retVal, 0xffffu);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_None);
 
-    errorCode = HKCommCommon::dataToType(3, inData, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(3, inData, retVal);
     ASSERT_EQ(retVal, 0x4fffu);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_None);
 
-    errorCode = HKCommCommon::dataToType(0, inData2, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(0, inData2, retVal);
     ASSERT_EQ(retVal, 0xaba1u);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_None);
     // now fail scenarios
 
-    errorCode = HKCommCommon::dataToType(0, inDataE, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(0, inDataE, retVal);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_Number_IncorrectFormat);
 
-    errorCode = HKCommCommon::dataToType(4, inDataE, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(4, inDataE, retVal);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_Number_IncorrectFormat);
 
  
@@ -61,14 +61,14 @@ TEST(Serial, check_dataToType)
     inData[HKCommDefs::commandMaxDataSize - 3] = '0';
     inData[HKCommDefs::commandMaxDataSize - 2] = '0';
     
-    errorCode = HKCommCommon::dataToType(HKCommDefs::commandMaxDataSize - 5, inData, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(HKCommDefs::commandMaxDataSize - 5, inData, retVal);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_None);
 
 
-    errorCode = HKCommCommon::dataToType(HKCommDefs::commandMaxDataSize - 4, inData2, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(HKCommDefs::commandMaxDataSize - 4, inData2, retVal);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_Assert);
 
-    errorCode = HKCommCommon::dataToType(HKCommDefs::commandMaxDataSize + 66, inData, retVal);
+    errorCode = HKCommCommon::dataToUnsignedShort(HKCommDefs::commandMaxDataSize + 66, inData, retVal);
     ASSERT_EQ(errorCode, HKCommDefs::serialErr_Assert);
     
 }
