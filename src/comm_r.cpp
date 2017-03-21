@@ -164,7 +164,7 @@ uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         return err;
     }
     uint16_t measurementsToReturn;
-    err  = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
+    err  = HKCommCommon::dataToType(0, inOutData, measurementsToReturn);
     if (err != HKCommDefs::serialErr_None)
     {
         return err;
