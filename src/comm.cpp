@@ -136,6 +136,7 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         switch (inOutCommand[HKCommDefs::command_subIdPos2])
         {
         case 'M': //CTM
+        case 'P':   //Congigure Temperature Period
         {
             Sleeper::SleepTime sleepTime = 0;
             if (dataSize < sizeof(uint16_t) * 2)
@@ -271,7 +272,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     inOutData[dataSize++] = '.';
     inOutData[dataSize++] = '1';
     inOutData[dataSize++] = '.';
-    inOutData[dataSize++] = '3';
+    inOutData[dataSize++] = '4';
 // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 
 
@@ -290,6 +291,9 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         +Improved blinker setting
     0.5.1.3 Development
         +Improved blinker setting, fixed auto send
+    0.5.1.4 Development
+        +Added compatible commands
+
     0.5.2 (planned)
         improved power save mode
         //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
@@ -384,7 +388,7 @@ uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     return err;
 }
 
-uint8_t HKComm::command_RTC(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+uint8_t HKComm::command_RTP(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
     Sleeper::SleepTime tempMeasurementTime = Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer);
@@ -399,14 +403,14 @@ uint8_t HKComm::command_RST(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     return HKCommCommon::uint64ToData(dataSize, inOutData, Sleeper::getUpTime());
 }
 
-uint8_t HKComm::command_RBC(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+uint8_t HKComm::command_RBP(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
-    Sleeper::SleepTime tempMeasurementTime = Executor::giveExecutionTime((uint8_t)Executor::blinker);
+    Sleeper::SleepTime blinkerPediod = Executor::giveExecutionTime((uint8_t)Executor::blinker);
     dataSize = 0;
-    return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)tempMeasurementTime);
+    return HKCommCommon::uint32ToData(dataSize, inOutData, (uint32_t)blinkerPediod);
 }
-uint8_t HKComm::command_RBP(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
+uint8_t HKComm::command_RBA(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     inOutCommand[HKCommDefs::commandIdentifierPos] = 'V';
     return HKCommCommon::uint8ToData(dataSize, inOutData, Blinker::getBlinkPattern());
@@ -443,8 +447,9 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
                 case 'H':  //temperatue history
                     err =  command_RTH(inOutCommand, inOutData, dataSize);
                     break;
-                case 'C':  //temperatue configuration
-                    err =  command_RTC(inOutCommand, inOutData, dataSize);
+                case 'C':  //temperatue configuration (deprecated)
+                case 'P':  //R/V temperature period
+                    err =  command_RTP(inOutCommand, inOutData, dataSize);
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
@@ -454,11 +459,11 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         case 'B': //blinker
             switch (inOutCommand[HKCommDefs::command_subIdPos2])
             {
-                case 'C':
-                    err = command_RBC(inOutCommand, inOutData, dataSize);
-                    break;
                 case 'P':
                     err = command_RBP(inOutCommand, inOutData, dataSize);
+                    break;
+                case 'A':
+                    err = command_RBA(inOutCommand, inOutData, dataSize);
                     break;
                 default:
                     err = formatResponceUnkL2(inOutCommand, dataSize);
