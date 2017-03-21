@@ -105,7 +105,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         +Improved blinker setting
     0.5.1.3 Development
         +Improved blinker setting, fixed auto send
-    0.5.1.4 Development
+    0.5.1.4 Development (11,280) bytes
         +Added compatible commands as macro
         !not tested on system
 

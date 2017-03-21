@@ -360,7 +360,7 @@ uint8_t  HKComm::respondSerial(void)
                         g_serialError = HKCommDefs::serialErr_noEolFound;
                         g_SerialState =  HKCommDefs::serialState_Error;
                         //terminating data with EOL anyway
-                        g_dataIt[NUM_ELS(g_data) - 1] = uint8_t(HKCommDefs::commandEOLSignOnRecieve);
+                        g_data[NUM_ELS(g_data) - 1] = uint8_t(HKCommDefs::commandEOLSignOnRecieve);
                         return 1;
                     }
                     else
