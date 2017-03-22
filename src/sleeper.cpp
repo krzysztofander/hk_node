@@ -51,6 +51,9 @@ Sleeper::PowerSaveMode Sleeper::g_PowerSaveMode = Sleeper::PowerSaveMedium;
 * This library is licensed under Creative Commons Attribution-ShareAlike 3.0 
 */
 #if defined __AVR_ATmega328P__
+
+#ifndef sleep_bod_disable
+//Comms probably from arduino\hardware\tools\avr\avr\include\avr\sleep.h
 #define sleep_bod_disable() 										\
 do { 																\
   unsigned char tempreg; 											\
@@ -64,6 +67,7 @@ do { 																\
                          [bods_bodse] "i" (_BV(BODS) | _BV(BODSE)), \
                          [not_bodse] "i" (~_BV(BODSE))); 			\
 } while (0)
+#endif
 #define	lowPowerBodOff(mode)\
 do { 						\
       set_sleep_mode(mode); \
@@ -75,6 +79,18 @@ do { 						\
       sleep_disable();		\
       sei();				\
 } while (0);
+
+#define	lowPowerBodOn(mode)	\
+do { 						\
+      set_sleep_mode(mode); \
+      cli();				\
+      sleep_enable();		\
+      sei();				\
+      sleep_cpu();			\
+      sleep_disable();		\
+      sei();				\
+} while (0);
+
 #endif
 
 void Sleeper::setNextSleep(Sleeper::SleepTime  st)
@@ -255,23 +271,30 @@ void Sleeper::goToSleep(void)
             {
                 Supp::powerSaveMedium();
 
-                ADCSRA &= ~(1 << ADEN);       //Disable ADC
-                set_sleep_mode (SLEEP_MODE_STANDBY);
+                ADCSRA &= ~(1 << ADEN);          //Disable ADC
+                /* from AT mega spec:
+                   "When the BOD has been disabled, the wake-up time from sleep 
+                    mode will be approximately 60us to ensure that the BOD is 
+                    working correctly before the MCU continues executing code."
+                   So, an extra delay of 60us happens.
+                   Because of this strange things happen on serial
+                   The first character is malformed.
+                   The solution would be to drop first char or to leave BOD ON
+                */
+                lowPowerBodOn(SLEEP_MODE_STANDBY);
+
             }
             else
             {
                 Supp::powerSaveLow();
                 set_sleep_mode (SLEEP_MODE_IDLE);
+
+                sleep_enable();
+                sleep_cpu ();  
+                //SLEEPING HERE
+                sleep_disable();
+
             }
-            sleep_enable();
-            sleep_cpu ();  
-            //SLEEPING HERE
-           
-            // ......
-            
-            //GOT SOME wake
-            // cancel sleep as a precaution
-            sleep_disable();
         }
      
 
@@ -283,9 +306,10 @@ void Sleeper::goToSleep(void)
 
             PCICR  &= ~bit (PCIE2);     // disable pin change interrupts for D0 to D7
             
-            Serial.begin(9600);         //@TODO investigate whether is better to use that...
+            //Serial.begin(9600);         //@TODO investigate whether is better to use that...
                                         //       UCSR0B |= bit (RXEN0);  // enable receiver
                                         //       UCSR0B |= bit (TXEN0);  // enable transmitter
+            UCSR0B |= bit (RXEN0) | bit (TXEN0) |  bit(RXCIE0);
 
 
             //we need to introduce a delay here
