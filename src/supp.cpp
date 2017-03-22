@@ -95,6 +95,10 @@ void Supp::extLEDMasterCtrl(uint8_t onNotOff)
     }
 
 }
+uint8_t Supp::getExtLEDMasterCtrl()
+{
+    return g_masterLEDOnOff;
+}
 
 //@returns Platform type
 Supp::PlatformType Supp::getPlatformType()

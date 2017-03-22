@@ -23,6 +23,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "blinker.h"
 #include "comm_common.h"
 #include "comm.h"
+#include "sleeper.h"
 //------------------------------------------------------------------
 uint8_t Blinker::g_blinkSetting = 1;
 //------------------------------------------------------------------
@@ -91,11 +92,20 @@ void Blinker::blinkAction()
             break;
             case 7: 
                 //some action can be added here e.g. reset BT & stuff to default
-                //    
+                if (Sleeper::getPowerSaveMode() == (uint8_t)Sleeper::PowerSaveHigh)
+                {
+                    Sleeper::setPowerSaveMode(Sleeper::PowerSaveMedium);
+                }
+                else
+                {
+                    Sleeper::setPowerSaveMode(Sleeper::PowerSaveHigh);
+                }
+                g_blinkSetting = 1;   
                 break; 
             case 0xf: 
                 //some action can be added here e.g. reset BT & stuff to default
-                g_blinkSetting = 1;                
+                g_blinkSetting = 1;   
+                Supp::extLEDMasterCtrl( ! Supp::getExtLEDMasterCtrl() );
                 break; 
                 //do not do anything for now
         }

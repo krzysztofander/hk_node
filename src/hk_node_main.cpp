@@ -104,7 +104,7 @@ void initAllFunctions(void)
     Executor::init();
     Executor::setupExecutingFn((uint8_t)Executor::blinker, 3, Blinker::blinkAction );
         //@todo read that from NV
-    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 12, TempMeasure::measureTemperature); 
+    Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 30 , TempMeasure::measureTemperature); 
         //@todo read value from NV
     
     Sleeper::init();

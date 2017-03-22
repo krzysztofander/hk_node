@@ -101,6 +101,7 @@ public:
     static void toggleGreen();
 
     static void extLEDMasterCtrl(uint8_t onNotOff);
+    static uint8_t getExtLEDMasterCtrl();
 
     //@a button state
     static bool isButtonPressed();
