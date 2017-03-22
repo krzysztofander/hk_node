@@ -23,6 +23,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //------------------------------------------------------------------
 uint8_t Supp::prevTimeMod256 = 111; //some value not probable after reset
+uint8_t Supp::g_masterLEDOnOff = 1;
 
 //@ Initalizes Support class. Reads the platform type from pins, if any
 void Supp::init()
@@ -82,7 +83,19 @@ void Supp::init()
     }
 }
 
- 
+void Supp::extLEDMasterCtrl(uint8_t onNotOff)
+{
+    g_masterLEDOnOff = onNotOff;
+    if (!g_masterLEDOnOff)
+    {
+        digitalWrite(AlPin1, HIGH);
+        digitalWrite(AlPin2, HIGH);
+        digitalWrite(AlPin3, HIGH);
+        digitalWrite(AlPin4, HIGH); 
+    }
+
+}
+
 //@returns Platform type
 Supp::PlatformType Supp::getPlatformType()
 {
@@ -151,15 +164,18 @@ void Supp::dbgAlert(uint8_t alertVal, bool hold)
 //@ Reacts on main loop loops and on passing time
 void Supp::mainLoopStart(uint8_t timeMod256)
 {
-    if (timeMod256 != prevTimeMod256)
+    if (g_masterLEDOnOff)
     {
-        prevTimeMod256 = timeMod256;
-        switch (timeMod256 & 3)
+        if (timeMod256 != prevTimeMod256)
         {
-            case 0: digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW); break;
-            case 1: digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  break;
-            case 2: digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH); break;
-            default: digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW); break;
+            prevTimeMod256 = timeMod256;
+            switch (timeMod256 & 3)
+            {
+                case 0: digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, LOW); break;
+                case 1: digitalWrite(AlPin2, LOW);  digitalWrite(AlPin3, HIGH);  break;
+                case 2: digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, HIGH); break;
+                default: digitalWrite(AlPin2, HIGH);  digitalWrite(AlPin3, LOW); break;
+            }
         }
     }
     
@@ -168,43 +184,58 @@ void Supp::mainLoopStart(uint8_t timeMod256)
 //@ Power down indication
 void Supp::aboutToPowerDown()
 {
-    digitalWrite(PowerUpDown, HIGH);
+    if (g_masterLEDOnOff)
+    {
+        digitalWrite(PowerUpDown, HIGH);
+    }
 }
 
 //@ Power up indication
 void Supp::justPoweredUp()
 {
-    digitalWrite(PowerUpDown, LOW);  
+    if (g_masterLEDOnOff)
+    {
+        digitalWrite(PowerUpDown, LOW);
+    }
 }
 
 //@ No Powerdown happened
 void Supp::noPowerDownHappened()
 {
-    justPoweredUp();
+    if (g_masterLEDOnOff)
+    {
+        justPoweredUp();
+    }
 }
 
 //@ Reacts of action from the executor
 void Supp::executorPreAction(ExecutorBase::EExecutors eexecutor)
 {
-    if (eexecutor == ExecutorBase::temperatureMeasurer)
+    if (g_masterLEDOnOff)
     {
-        digitalWrite(AlPinBlue, LOW);
-        delay(30);
-        digitalWrite(AlPinBlue, HIGH); //OFF
-        delay(50);
-        digitalWrite(AlPinBlue, LOW); //ON
+        if (eexecutor == ExecutorBase::temperatureMeasurer)
+        {
+            digitalWrite(AlPinBlue, LOW);
+            delay(30);
+            digitalWrite(AlPinBlue, HIGH); //OFF
+            delay(50);
+            digitalWrite(AlPinBlue, LOW); //ON
+        }
     }
 }
 
 void Supp::executorPostAction(ExecutorBase::EExecutors eexecutor)
 {
-    if (eexecutor == ExecutorBase::temperatureMeasurer)
+    if (g_masterLEDOnOff)
     {
-        digitalWrite(AlPinBlue, HIGH);  //OFF
-        delay(50);
-        digitalWrite(AlPinBlue, LOW); //ON
-        delay(30);
-        digitalWrite(AlPinBlue, HIGH); //OFF
+        if (eexecutor == ExecutorBase::temperatureMeasurer)
+        {
+            digitalWrite(AlPinBlue, HIGH);  //OFF
+            delay(50);
+            digitalWrite(AlPinBlue, LOW); //ON
+            delay(30);
+            digitalWrite(AlPinBlue, HIGH); //OFF
+        }
     }
 }
 
@@ -278,14 +309,23 @@ void Supp::watchdogWakeUp()
 
 void Supp::powerSaveHigh()
 {
-    greenOff();
+    if (g_masterLEDOnOff)
+    {
+        greenOff();
+    }
 }
 
 void Supp::powerSaveMedium()
 {
-    greenOn();
+    if (g_masterLEDOnOff)
+    {
+        greenOn();
+    }
 }
 void Supp::powerSaveLow()
 {
-    greenOn();
+    if (g_masterLEDOnOff)
+    {
+        greenOn();
+    }
 }

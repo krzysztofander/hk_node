@@ -115,6 +115,17 @@ uint8_t HKComm::command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
         //inOutCommand[command_subIdPos2] = as is
         err = formatResponceOK(inOutCommand,inOutData, dataSize);
         break;
+    case 'L':
+        if (inOutCommand[HKCommDefs::command_subIdPos2] == '0')
+        {
+            Supp::extLEDMasterCtrl(0);
+        }
+        else
+        {
+            Supp::extLEDMasterCtrl(1);
+        }
+        err = formatResponceOK(inOutCommand,inOutData, dataSize);
+        break;
     default:  //unknown 'D' command
         err = formatResponceUnkL1(inOutCommand, dataSize);
         break;

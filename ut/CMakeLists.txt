@@ -70,8 +70,6 @@ project (unit_tests)
         ${TOP}/hk_node/src/comm_extra_rec_handlers.h
         ${TOP}/hk_node/src/comm_common.h
         ${TOP}/hk_node/src/comm_defs.h
-       
-
         ${TOP}/hk_node/src/serial.h
     )
 
@@ -107,6 +105,8 @@ project (unit_tests)
         ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/sleeper.h
         ${TOP}/hk_node/src/nv.h
+        ${TOP}/hk_node/README.md
+
     )
 
     add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )

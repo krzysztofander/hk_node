@@ -210,14 +210,30 @@ Preamble and termination are is not included in this notation.
 > Debug Echo 
 
     Parameter: none
-    Response:  DR(same third letter)
+    Response:  DR(same third letter) ok
 
 ### DR.
 > Debug Reply
 
 See DE.
 
-###CTM {uint16_t, uint32_t}###
+### DL0
+> Debug LED 0 
+
+Disables debug LEDs
+
+    Parameter: none
+    Response:  DL0 ok
+
+### DL1
+> Debug LED 1 
+
+Enables debug LED
+
+    Parameter: none
+    Response:  DL1 ok
+
+### CTM {uint16_t, uint32_t}###
 > Configure Temperature Measurement
 
 See CTP. This command is deprecated and would be removed.

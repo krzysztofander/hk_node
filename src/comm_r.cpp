@@ -86,7 +86,7 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     inOutData[dataSize++] = '.';
     inOutData[dataSize++] = '2';
     inOutData[dataSize++] = '.';
-    inOutData[dataSize++] = '0';
+    inOutData[dataSize++] = '1';
 // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 
 
@@ -112,6 +112,9 @@ uint8_t HKComm::command_RVI(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
         + 
     0.5.2.0
         improved power save mode
+        //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
+   0.5.2.1
+        LED off capability
         //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
 
     0.?.0 (planned)
