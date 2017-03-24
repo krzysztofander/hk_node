@@ -42,6 +42,56 @@ volatile uint8_t Sleeper::gv_NoPowerDownPeriod = 0;   //!counts down WD ticks ho
 Sleeper::PowerSaveMode Sleeper::g_PowerSaveMode = Sleeper::PowerSaveMedium;
 
 //---------------------------------------------------------------
+/* Author: Lim Phang Moh
+* Company: Rocket Scream Electronics
+* Website: www.rocketscream.com
+*
+* This is a lightweight low power library for Arduino.
+*
+* This library is licensed under Creative Commons Attribution-ShareAlike 3.0 
+*/
+#if defined __AVR_ATmega328P__
+
+#ifndef sleep_bod_disable
+//Comms probably from arduino\hardware\tools\avr\avr\include\avr\sleep.h
+#define sleep_bod_disable() 										\
+do { 																\
+  unsigned char tempreg; 											\
+  __asm__ __volatile__("in %[tempreg], %[mcucr]" "\n\t" 			\
+                       "ori %[tempreg], %[bods_bodse]" "\n\t" 		\
+                       "out %[mcucr], %[tempreg]" "\n\t" 			\
+                       "andi %[tempreg], %[not_bodse]" "\n\t" 		\
+                       "out %[mcucr], %[tempreg]" 					\
+                       : [tempreg] "=&d" (tempreg) 					\
+                       : [mcucr] "I" _SFR_IO_ADDR(MCUCR), 			\
+                         [bods_bodse] "i" (_BV(BODS) | _BV(BODSE)), \
+                         [not_bodse] "i" (~_BV(BODSE))); 			\
+} while (0)
+#endif
+#define	lowPowerBodOff(mode)\
+do { 						\
+      set_sleep_mode(mode); \
+      cli();				\
+      sleep_enable();		\
+			sleep_bod_disable(); \
+      sei();				\
+      sleep_cpu();			\
+      sleep_disable();		\
+      sei();				\
+} while (0);
+
+#define	lowPowerBodOn(mode)	\
+do { 						\
+      set_sleep_mode(mode); \
+      cli();				\
+      sleep_enable();		\
+      sei();				\
+      sleep_cpu();			\
+      sleep_disable();		\
+      sei();				\
+} while (0);
+
+#endif
 
 void Sleeper::setNextSleep(Sleeper::SleepTime  st)
 {
@@ -139,7 +189,7 @@ void Sleeper::setWDScale(int8_t scale)
         WDTCSR = bit (WDCE) | bit (WDE);
         // set interrupt mode and an interval 
         //WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
-        WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1) ;    // set WDIE, and 1 seconds delay
+        WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1) ;     // set WDIE, and 1 seconds delay
     
         g_upTime = 0U;
         g_lastUpTime  = 0U;    
@@ -158,15 +208,13 @@ int8_t Sleeper::getWDScale()
 
 void Sleeper::initWD(void)
 {
-    
     setWDScale(6); //@todo use the value from NV
-
 }
 //---------------------------------------------------------------
 
 void Sleeper::init(void)
 {
-
+    MCUSR = 0;          //clear reset flag register
 
     Sleeper::initWD();
     EIMSK = 0;                              //disable Int0, int 1
@@ -187,10 +235,18 @@ void Sleeper::goToSleep(void)
         && ! HKComm::isActive()     //serial does command processing now
         )
     {
+        Supp::aboutToPowerDown();
+
         //finish off serial
         //NOTE: Apparently serial have to be ON to call flush or end. Otherwise locks here...
         Serial.flush();
         Serial.end();
+
+        //Prepare for sleep
+
+        PCIFR  &= ~bit (PCIF2);                 // clear any outstanding interrupts
+        PCICR  |=  bit (PCIE2);                 // enable pin change interrupts for D0 to D7
+        gv_wdInterrupt = 0;                     // clear the indication flag
 
         //select sleep mode depending on WD
         if (PowerSaveHigh == g_PowerSaveMode
@@ -199,61 +255,48 @@ void Sleeper::goToSleep(void)
             Supp::powerSaveHigh();
         
             //total down
-            set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
-
             //when waking up from powed down some characters get lost on serial input
 
-            //other periph could be powered donw here.
+           
+            ADCSRA &= ~(1 << ADEN);          //Disable ADC
+            lowPowerBodOff(SLEEP_MODE_PWR_DOWN);
 
-            //@TODO turn off brown-out enable in software
-            //MCUCR = bit (BODS) | bit (BODSE);
-            //MCUCR = bit (BODS); 
-
-            //AC
-
-            //
+           
         }
         else
         {
             if (    PowerSaveMedium == g_PowerSaveMode
-                ||  PowerSaveHigh   == g_PowerSaveMode
+                ||  PowerSaveHigh   == g_PowerSaveMode /*in last wake I was not from WD*/ 
                 )
             {
-
                 Supp::powerSaveMedium();
 
-                //serial or button. Standby for now
-                set_sleep_mode (SLEEP_MODE_STANDBY);
+                ADCSRA &= ~(1 << ADEN);          //Disable ADC
+                /* from AT mega spec:
+                   "When the BOD has been disabled, the wake-up time from sleep 
+                    mode will be approximately 60us to ensure that the BOD is 
+                    working correctly before the MCU continues executing code."
+                   So, an extra delay of 60us happens.
+                   Because of this strange things happen on serial
+                   The first character is malformed.
+                   The solution would be to drop first char or to leave BOD ON
+                */
+                lowPowerBodOn(SLEEP_MODE_STANDBY);
+
             }
             else
             {
                 Supp::powerSaveLow();
-
                 set_sleep_mode (SLEEP_MODE_IDLE);
+
+                sleep_enable();
+                sleep_cpu ();  
+                //SLEEPING HERE
+                sleep_disable();
+
             }
-            //if we 1 tick from action the periph could be woken up here
-
         }
-        Supp::aboutToPowerDown();
-
-        // clear various "reset" flags
-        MCUSR = 0;    
-
-        PCIFR  &= ~bit (PCIF2);                 // clear any outstanding interrupts
-  
-        PCICR  |= bit (PCIE2);                  // enable pin change interrupts for D0 to D7
-        gv_wdInterrupt = 0;                     // clear the indication flag
-
-        sleep_enable();
-
-        
-         sleep_cpu ();  
-        //SLEEPING HERE
-        // ......
-        //GOT SOME wake
-
-        // cancel sleep as a precaution
-        sleep_disable();
+     
 
         if (gv_wdInterrupt == 0)
         {
@@ -261,19 +304,12 @@ void Sleeper::goToSleep(void)
             //disable pin intterupts and fire off serial
             //this can and should be done reqardless whether ISR picked that 
 
-            PCICR  &= ~bit (PCIE2); // disable pin change interrupts for D0 to D7
+            PCICR  &= ~bit (PCIE2);     // disable pin change interrupts for D0 to D7
             
-            //periph should be woken up here
-
-            //WARNING: This flag is cleared only here....
-            
-            
-
-            Supp::notWDWakeUp();
-
-            Serial.begin(9600); //@TODO investigate whether is better to use that...
-                                //       UCSR0B |= bit (RXEN0);  // enable receiver
-                                //       UCSR0B |= bit (TXEN0);  // enable transmitter
+            //Serial.begin(9600);         //@TODO investigate whether is better to use that...
+                                        //       UCSR0B |= bit (RXEN0);  // enable receiver
+                                        //       UCSR0B |= bit (TXEN0);  // enable transmitter
+            UCSR0B |= bit (RXEN0) | bit (TXEN0) |  bit(RXCIE0);
 
 
             //we need to introduce a delay here
@@ -286,31 +322,25 @@ void Sleeper::goToSleep(void)
             //a 50ms should do
             delay(50);
 
-
-
-            gv_wdInterrupt_B  = 0; //Used for HIGH power donw, delayin it for one tick     
+            gv_wdInterrupt_B  = 0;       //WARNING: This flag is cleared only here....
+                                         //Used for HIGH power donw, delayin it for one tick     
             
             do
             {
                 gv_NoPowerDownPeriod = g_NoPowerDownPeriodSetting;
             } while (gv_NoPowerDownPeriod != g_NoPowerDownPeriodSetting);
-
+            Supp::notWDWakeUp();
         }
         else
         {
             //it was from watchdog. Clear the indication flag so it gets set again in WD ISR
-            gv_wdInterrupt = 0;    //WARNING: This flag is cleared only here....
-            //periph could be woken up if just 1 tick to WD wake
+            gv_wdInterrupt = 0;         //WARNING: This flag is cleared only here....
+
+            Serial.begin(9600);         //@TODO investigate whether is better to use that...
+                                        //       UCSR0B |= bit (RXEN0);  // enable receiver
+                                        //       UCSR0B |= bit (TXEN0);  // enable transmitter
             Supp::watchdogWakeUp();
-
-            Serial.begin(9600); //@TODO investigate whether is better to use that...
-                                //       UCSR0B |= bit (RXEN0);  // enable receiver
-                                //       UCSR0B |= bit (TXEN0);  // enable transmitter
-
         }
-
-
-
         Supp::justPoweredUp();
     }
     else
@@ -329,8 +359,6 @@ uint8_t Sleeper::getNoPowerDownPeriod()
 {
     return g_NoPowerDownPeriodSetting;
 }
-
-
 
 void Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode powerSaveMode)
 {

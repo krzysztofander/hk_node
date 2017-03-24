@@ -100,6 +100,8 @@ public:
     static void greenOff();
     static void toggleGreen();
 
+    static void extLEDMasterCtrl(uint8_t onNotOff);
+    static uint8_t getExtLEDMasterCtrl();
 
     //@a button state
     static bool isButtonPressed();
@@ -122,6 +124,8 @@ private:
 
     };
     static uint8_t prevTimeMod256;
+    static uint8_t g_masterLEDOnOff;
+
 };
 
 

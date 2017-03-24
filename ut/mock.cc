@@ -97,3 +97,11 @@ void Supp::blinkLed(uint8_t pattern)
 {
     MockSupp::instance().blinkLed(pattern);
 }
+void Supp::extLEDMasterCtrl(uint8_t b)
+{
+
+}
+unsigned char  Supp::getExtLEDMasterCtrl(void)
+{
+    return 0;
+}

@@ -3,6 +3,8 @@ cmake_policy(SET CMP0012 NEW)
 
 project (unit_tests)
 
+
+
     set (TOP ../../)
 
     
@@ -50,12 +52,14 @@ project (unit_tests)
    set(SERIAL_SOURCES
         ${TOP}/hk_node/src/serial.cpp
         ${TOP}/hk_node/src/comm.cpp
+        ${TOP}/hk_node/src/comm_statemachine.cpp
+        ${TOP}/hk_node/src/comm_r.cpp
         ${TOP}/hk_node/src/blinker.cpp
         ${TOP}/hk_node/src/comm_extra_records.cpp
         ${TOP}/hk_node/src/comm_extra_rec_handlers.cpp
         ${TOP}/hk_node/src/comm_common.cpp
         ${TOP}/hk_node/src/comm_defs.cpp
-
+        ${TOP}/hk_node/src/MiniInParser.cpp
         serial_ut.cc
         serial_ut_r.cc 
         blinker_ut.cc
@@ -69,9 +73,8 @@ project (unit_tests)
         ${TOP}/hk_node/src/comm_extra_rec_handlers.h
         ${TOP}/hk_node/src/comm_common.h
         ${TOP}/hk_node/src/comm_defs.h
-       
-
         ${TOP}/hk_node/src/serial.h
+        ${TOP}/hk_node/src/MiniInParser.h
     )
 
     add_test_executable(serial_ut "${GOOGLET_UT_LIBS}" "${SERIAL_SOURCES}" )
@@ -106,6 +109,18 @@ project (unit_tests)
         ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/sleeper.h
         ${TOP}/hk_node/src/nv.h
+        ${TOP}/hk_node/README.md
+
     )
 
-    add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )
+	set (BUILD_MAIN_UT FALSE CACHE BOOL "Build main UT")
+	if (${BUILD_MAIN_UT})
+		
+	    add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )
+	else()
+		
+		add_custom_target(main_ut
+			SOURCES "${MAIN_SOURCES}"
+			)
+
+	endif()
