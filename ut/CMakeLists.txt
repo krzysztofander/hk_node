@@ -3,6 +3,8 @@ cmake_policy(SET CMP0012 NEW)
 
 project (unit_tests)
 
+
+
     set (TOP ../../)
 
     
@@ -109,4 +111,14 @@ project (unit_tests)
 
     )
 
-    add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )
+	set (BUILD_MAIN_UT FALSE CACHE BOOL "Build main UT")
+	if (${BUILD_MAIN_UT})
+		
+	    add_test_executable(main_ut "${GOOGLET_UT_LIBS}" "${MAIN_SOURCES}" )
+	else()
+		
+		add_custom_target(main_ut
+			SOURCES "${MAIN_SOURCES}"
+			)
+
+	endif()
