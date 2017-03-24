@@ -18,3 +18,13 @@ project (home_control_node)
 
     set(BUILD_DOCUMENTATION TRUE CACHE BOOL "Enables build of documentation")
 	add_subdirectory(documentation)
+
+
+	# Unit Tests
+#===========
+
+set(BUILD_MINIPARSER TRUE CACHE BOOL "MINIPARSER")
+    if (${BUILD_MINIPARSER})
+        add_subdirectory(miniparser)
+    endif()   
+
