@@ -52,6 +52,7 @@ project (unit_tests)
    set(SERIAL_SOURCES
         ${TOP}/hk_node/src/serial.cpp
         ${TOP}/hk_node/src/comm.cpp
+        ${TOP}/hk_node/src/comm_statemachine.cpp
         ${TOP}/hk_node/src/comm_r.cpp
         ${TOP}/hk_node/src/blinker.cpp
         ${TOP}/hk_node/src/comm_extra_records.cpp
