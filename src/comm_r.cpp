@@ -149,47 +149,25 @@ uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
 }
 
 
-uint8_t HKComm::command_RTH(OutBuilder & bld)
+void HKComm::command_RTH(OutBuilder & bld, uint16_t measurementsToReturn)
 {
-    uint8_t err;
-    //fake for quick query
  
-
     //check for size correctness
-    if (dataSize < sizeof(short) * 2)
-    {
-        err = HKCommDefs::serialErr_Number_Uint16ToShort;
-        return err;
-    }
-    uint16_t measurementsToReturn;
-    err  = HKCommCommon::dataToUnsignedShort(0, inOutData, measurementsToReturn);
-    if (err != HKCommDefs::serialErr_None)
-    {
-        return err;
-    }
-    //make it sane
     if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
-    { //it its zero return all.
+    { 
+        //if its zero return all.
         measurementsToReturn = TempMeasure::capacity();
     }
-
-    commandR_start(inOutCommand, dataSize);
+    bld.putCMD("VTM");
 
     //measurementsToReturn contains how many. First one returns difference of current to timestamp
     HKTime::UpTime diff = Sleeper::getUpTime();
     TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
     diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
-    err = HKCommCommon::formatMeasurement(dataSize,
-                                          inOutData,
-                                          HKTime::SmallUpTime(diff),
-                                          tempRecord.tempFPCelcjus);
+    
+    bld.putMeasurement(HKTime::SmallUpTime(diff),tempRecord.tempFPCelcjus);
 
-    if (err != HKCommDefs::serialErr_None)
-    {
-        return err;
-    }
-
-    measurementsToReturn--; //one is returned in inOutData
+    measurementsToReturn--; //one is returned in bld
 
                             //now set up records handler
     if (measurementsToReturn > 0)
@@ -197,7 +175,7 @@ uint8_t HKComm::command_RTH(OutBuilder & bld)
         HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
         HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
     }
-    return err;
+
 }
 
 uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)

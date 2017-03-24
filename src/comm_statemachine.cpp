@@ -34,7 +34,7 @@ uint8_t  HKComm::g_command[HKCommDefs::commandSize];
 uint8_t  HKComm::g_data[HKCommDefs::commandMaxDataSize];
 uint16_t HKComm::g_dataIt = 0;
 uint16_t HKComm::g_serialError = HKCommDefs::serialErr_None;
-Command  HKComm::g_RecievedCmd; 
+InCommandWrap  HKComm::g_RecievedCmd; 
 
 //------------------------------------------------------------------
 
@@ -81,16 +81,6 @@ void HKComm::command_DED(OutBuilder & bld)
 }
 
 
-class InCommandWrap : public Command
-{
-    uint16_t getUint16()
-    {
-        
-    }
-
-
-
-};
 
 
 // @brief Main function responding to serial data
@@ -155,9 +145,10 @@ bool  HKComm::respondSerial(void)
                 break;
                 case HKCommDefs::command_RTH:
                 {
-                    if (g_RecievedCmd.outParamType == OutParamType_INT_DIGIT)
+                    uint16_t elems = g_RecievedCmd.getUint16(g_OutBuilder.err);
+                    if (!g_OutBuilder.getError())
                     {
-                        command_RTH(g_OutBuilder,g_RecievedCmd.numericValue);
+                        command_RTH(g_OutBuilder,elems);
                     }
                 }
                 break;
@@ -193,38 +184,33 @@ bool  HKComm::respondSerial(void)
                 written += HKSerial::write(g_OutBuilder.inOutData, g_OutBuilder.dataSize);
             }
             //write extra records if any
-            uint8_t valid = 0;
-            uint8_t err = 0;
-            uint16_t extraRecChars;
-            uint16_t extraRecCharsCounter = 0;
+            bool valid = 0;
             do
             {
-                extraRecChars  =0;
-                g_serialError = HKCommExtraRecordsHDL::formatedMeasurement(valid, extraRecChars, g_data);
+                g_serialError = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
                 if (g_serialError != HKCommDefs::serialErr_None)
                 {
+                    g_serialError  += HKCommDefs::serialErr_WriteFail;
                     g_SerialState = HKCommDefs::serialState_Error;
                     return 1;
                 }
-                if (valid != 0)
+                if (!valid)
                 {
-                    written += HKSerial::write(g_data, g_dataIt);
-                    extraRecCharsCounter += extraRecChars;
+                    written += HKSerial::write(g_OutBuilder.inOutData,  g_OutBuilder.dataSize);
                 }
-
-            } while (valid != 0);
+            } while (!valid);
 
 
             written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
 
             //check if ammount written matches to what was expected
-            if (written != NUM_ELS(g_command)+ g_dataIt + extraRecCharsCounter + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
-            {
-                g_serialError = HKCommDefs::serialErr_WriteFail;
-                g_SerialState = HKCommDefs::serialState_Error;
-                //leaving g_dataIt  as is for debug purposes...
-            }
-            else
+            //if (written != NUM_ELS(g_command)+ g_dataIt + extraRecCharsCounter + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
+            //{
+            //    g_serialError = HKCommDefs::serialErr_WriteFail;
+            //    g_SerialState = HKCommDefs::serialState_Error;
+            //    //leaving g_dataIt  as is for debug purposes...
+            //}
+            //else
             {
                 g_serialError = HKCommDefs::serialErr_None;
                 g_SerialState = HKCommDefs::serialState_Preable;

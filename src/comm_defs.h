@@ -62,8 +62,16 @@ public:
 
         serialErr_Assert    = 0x100,           // some assertion triggered
         serialErr_Parser    = 0x200,           // parser could not reconize command
-        serialErr_Logic     = 0x300,           // command could not be executed
-        serialErr_WriteFail = 0x400,     //a number of bytes written is not same as expected
+
+        serialErr_Logic     = 0x400,           // command could not be executed
+        serialErr_WriteFail = 0x500,     //a number of bytes written is not same as expected
+
+
+        //for logic:        
+        serialErr_DataType_NumberExpected = 1,
+        serialErr_DataType_StringExpected = 2,
+        serialErr_DataType_UnsignedExpected = 3,
+
 
 
 
@@ -79,7 +87,7 @@ public:
 
         serialErr_eolInCommand =0x40 ,
         serialErr_noEolFound = 0x50,
-        serialErr_UnknownCommand =0x60,   //a command recieved is not recognized
+
 
     };
 
@@ -97,77 +105,10 @@ public:
         command_CSA,
         command_AVI,
         command_RTH,
-        command_RTH,
         command_DED = 0x44454400,
         command_DL0,
         command_DL1,
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    }
+    };
 
 };
 #endif

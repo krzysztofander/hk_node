@@ -53,6 +53,28 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
     return err;
 }
 
+uint8_t HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bld)
+
+{
+    valid = false;
+    HKTime::SmallUpTime timeReturned;
+    int16_t  value;
+    if (dataReciever == 0 || recordsIt >= totalRecords  )
+    {
+        //run out of data
+        return HKCommDefs::serialErr_None;
+    }
+    uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
+    recordsIt++;
+    if (err != HKCommDefs::serialErr_None)
+    {
+        return err;
+    }
+    bld.putMeasurement(timeReturned, value);
+    valid = true;
+    return HKCommDefs::serialErr_None;
+}
+
 void HKCommExtraRecordsHDL::setNumRecords(uint16_t records)
 {
     totalRecords = records;

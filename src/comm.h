@@ -22,70 +22,36 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 #include "comm_defs.h"
+#include "comm_common.h"
 #include "MiniInParser.h"
-class OutBuilder
+#include "out_builder.h"
+
+class InCommandWrap : public Command
 {
 public:
-    static char *itoa(int i)
+    uint16_t getUint16(uint8_t & err)
     {
-        enum
+        uint16_t ret = 0;
+        if (outParamType != OutParamType_INT_DIGIT)
         {
-            INT_DIGITS = 19,
-        };
-        /* Room for INT_DIGITS digits, - and '\0' */
-        static char buf[INT_DIGITS + 2];
-        char *p = buf + INT_DIGITS + 1;	/* points to terminating '\0' */
-        if (i >= 0) {
-            do {
-                *--p = '0' + (i % 10);
-                i /= 10;
-            } while (i != 0);
-            return p;
+            err = (uint8_t)HKCommDefs::serialErr_DataType_NumberExpected;
         }
-        else {			/* i < 0 */
-            do {
-                *--p = '0' - (i % 10);
-                i /= 10;
-            } while (i != 0);
-            *--p = '-';
-        }
-        return p;
-    }
-
-    void putCMD(const char * cmd)
-    {
-        inOutCommand[0] = cmd[0];
-        inOutCommand[1] = cmd[1];
-        inOutCommand[2] = cmd[2];
-    }
-
-    void putData(const char * data, const uint16_t size)
-    {
-        dataSize = size;
-        for (int i = 0; i < dataSize; i++)
+        else
         {
-            inOutData[i] = data[i];
+            if (numericValue < 0)
+            {
+                err = (uint8_t)HKCommDefs::serialErr_DataType_UnsignedExpected;
+            }
+            else
+            {
+                err = (uint8_t)0;
+                ret = static_cast<uint16_t> (numericValue);
+            }
         }
+        return ret;
     }
 
-    uint8_t getError()
-    {
-        return err;
-    }
-
-    void putInt(uint32_t newInt)
-    {
-        dataSize = 0;
-        HKCommCommon::uint32ToData(dataSize, inOutData, newInt);
-    }
-
-
-    uint8_t inOutCommand[HKCommDefs::commandSize];
-    uint8_t inOutData[HKCommDefs::commandMaxDataSize];
-    uint16_t dataSize;
-    uint8_t err;
-}; 
-
+};
 
 
 class HKComm
@@ -106,7 +72,7 @@ public:
 
     static uint8_t command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-    static uint8_t command_RTH(OutBuilder & bld);
+
 
     //sets serial state to action after specific command
     //can be used to send responsce w/o  request for debug purposes
@@ -127,9 +93,10 @@ public:
     static uint8_t g_SerialState;
     static uint16_t g_serialError;
 
-    static Command g_RecievedCmd;
+    static InCommandWrap g_RecievedCmd;
     static OutBuilder g_OutBuilder;
     static void command_DED(OutBuilder & bld);
+    static void command_RTH(OutBuilder & bld, uint16_t elements);
 
 
 };

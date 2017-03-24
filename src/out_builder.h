@@ -17,33 +17,29 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_COMM_EXTRA_RECORDS_H
-#define HK_COMM_EXTRA_RECORDS_H
+#ifndef HK_OUT_BUILDER_H
+#define HK_OUT_BUILDER_H
 
 #include "hk_node.h"
 #include "comm_defs.h"
-#include "comm_extra_rec_handlers.h"
-#include "out_builder.h"
-
-class HKCommExtraRecordsHDL
+#include "MiniInParser.h"
+class OutBuilder
 {
 public:
-    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
+    static char *itoa(int i);
+    void putCMD(const char * cmd);
 
-    //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
-    // in valid returs if record is valid or run ouf of scheduled elems
-    static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
-    static uint8_t formatedMeasurement(bool & valid, OutBuilder & bld);
-    static void setNumRecords(uint16_t records);
-    static void setDataReciever(DataReciever newDataReciver)
-    {
-        dataReciever = newDataReciver;
-    }
-    
-    static int16_t recordsIt;
-    static int16_t totalRecords;
-    static DataReciever  dataReciever;
-};
+    void putData(const char * data, const uint16_t size);
+
+    //@brief formats the measurement time/val pair directly into buffer
+    void putMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);
+    uint8_t getError();
+    void putInt(uint32_t newInt);
 
 
+    uint8_t inOutCommand[HKCommDefs::commandSize];
+    uint8_t inOutData[HKCommDefs::commandMaxDataSize];
+    uint16_t dataSize;
+    uint8_t err;
+}; 
 #endif
