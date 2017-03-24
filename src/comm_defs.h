@@ -49,11 +49,9 @@ public:
 
     enum ESerialState
     {
-     //   serialState_Preable,
-        serialState_ReadCommand = 0,
-        serialState_ReadData = 1,
+        serialState_Preable = 0,
+        serialState_ParseCommand = 1,
         serialState_Action = 2,
-        
         serialState_Respond = 3,
         serialState_Error = 4,
     };
@@ -62,8 +60,15 @@ public:
     {
         serialErr_None,
 
-        serialErr_Assert = 0x10,           // some assertion triggered
+        serialErr_Assert    = 0x100,           // some assertion triggered
+        serialErr_Parser    = 0x200,           // parser could not reconize command
+        serialErr_Logic     = 0x300,           // command could not be executed
+        serialErr_WriteFail = 0x400,     //a number of bytes written is not same as expected
+
+
+
         serialErr_Assert_NotImpl = 0x11,           // not implemented yet
+        serialErr_UnknownCommand = 0x60,   //a command recieved is not recognized
 
         
         serialErr_Number_IncorrectFormat = 0x20,  //format of the number from serial is incorrect. 
@@ -75,8 +80,94 @@ public:
         serialErr_eolInCommand =0x40 ,
         serialErr_noEolFound = 0x50,
         serialErr_UnknownCommand =0x60,   //a command recieved is not recognized
-        serialErr_WriteFail = 0x70,     //a number of bytes written is not same as expected
 
     };
+
+
+    enum ECommands
+    {
+        command_CTR,
+        command_CTP,
+        command_CBP,
+        command_CPP,
+        command_CST,
+        command_CNN,
+        command_CRS,
+        command_CSM,
+        command_CSA,
+        command_AVI,
+        command_RTH,
+        command_RTH,
+        command_DED = 0x44454400,
+        command_DL0,
+        command_DL1,
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
 };
 #endif
