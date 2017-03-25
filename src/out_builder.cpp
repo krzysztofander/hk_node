@@ -101,9 +101,9 @@ void OutBuilder::addData(const char * data, const uint16_t size)
     }
     else
     {
-        for (uint16_t i = m_dataSize; i < m_dataSize + size; i++)
+        for (uint16_t i = 0; i < size; i++)
         {
-            m_buffer[i] = data[i];
+            m_buffer[m_dataSize + i] = data[i];
         }
         m_dataSize+= size;
     }

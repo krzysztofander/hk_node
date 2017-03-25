@@ -31,7 +31,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "blinker.h"
 
 
-void HKComm::command_DED(OutBuilder & bld)
+void HKComm::command_DER(OutBuilder & bld)
 {
     bld.reset();
     bld.putCMD("DER");

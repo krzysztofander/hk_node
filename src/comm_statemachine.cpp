@@ -107,16 +107,15 @@ bool  HKComm::respondSerial(void)
             g_OutBuilder.reset();
             switch (g_RecievedCmd.getCommand())
             {
-                case InCommandWrap::ECommands::command_DED:
-                {
-                    command_DED(g_OutBuilder);
-                }
-                break;
+                case InCommandWrap::ECommands::command_DER:
+                   command_DER(g_OutBuilder);
+                    break;
                 case InCommandWrap::ECommands::command_RTH:
-                {
                     command_RTH(g_RecievedCmd, g_OutBuilder);
-                }
-                break;
+                    break;
+                case InCommandWrap::ECommands::command_RTM:
+                    command_RTM(g_OutBuilder);
+                    break;
                 default:
                 {
                     g_commState.setErrorState(
@@ -154,12 +153,12 @@ bool  HKComm::respondSerial(void)
 
                     return 1;
                 }
-                if (!valid)
+                if (valid)
                 {
                     toWrite += g_OutBuilder.getStrLenght();
                     written += HKSerial::write(g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
                 }
-            } while (!valid);
+            } while (valid);
 
 
             written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
@@ -170,6 +169,7 @@ bool  HKComm::respondSerial(void)
                 g_commState.setErrorState(
                     HKCommState::ESerialErrorType::serialErr_WriteFail);
             }
+            else
             {
                 g_commState.setState(HKCommState::ESerialState::serialState_Preable);
             }

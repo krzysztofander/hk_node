@@ -106,7 +106,74 @@ TEST_F(NiceSerialFixture, changeStateError_serialErr_unknownCommandNoEolInData)
 
 TEST_F (Serial_D_method_Fixture, echoD)
 {
-    
+    bool retVal;
+    EXPECT_CALL(mockSerial, available())
+        .WillRepeatedly(Return(1));
+    EXPECT_CALL(mockSerial, read())
+        .WillOnce(Return('D'))
+        .WillOnce(Return('E'))
+        .WillOnce(Return('R')) //Command is correct, but unknown
+        .WillOnce(Return(HKCommDefs::commandEOLSignOnRecieve));
+
+
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Action);
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
+    EXPECT_CALL(mockSerial, write(_, 3))
+        .Times(1). WillRepeatedly(Return(3));
+    EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
+        .Times(1). WillRepeatedly(Return(NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)));
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Preable);
+
+
+}
+
+
+TEST_F (Serial_D_method_Fixture, checkWriteError)
+{
+    bool retVal;
+    EXPECT_CALL(mockSerial, available())
+        .WillRepeatedly(Return(1));
+    EXPECT_CALL(mockSerial, read())
+        .WillOnce(Return('D'))
+        .WillOnce(Return('E'))
+        .WillOnce(Return('R')) //Command is correct, but unknown
+        .WillOnce(Return(HKCommDefs::commandEOLSignOnRecieve));
+
+
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Action);
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
+    EXPECT_CALL(mockSerial, write(_, 3))
+        .Times(1). WillRepeatedly(Return(3));
+    EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
+        .Times(1). WillRepeatedly(Return(0 /*error here*/));
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Error);
+
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
+
+    const int sizeofErrorResp = 3 + 4;
+
+    EXPECT_CALL(mockSerial, write(_, sizeofErrorResp))
+        .Times(1). WillRepeatedly(Return(sizeofErrorResp));
+    EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
+        .Times(1). WillRepeatedly(Return(2));
+
+    retVal = HKComm::respondSerial();
+
+
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Preable);
 
 }
 

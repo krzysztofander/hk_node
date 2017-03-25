@@ -150,6 +150,20 @@ uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
 }
 #endif
 
+void HKComm::command_RTM(OutBuilder & bld)
+{
+
+    TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
+
+    HKCommExtraRecordsHDL::setNumRecords(0);
+    HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+
+    bld.putCMD("VTM");
+    bld.addMeasurement(0, singleTempMeasurement);
+
+}
+
+
 void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     OutBuilder::ELogicErr err;

@@ -79,13 +79,13 @@ void Blinker::blinkAction()
                 if (0 ||
                     (uint8_t)(counter & (uint8_t)0x03) == (uint8_t)0)
                 {
-                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_RTH);
+                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_RTM);
                     HKComm::accessInCommandWrap().setIntData(0);
                     HKComm::jumpToAction();
                 }
                 else
                 {
-                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_DED);
+                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_DER);
                     HKComm::accessInCommandWrap().setIntData(0);
                     HKComm::jumpToAction();
                 }

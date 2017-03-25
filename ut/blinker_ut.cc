@@ -39,8 +39,8 @@ TEST_F(SerialFixture, Blinker01)
 
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Action);
  
-    EXPECT_CALL(mckTM, getSingleTempMeasurement()).WillOnce(Return(0x1234));
-    EXPECT_CALL(mckSLP, getUpTime()).WillRepeatedly(Return(0x1234));
+    EXPECT_CALL(mckTM, getSingleTempMeasurement()).WillOnce(Return(100));
+    EXPECT_CALL(mckSLP, getUpTime()).WillRepeatedly(Return(200));
     
     HKComm::respondSerial();
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
@@ -48,7 +48,15 @@ TEST_F(SerialFixture, Blinker01)
     ASSERT_EQ(HKCommExtraRecordsHDL::dataReciever, &HKCommExtraHLRs::RTHdataReciever);
     ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 0);
 
+    const int VHTlenght = 3 + 1 + 1 + 1 + 3 + 1;
 
+    EXPECT_CALL(mockSerial, write(_,VHTlenght ))
+        .Times(1). WillRepeatedly(Return(VHTlenght));
+    EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
+        .Times(1). WillRepeatedly(Return(NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)));
+    HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Preable);
+    
 }
 
 

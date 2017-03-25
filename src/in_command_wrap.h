@@ -27,23 +27,28 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class InCommandWrap : public Command
 {
 public:
-    BIGENUM( ECommands)
+    BIGENUM(ECommands)
     {
-        command_CTR =0x435452,  //temperature resolution
-        command_CTP =0x435450,  //temperature perion
-        command_CBP =0x435042,  //blinker period
-        command_CPP =0x435050,  //power(batery level) period
-        command_CST =0x435354,  //system time
-        command_CNN =0x434e4e,  //node name (string)
-        command_CRS =0x435253,  //reset
-        command_CSM =0x43534d,  //power saving mode
-        command_CSA =0x435641,  //power down inactivity
-        command_AVI =0x415649,  //aux version information
-        command_RTH =0x525448,  //read temperature history
-        command_RTM =0x52544d,  //undocumented
-        command_DED =0x444544,  
-        command_DLY =0x444c59,  //LEDS yes  
-        command_DLN =0x444c4e,  //LEDS no
+        command_CTR = 0x435452,  //temperature resolution
+        command_CTP = 0x435450,  //temperature perion
+        command_CBP = 0x435042,  //blinker period
+                      
+        command_CBS = 0x435053,  //Blinker settings (pattern)
+                      
+        command_CPP = 0x435050,  //power(batery level) period
+        command_CST = 0x435354,  //system time
+        command_CNN = 0x434e4e,  //node name (string)
+        command_CRS = 0x435253,  //reset
+        command_CSM = 0x43534d,  //power saving mode
+        command_CSA = 0x435641,  //power down inactivity
+        command_AVI = 0x415649,  //aux version information
+        command_RTH = 0x525448,  //read temperature history
+        command_RTM = 0x52544d,  //undocumented
+        command_DER = 0x444552,
+        command_DLY = 0x444c59,  //LEDS yes  
+        command_DLN = 0x444c4e,  //LEDS no
+
+        
     };
     /*
     uint32_t        cmd;
@@ -82,11 +87,11 @@ public:
     }
     ECommands getCommand () const
     {
-        return static_cast<ECommands>(cmd >> 16);
+        return static_cast<ECommands>(cmd >> 8);
     }
     void setCommand (ECommands newCmd)
     {
-        cmd =  static_cast<uint32_t>(newCmd) << 16;
+        cmd =  static_cast<uint32_t>(newCmd) << 8;
     }
     void setIntData (int16_t cmd)
     {
