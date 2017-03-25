@@ -17,7 +17,7 @@ using ::testing::NiceMock;
 using ::testing::StrictMock;
 using ::testing::_;
 
-#if 1
+#if 0
 
 TEST_F (Serial_R_method_Fixture, RTM)
 {
@@ -64,7 +64,7 @@ TEST_F (Serial_R_method_Fixture, RTM)
 
 }
 #endif
-#if 1
+#if 0
 //@brief checks single measurement read
 TEST_F (Serial_RTH_method_Fixture, readTMV_01)
 {

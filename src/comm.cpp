@@ -30,6 +30,13 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
 
+
+void HKComm::command_DED(OutBuilder & bld)
+{
+    bld.reset();
+    bld.putCMD("DER");
+}
+
 /*
 
 void HKComm::echoLetter(uint8_t l)

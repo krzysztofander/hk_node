@@ -27,4 +27,65 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_common.h"
 #include "comm_state.h"
 
+
+
+
+
+HKCommState::HKCommState()
+    : m_state       (ESerialState::serialState_Preable)
+    , m_errorType   (ESerialErrorType::serialErr_None)
+    , m_errSubtype  (0)
+{}
+
+
+void HKCommState::setState(ESerialState state)
+{
+    m_state          =   state;
+    m_errorType      =   ESerialErrorType::serialErr_None;
+    m_errSubtype     =   0;
+}
+
+bool HKCommState::isError() const
+{
+    return m_errorType != ESerialErrorType::serialErr_None;
+}
+
+HKCommState::ESerialState  HKCommState::getState() const
+{
+    return m_state;
+}
+HKCommState::ESerialErrorType  HKCommState::getErrorType() const
+{
+    return m_errorType;
+}
+
+uint8_t  HKCommState::getErrSUBType() const
+{
+    return m_errSubtype;
+}
+
+void  HKCommState::setErrorState(ESerialErrorType error)
+{
+    m_state          =   ESerialState::serialState_Error ;
+    m_errorType      =   error;
+    m_errSubtype     =   static_cast<uint8_t>(error);
+}
+
+void  HKCommState::setErrorState(OutBuilder::ELogicErr error)
+{
+    m_state          =   ESerialState::serialState_Error ;
+    m_errorType      =   HKCommState::ESerialErrorType::serialErr_LogicCall     ;
+    m_errSubtype     =   static_cast<uint8_t>(error);
+}
+
+void  HKCommState::setErrorState(ParseResult error)
+{
+    m_state          =   ESerialState::serialState_Error ;
+    m_errorType      =   HKCommState::ESerialErrorType::serialErr_Parser;
+    m_errSubtype     =   static_cast<uint8_t>(error);
+}
+
+
+
+
 //------------------------------------------------------------------

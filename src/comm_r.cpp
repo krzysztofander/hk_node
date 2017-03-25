@@ -173,7 +173,7 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
         TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
         diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
 
-        bld.putMeasurement(HKTime::SmallUpTime(diff), tempRecord.tempFPCelcjus);
+        bld.addMeasurement(HKTime::SmallUpTime(diff), tempRecord.tempFPCelcjus);
 
         measurementsToReturn--; //one is returned in bld
 

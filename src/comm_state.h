@@ -51,57 +51,22 @@ public:
 
     };
 
-    HKCommState()
-        : m_state       (ESerialState::serialState_Preable)
-        , m_errorType   (ESerialErrorType::serialErr_None)
-        , m_errSubtype  (0)
-    {}
-
-
-    void setState(ESerialState state)
-    {
-        m_state          =   m_state;
-        m_errorType      =   ESerialErrorType::serialErr_None;
-        m_errSubtype     =   0;
-    }
+    HKCommState();
+    void setState(ESerialState state);
+    bool isError() const;
+   
+    ESerialState getState() const;
     
-    bool isError() const
-    {
-        return m_errorType != ESerialErrorType::serialErr_None;
-    }
-
-    ESerialState getState() const
-    {
-        return m_state;
-    }
-    ESerialErrorType getErrorType() const
-    {
-        return m_errorType;
-    }
-
-    uint8_t getErrSUBType() const
-    {
-        return m_errSubtype;
-    }
-
-    void setErrorState(ESerialErrorType errorType, OutBuilder::ELogicErr error)
-    {
-        m_state          =   ESerialState::serialState_Error ;
-        m_errorType      =   m_errorType     ;
-        m_errSubtype     =   static_cast<uint8_t>(error);
-    }
-
-    void setErrorState(ESerialErrorType errorType, ParseResult error)
-    {
-        m_state          =   ESerialState::serialState_Error ;
-        m_errSubtype     =   static_cast<uint8_t>(error);
-    }
-
-    void setErrorState(ESerialErrorType error)
-    {
-        m_state          =   ESerialState::serialState_Error ;
-        m_errSubtype     =   static_cast<uint8_t>(error);
-    }
+    ESerialErrorType getErrorType() const;
+    
+    uint8_t getErrSUBType() const;
+   
+    void setErrorState(OutBuilder::ELogicErr error);
+    
+    void setErrorState(ParseResult error);
+    
+    void setErrorState(ESerialErrorType error);
+    
 
 private:
     ESerialState             m_state;

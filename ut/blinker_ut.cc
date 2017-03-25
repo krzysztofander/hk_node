@@ -37,15 +37,13 @@ TEST_F(SerialFixture, Blinker01)
     EXPECT_CALL(mckSupp, blinkLed(0x3)).Times(1);
     Blinker::blinkAction();
 
-    ASSERT_EQ(HKComm::g_serialError,  HKCommDefs::serialErr_None);
-    ASSERT_EQ(HKComm::g_SerialState, HKCommDefs::serialState_Action);
-
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Action);
+ 
     EXPECT_CALL(mckTM, getSingleTempMeasurement()).WillOnce(Return(0x1234));
     EXPECT_CALL(mckSLP, getUpTime()).WillRepeatedly(Return(0x1234));
     
     HKComm::respondSerial();
-    ASSERT_EQ(HKComm::g_serialError,  HKCommDefs::serialErr_None);
-    ASSERT_EQ(HKComm::g_SerialState, HKCommDefs::serialState_Respond);
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
 
     ASSERT_EQ(HKCommExtraRecordsHDL::dataReciever, &HKCommExtraHLRs::RTHdataReciever);
     ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 0);

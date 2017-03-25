@@ -71,7 +71,7 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bl
     {
         return err;
     }
-    bld.putMeasurement(timeReturned, value);
+    bld.addMeasurement(timeReturned, value);
     valid = true;
     return 0;
 }
