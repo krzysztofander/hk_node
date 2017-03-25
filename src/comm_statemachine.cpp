@@ -43,31 +43,18 @@ uint8_t HKComm::isActive(void)
     else
         return 0;
 }
-/*
-void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const uint16_t dataSize)
+
+
+void HKComm::jumpToAction()
 {
-    g_serialError = HKCommDefs::serialErr_None;
-    g_SerialState = HKCommDefs::serialState_Action;
-    g_dataIt      = 0;
-
-    g_command[0] = command[0];
-    g_command[1] = command[1];
-    g_command[2] = command[2];
-
-    for (g_dataIt = 0; (g_dataIt < dataSize) && (g_dataIt < NUM_ELS(g_data)); g_dataIt++)
-    {
-        *g_data = *data;
-    }
-
+    g_commState.setState(HKCommState::ESerialState::serialState_Action);
 }
 
-void HKComm::jumpToResp(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize)
+void HKComm::jumpToResp()
 {
-    jumpToAction(command, data, dataSize);
-    g_SerialState = HKCommDefs::serialState_Respond;
-
+    g_commState.setState(HKCommState::ESerialState::serialState_Respond);
 }
-*/
+
 
 
 
@@ -141,7 +128,10 @@ bool  HKComm::respondSerial(void)
             {
                 g_commState.setErrorState( g_OutBuilder.getError() );
             }
-
+            if (! g_commState.isError())
+            {
+                g_commState.setState(HKCommState::ESerialState::serialState_Respond);
+            }
             return true;
         }
         case HKCommState::ESerialState::serialState_Respond:

@@ -44,6 +44,8 @@ public:
 
     void putErr(ELogicErr err);
     ELogicErr getError() const;
+
+
     bool isErr();
 
     void putCMD(const char * cmd);

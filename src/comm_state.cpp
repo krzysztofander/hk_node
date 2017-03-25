@@ -68,20 +68,19 @@ void  HKCommState::setErrorState(ESerialErrorType error)
 {
     m_state          =   ESerialState::serialState_Error ;
     m_errorType      =   error;
-    m_errSubtype     =   static_cast<uint8_t>(error);
+
+    m_errSubtype     =   0;
 }
 
 void  HKCommState::setErrorState(OutBuilder::ELogicErr error)
 {
-    m_state          =   ESerialState::serialState_Error ;
-    m_errorType      =   HKCommState::ESerialErrorType::serialErr_LogicCall     ;
+    setErrorState(HKCommState::ESerialErrorType::serialErr_LogicCall);
     m_errSubtype     =   static_cast<uint8_t>(error);
 }
 
 void  HKCommState::setErrorState(ParseResult error)
 {
-    m_state          =   ESerialState::serialState_Error ;
-    m_errorType      =   HKCommState::ESerialErrorType::serialErr_Parser;
+    setErrorState(HKCommState::ESerialErrorType::serialErr_Parser);
     m_errSubtype     =   static_cast<uint8_t>(error);
 }
 

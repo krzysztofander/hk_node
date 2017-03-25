@@ -60,14 +60,28 @@ public:
   /*  static void echoLetter(uint8_t l);*/
     static uint8_t isActive(void);
 
+    static void jumpToResp(void);     //@!Immediately set serial state to response
+    static void jumpToAction(void);   //@!Immediately set serial state to action
 
-    static HKCommState      g_commState;           //!@ state of the machine
-    static InCommandWrap    g_RecievedCmd;         //!@ Input parser
-    static OutBuilder       g_OutBuilder;          //!@ Output builder
+
 
     static void command_DED(OutBuilder & bld);
     static void command_RTH(const InCommandWrap & inCmd, OutBuilder & bld);
 
+
+    static OutBuilder & accessOutBuilder()
+    {
+        return g_OutBuilder;
+    }
+
+    static InCommandWrap & accessInCommandWrap()
+    {
+        return g_RecievedCmd;
+    }
+
+    static HKCommState      g_commState;           //!@ state of the machine
+    static InCommandWrap    g_RecievedCmd;         //!@ Input parser
+    static OutBuilder       g_OutBuilder;          //!@ Output builder
 
 
 };
