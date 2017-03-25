@@ -22,6 +22,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "comm_common.h"
 
+/*
 
 //@Brief parses the ASCII and fills the pointer with value
 //@Returns 0 if ok, 
@@ -204,6 +205,6 @@ uint8_t HKCommCommon::formatMeasurement(uint16_t & inOutOffset,
         return HKCommDefs::serialErr_Assert;
     }
 }
-
+*/
 
 

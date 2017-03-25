@@ -31,7 +31,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKComm
 {
 public:
-    
+    /*
     static uint8_t formatResponceUnkL1(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize);
     static uint8_t formatResponceUnkL2(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize);
     static uint8_t formatResponceOK(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
@@ -46,7 +46,7 @@ public:
 
     static uint8_t command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-
+    */
 /*
     //sets serial state to action after specific command
     //can be used to send responsce w/o  request for debug purposes
@@ -57,7 +57,7 @@ public:
     static void jumpToResp(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize);
     */
     static bool respondSerial(void);
-    static void echoLetter(uint8_t l);
+  /*  static void echoLetter(uint8_t l);*/
     static uint8_t isActive(void);
 
 
@@ -66,7 +66,7 @@ public:
     static OutBuilder       g_OutBuilder;          //!@ Output builder
 
     static void command_DED(OutBuilder & bld);
-    static void command_RTH(OutBuilder & bld, uint16_t elements);
+    static void command_RTH(const InCommandWrap & inCmd, OutBuilder & bld);
 
 
 

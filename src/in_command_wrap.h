@@ -22,40 +22,55 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 #include "MiniInParser.h"
-
+#include "out_builder.h"
 
 class InCommandWrap : public Command
 {
 public:
-    ENUM DataTypeError
+    BIGENUM( ECommands)
     {
-        None,
-        NumberExpected,
-        UnsignedExpected,
-
+        command_CTR,
+        command_CTP,
+        command_CBP,
+        command_CPP,
+        command_CST,
+        command_CNN,
+        command_CRS,
+        command_CSM,
+        command_CSA,
+        command_AVI,
+        command_RTH,
+        command_DED = 0x444544,
+        command_DL0,
+        command_DL1,
     };
-    uint16_t getUint16(DataTypeError & err)
+
+
+    uint16_t getUint16(OutBuilder::ELogicErr & err)
     {
         uint16_t ret = 0;
         if (outParamType != OutParamType_INT_DIGIT)
         {
-            err = DataTypeError::NumberExpected;
+            err = OutBuilder::ELogicErr ::NumberExpected;
         }
         else
         {
             if (numericValue < 0)
             {
-                err = DataTypeError::UnsignedExpected;
+                err = OutBuilder::ELogicErr ::UnsignedExpected;
             }
             else
             {
-                err = DataTypeError::None;
+                err = OutBuilder::ELogicErr ::None;
                 ret = static_cast<uint16_t> (numericValue);
             }
         }
         return ret;
     }
-
+    ECommands getCommand ()
+    {
+        return static_cast<ECommands>(cmd >> 16);
+    }
 };
 
 #endif

@@ -29,7 +29,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKCommState
 {
 public:
-    ENUM ESerialState
+    ENUM (ESerialState)
     {
         serialState_Preable = 0,
         serialState_ParseCommand = 1,
@@ -38,28 +38,23 @@ public:
         serialState_Error = 4,
     };
 
-    ENUM ESerialErrorType
+    ENUM (ESerialErrorType)
     {
         serialErr_None,
         serialErr_Assert    = 0x1,             // some assertion triggered
         serialErr_Parser    = 0x2,           // parser could not reconize command
+        serialErr_LogicCall = 0x3,           // logic cannot be executed with parser data
+        serialErr_LogicNoSuchCommand = 0x4,           // logic cannot be executed with parser data
+
         serialErr_Logic     = 0x4,           // command could not be executed
         serialErr_WriteFail = 0x5,           //a number of bytes written is not same as expected
 
     };
-    ENUM ESerialErrorSubTypes
-    {
-        serialSubErr_None = 0,
-        //for logic:        
-       
-       
-       
 
-    };
     HKCommState()
         : m_state       (ESerialState::serialState_Preable)
         , m_errorType   (ESerialErrorType::serialErr_None)
-        , m_errSubtype  (ESerialErrorSubTypes::serialSubErr_None)
+        , m_errSubtype  (0)
     {}
 
 
@@ -67,7 +62,7 @@ public:
     {
         m_state          =   m_state;
         m_errorType      =   ESerialErrorType::serialErr_None;
-        m_errSubtype     =   ESerialErrorSubTypes::serialSubErr_None;
+        m_errSubtype     =   0;
     }
     
     bool isError() const
@@ -84,55 +79,34 @@ public:
         return m_errorType;
     }
 
-    ESerialErrorSubTypes getErrSUBType() const
+    uint8_t getErrSUBType() const
     {
         return m_errSubtype;
-    }
-
-    static ESerialErrorSubTypes toSubErr(ParseResult parseResult)
-    {
-
-    }
-
-    static ESerialErrorSubTypes toSubErr(OutBuilder::ELogicErr error)
-    {
-
-    }
-    static ESerialErrorSubTypes toSubErr(InCommandWrap::DataTypeError error)
-    {
-
-    }
-
-    void setErrorState(ESerialErrorType errorType, InCommandWrap::DataTypeError error)
-    {
-        m_state          =   ESerialState::serialState_Error ;
-        m_errorType      =   m_errorType     ;
     }
 
     void setErrorState(ESerialErrorType errorType, OutBuilder::ELogicErr error)
     {
         m_state          =   ESerialState::serialState_Error ;
         m_errorType      =   m_errorType     ;
+        m_errSubtype     =   static_cast<uint8_t>(error);
     }
 
-    void setErrorState(ESerialErrorType errorType, ParseResult errSubtype)
+    void setErrorState(ESerialErrorType errorType, ParseResult error)
     {
         m_state          =   ESerialState::serialState_Error ;
-        m_errorType      =   m_errorType     ;
+        m_errSubtype     =   static_cast<uint8_t>(error);
     }
 
-    void setErrorState(ESerialErrorType errorType, ESerialErrorSubTypes errSubtype)
+    void setErrorState(ESerialErrorType error)
     {
         m_state          =   ESerialState::serialState_Error ;
-        m_errorType      =   m_errorType     ;
-        m_errSubtype     =   m_errSubtype    ;
+        m_errSubtype     =   static_cast<uint8_t>(error);
     }
 
 private:
     ESerialState             m_state;
     ESerialErrorType         m_errorType;
-    ESerialErrorSubTypes     m_errSubtype;
-
+    uint8_t                  m_errSubtype;
 };
 
 #endif

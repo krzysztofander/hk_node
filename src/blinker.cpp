@@ -78,13 +78,13 @@ void Blinker::blinkAction()
                 if (0 ||
                     (uint8_t)(counter & (uint8_t)0x03) == (uint8_t)0)
                 {
-                    HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
+                    //HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
                 }
                 else
                 {
                     uint16_t dataSize = 0;
-                    HKCommCommon::uint8ToData(dataSize, HKComm::g_data, counter);
-                    HKComm::jumpToResp((const uint8_t*)"AHL",HKComm::g_data , dataSize);
+                  //  HKCommCommon::uint8ToData(dataSize, HKComm::g_data, counter);
+                   // HKComm::jumpToResp((const uint8_t*)"AHL",HKComm::g_data , dataSize);
                 }
                 counter++;
             }

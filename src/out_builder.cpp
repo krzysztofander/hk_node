@@ -28,8 +28,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_rec_handlers.h"
 #include "MiniInParser.h"
 
-char *OutBuilder::itoa(int i)
+char *OutBuilder::itoa(int64_t i, uint16_t & strSizeOut)
 {
+    strSizeOut = 0;
     enum
     {
         INT_DIGITS = 19,
@@ -41,6 +42,7 @@ char *OutBuilder::itoa(int i)
         do {
             *--p = '0' + (i % 10);
             i /= 10;
+            strSizeOut++;
         } while (i != 0);
         return p;
     }
@@ -48,57 +50,98 @@ char *OutBuilder::itoa(int i)
         do {
             *--p = '0' - (i % 10);
             i /= 10;
+            strSizeOut++;
         } while (i != 0);
         *--p = '-';
+        strSizeOut++;
     }
     return p;
 }
 
-void OutBuilder::putCMD(const char * cmd)
+bool OutBuilder::isErr()
 {
-    dataSize  = 0; //reset
-    inOutCommand[0] = cmd[0];
-    inOutCommand[1] = cmd[1];
-    inOutCommand[2] = cmd[2];
+    return m_err != ELogicErr::None;
 }
 
-void OutBuilder::putData(const char * data, const uint16_t size)
+void OutBuilder::reset()
 {
-    dataSize = size;
-    for (int i = 0; i < dataSize; i++)
+    m_err = ELogicErr::None;
+    m_dataSize = 0;
+}
+
+const int OutBuilder::getStrLenght() const
+{
+    return m_dataSize;
+}
+const uint8_t * OutBuilder::getStrToWrite() const
+{
+    return &m_buffer[0];
+}
+
+
+void OutBuilder::putCMD(const char * cmd)
+{
+    m_dataSize  = 3; //reset
+    m_buffer[0] = cmd[0];
+    m_buffer[1] = cmd[1];
+    m_buffer[2] = cmd[2];
+}
+
+void OutBuilder::putErr(ELogicErr err)
+{
+    m_dataSize = 0;
+    m_err = err;
+}
+
+void OutBuilder::addData(const char * data, const uint16_t size)
+{
+    if (m_dataSize + size > static_cast<int>(Consts::BufferSize))
     {
-        inOutData[i] = data[i];
+        putErr(ELogicErr::BufferOverrun);
+    }
+    else
+    {
+        for (uint16_t i = m_dataSize; i < m_dataSize + size; i++)
+        {
+            m_buffer[i] = data[i];
+        }
+        m_dataSize+= size;
     }
 }
 
-//@brief formats the measurement time/val pair directly into buffer
-//@param [inout] inOutOffset:  base and new offset in buffer
-//@param [inout] inoutData:  buffer where to input the function
-//@param [in ] inoutDataSize:  size of buffer
+void OutBuilder::addInt(int64_t newInt)
+{
+    uint16_t strSizeOut;
+    char * strInt = itoa( newInt,  strSizeOut);
+    addData(strInt, strSizeOut);
+}
 
-void OutBuilder::putMeasurement( HKTime::SmallUpTime timeStamp, int16_t val)
+
+void OutBuilder::addMeasurement( HKTime::SmallUpTime timeStamp, int16_t val)
 {
     static const char chStart = '(';
     static const char chSeparator = ',';
     static const char chEnd   = ')';
+    uint16_t strSizeOut;
+    char * strInt;
 
-    dataSize = 0;
+    addData(&chStart, 1);
 
-    inOutData[dataSize++]=chStart;
-    HKCommCommon::shortToData(dataSize, inOutData, uint16_t(timeStamp >> 16)); //MSB first
-    HKCommCommon::shortToData(dataSize, inOutData, uint16_t(timeStamp));       //LSB
-    inOutData[dataSize++]=chSeparator;
-    HKCommCommon::shortToData(dataSize, inOutData, val);
-    inOutData[dataSize++]=chEnd;
-}
+    strInt = itoa( timeStamp,  strSizeOut);
+    addData(strInt, strSizeOut);
+    
+    addData(&chSeparator, 1);
 
-uint8_t OutBuilder::getError()
+    strInt = itoa( val,  strSizeOut);
+    addData(strInt, strSizeOut);
+
+    addData(&chEnd, 1); 
+
+ }
+
+OutBuilder::ELogicErr OutBuilder::getError() const
 {
     return m_err;
 }
 
-void OutBuilder::putInt(int64_t newInt)
-{
-    dataSize = 0;
-    HKCommCommon::uint32ToData(dataSize, inOutData, newInt);
-}
+

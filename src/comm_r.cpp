@@ -29,6 +29,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
+#if 0
 namespace
 {
     void inline commandR_start(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize)
@@ -147,37 +148,45 @@ uint8_t HKComm::command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], ui
     return  HKCommCommon::formatMeasurement(dataSize, inOutData, HKTime::SmallUpTime (Sleeper::getUpTime()), singleTempMeasurement);
     
 }
+#endif
 
-
-void HKComm::command_RTH(OutBuilder & bld, uint16_t measurementsToReturn)
+void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 {
- 
-    //check for size correctness
-    if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
-    { 
-        //if its zero return all.
-        measurementsToReturn = TempMeasure::capacity();
-    }
-    bld.putCMD("VTM");
-
-    //measurementsToReturn contains how many. First one returns difference of current to timestamp
-    HKTime::UpTime diff = Sleeper::getUpTime();
-    TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
-    diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
-    
-    bld.putMeasurement(HKTime::SmallUpTime(diff),tempRecord.tempFPCelcjus);
-
-    measurementsToReturn--; //one is returned in bld
-
-                            //now set up records handler
-    if (measurementsToReturn > 0)
+    OutBuilder::ELogicErr err;
+    uint16_t measurementsToReturn = g_RecievedCmd.getUint16(err);
+    if (err != OutBuilder::ELogicErr::None )
     {
-        HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
-        HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+        bld.putErr(err);
+    }
+    else
+    {
+    //check for size correctness
+        if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
+        {
+            //if its zero return all.
+            measurementsToReturn = TempMeasure::capacity();
+        }
+        bld.putCMD("VTM");
+
+        //measurementsToReturn contains how many. First one returns difference of current to timestamp
+        HKTime::UpTime diff = Sleeper::getUpTime();
+        TempMeasure::TempRecord tempRecord = TempMeasure::getTempMeasurementRecord(0);
+        diff = diff - (HKTime::UpTime)tempRecord.timeStamp;
+
+        bld.putMeasurement(HKTime::SmallUpTime(diff), tempRecord.tempFPCelcjus);
+
+        measurementsToReturn--; //one is returned in bld
+
+                                //now set up records handler
+        if (measurementsToReturn > 0)
+        {
+            HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
+            HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+        }
     }
 
 }
-
+#if 0
 uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {
     uint8_t err;
@@ -325,6 +334,6 @@ uint8_t HKComm::command_R(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     }
     return err;  
 }
-
+#endif
 //------------------------------------------------------------------
 

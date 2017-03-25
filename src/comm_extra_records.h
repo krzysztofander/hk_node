@@ -32,7 +32,7 @@ public:
 
     //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
     // in valid returs if record is valid or run ouf of scheduled elems
-    static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
+   // static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
     static uint8_t formatedMeasurement(bool & valid, OutBuilder & bld);
     static void setNumRecords(uint16_t records);
     static void setDataReciever(DataReciever newDataReciver)

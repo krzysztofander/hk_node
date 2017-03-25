@@ -26,7 +26,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKCommCommon
 {
 public:
-     
+     /*
     static uint8_t charToUnsigned(uint8_t givenChar, uint8_t *valToSet);
 
     static uint8_t dataToUnsignedShort(uint16_t offset, 
@@ -92,7 +92,7 @@ public:
 
     }
 
-
+    */
 
 };
 #endif

@@ -30,6 +30,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
 
+/*
 
 void HKComm::echoLetter(uint8_t l)
 {
@@ -263,6 +264,6 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     }
     return err;
 }
-
+*/
 
 //------------------------------------------------------------------

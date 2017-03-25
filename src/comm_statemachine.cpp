@@ -128,68 +128,60 @@ bool  HKComm::respondSerial(void)
         }
         case HKCommState::ESerialState::serialState_Action:
         {
-            //we leave builder is errored state
-            switch (g_RecievedCmd.cmd)
+            g_OutBuilder.reset();
+            switch (g_RecievedCmd.getCommand())
             {
-                case HKCommDefs::command_DED:
+                case InCommandWrap::ECommands::command_DED:
                 {
                     command_DED(g_OutBuilder);
                 }
                 break;
-                case HKCommDefs::command_RTH:
+                case InCommandWrap::ECommands::command_RTH:
                 {
-                    uint16_t elems = g_RecievedCmd.getUint16(g_OutBuilder.err);
-                    if (!g_OutBuilder.getError())
-                    {
-                        command_RTH(g_OutBuilder,elems);
-                    }
+                    command_RTH(g_RecievedCmd, g_OutBuilder);
                 }
                 break;
                 default:
                 {
-                    g_OutBuilder.err = HKCommDefs::serialErr_UnknownCommand;
-                    g_OutBuilder.putCMD("ERR");
-                    g_OutBuilder.putInt(g_RecievedCmd.cmd);
+                    g_commState.setErrorState(
+                        HKCommState::ESerialErrorType::serialErr_LogicNoSuchCommand);
                 }
+
             }
-            if (g_OutBuilder.getError())
+            if (g_OutBuilder.isErr())
             {
-                g_serialError = HKCommDefs::serialErr_Logic + g_OutBuilder.getError();
+                g_commState.setErrorState(
+                    HKCommState::ESerialErrorType::serialErr_LogicCall,
+                    g_OutBuilder.getError()  );
             }
 
-            if (g_serialError == HKCommDefs::serialErr_None)
-            {
-                g_SerialState = HKCommDefs::serialState_Respond;
-            }
-            else
-            {
-                g_SerialState = HKCommDefs::serialState_Error;
-            }
             return true;
         }
         case HKCommState::ESerialState::serialState_Respond:
         {
 
             //write command then variable number of data then end of line sequence.
-            uint16_t written = HKSerial::write(g_OutBuilder.inOutCommand, 3 /*todo fix it*/);
-            if (g_OutBuilder.dataSize != 0)
-            {
-                written += HKSerial::write(g_OutBuilder.inOutData, g_OutBuilder.dataSize);
-            }
-            //write extra records if any
+            uint16_t toWrite =  g_OutBuilder.getStrLenght();
+            uint16_t written = HKSerial::write(
+                g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
+               
+             //write extra records if any
             bool valid = 0;
             do
             {
-                g_serialError = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
-                if (g_serialError != HKCommDefs::serialErr_None)
+                uint8_t ret = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
+                if (ret != 0)
                 {
-                    g_serialError  += HKCommDefs::serialErr_WriteFail;
-                    g_SerialState = HKCommDefs::serialState_Error;
+                    g_commState.setErrorState(
+                        HKCommState::ESerialErrorType::serialErr_WriteFail
+                         );
+
                     return 1;
                 }
                 if (!valid)
                 {
-                    written += HKSerial::write(g_OutBuilder.inOutData,  g_OutBuilder.dataSize);
+                    toWrite += g_OutBuilder.getStrLenght();
+                    written += HKSerial::write(g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
                 }
             } while (!valid);
 
@@ -205,21 +197,34 @@ bool  HKComm::respondSerial(void)
             //}
             //else
             {
-                g_serialError = HKCommDefs::serialErr_None;
-                g_SerialState = HKCommDefs::serialState_Preable;
-            }
+                g_commState.setState(HKCommState::ESerialState::serialState_Preable);
+             }
             return 1;
             break;
         }
         default:
         case HKCommState::ESerialState::serialState_Error:
         {
+            HKCommState::ESerialErrorType  err  =  g_commState.getErrorType();
+            uint8_t                        serr = g_commState.getErrSUBType();
+            int64_t errorcode = 0;
+            if (err == HKCommState::ESerialErrorType::serialErr_LogicNoSuchCommand)
+            {
+                errorcode = static_cast<uint32_t>(g_RecievedCmd.getCommand());
+                errorcode *= 10000000;
+            }
             //we will do more actions depending on type of g_serialError;
-            g_OutBuilder.putCMD("ERR");
-            g_OutBuilder.putInt(g_serialError);
+ 
+            errorcode += static_cast <uint8_t>(err);
+            errorcode *= 1000;
+            errorcode += serr;
 
-            g_SerialState = HKCommDefs::serialState_Respond;
-            g_serialError = HKCommDefs::serialErr_None;
+            g_OutBuilder.reset();
+            g_OutBuilder.putCMD("ERR");
+            g_OutBuilder.putInt(errorcode);
+
+            g_commState.setState(HKCommState::ESerialState::serialState_Respond);
+
             return 1;
 
             break;

@@ -22,7 +22,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 
-#define ENUM enum class
+#define ENUM(name) enum class name : uint8_t
+#define BIGENUM(name) enum class name : uint32_t
 
 
 class HKCommDefs
@@ -32,7 +33,7 @@ public:
     static const uint8_t commandEOLSignOnRecieve  = 0x0dU;
     static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
 
-
+    /*
     enum ECommandsConsts
     {
         commandSize = 3,
@@ -49,9 +50,9 @@ public:
         commandMaxDataSize = command_DataSize + commandEOLSizeOnRecieve
 
     };
-
+    */
   
-
+    /*
 
     enum ESerialErrors_DEPRECATED
     {
@@ -75,24 +76,8 @@ public:
     };
 
 
-
-    enum ECommands
-    {
-        command_CTR,
-        command_CTP,
-        command_CBP,
-        command_CPP,
-        command_CST,
-        command_CNN,
-        command_CRS,
-        command_CSM,
-        command_CSA,
-        command_AVI,
-        command_RTH,
-        command_DED = 0x44454400,
-        command_DL0,
-        command_DL1,
-    };
+    */
+ 
 
 };
 #endif

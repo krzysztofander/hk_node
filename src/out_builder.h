@@ -26,42 +26,39 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class OutBuilder
 {
 public:
-
-    ENUM ELogicErr
+    ENUM (Consts)
     {
-        None,
-
+        BufferSize = 64,
 
     };
 
-    static char *itoa(int i);
-    void putCMD(const char * cmd);
-    void putData(const char * data, const uint16_t size);
-    void putInt(int64_t newInt);
-    void putMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);
+    ENUM (ELogicErr)
+    {
+        None,
+        UnsignedExpected,
+        NumberExpected,
+        BufferOverrun,
 
-    void reset()
-    {
-        m_err = ELogicErr::None;
-        dataSize = 0;
-    }
-    void setError(ELogicErr err)
-    {
-        m_err = err;
-    }
-    ELogicErr getError();
+
+    };
+    static char *itoa(int64_t i    , uint16_t & strSizeOut);
+
+    void putErr(ELogicErr err);
+    ELogicErr getError() const;
     bool isErr()
-    {
-        return m_err != ELogicErr::None;
-    }
+    void putCMD(const char * cmd);
+    void addData(const char * data, const uint16_t size);
+    void addInt(int64_t newInt);
+    void addMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);
 
-private:
+    void reset();
 
-    
-
-    uint8_t inOutCommand[HKCommDefs::commandSize];
-    uint8_t inOutData[HKCommDefs::commandMaxDataSize];
-    uint16_t dataSize;
+    const int getStrLenght() const;
+    const uint8_t * getStrToWrite() const;
+ 
+private:  
+    uint8_t m_buffer[static_cast<int>(Consts::BufferSize)];
+    uint16_t m_dataSize;
     
     ELogicErr m_err;
 }; 
