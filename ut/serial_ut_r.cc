@@ -17,6 +17,41 @@ using ::testing::NiceMock;
 using ::testing::StrictMock;
 using ::testing::_;
 
+TEST_F (Serial_R_method_Fixture, RTHtest)
+{
+    bool retVal;
+    EXPECT_CALL(mockSerial, available())
+        .WillRepeatedly(Return(1));
+    EXPECT_CALL(mockSerial, read())
+        .WillOnce(Return('R'))
+        .WillOnce(Return('T'))
+        .WillOnce(Return('H')) 
+        .WillOnce(Return('2')) 
+        .WillOnce(Return(HKCommDefs::commandEOLSignOnRecieve));
+    EXPECT_CALL(mckS, getUpTime()).WillRepeatedly(Return(0xabcd12345678ll));
+
+    EXPECT_CALL(mckTm, getTempMeasurementRecord(_))
+        .WillOnce(Return(TempMeasure::TempRecord (10, 0x1004)))
+        .WillRepeatedly(Return(TempMeasure::TempRecord (10, -1234)));
+
+
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+    retVal = HKComm::respondSerial();
+
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Action);
+    retVal = HKComm::respondSerial();
+    ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
+    
+    EXPECT_CALL(mockSerial, write(_,_))
+        . WillRepeatedly(Return(0));
+    retVal = HKComm::respondSerial();
+
+
+}
+
 #if 0
 
 TEST_F (Serial_R_method_Fixture, RTM)

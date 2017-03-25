@@ -48,7 +48,7 @@ TEST_F(SerialFixture, Blinker01)
     ASSERT_EQ(HKCommExtraRecordsHDL::dataReciever, &HKCommExtraHLRs::RTHdataReciever);
     ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 0);
 
-    const int VHTlenght = 3 + 1 + 1 + 1 + 3 + 1;
+    const int VHTlenght = 11;
 
     EXPECT_CALL(mockSerial, write(_,VHTlenght ))
         .Times(1). WillRepeatedly(Return(VHTlenght));

@@ -122,20 +122,56 @@ void OutBuilder::addMeasurement( HKTime::SmallUpTime timeStamp, int16_t val)
     static const char chStart = '(';
     static const char chSeparator = ',';
     static const char chEnd   = ')';
+    static const char chComma   = '.';
+    
+    static const uint8_t fractBits = 4; 
+        //if we ever need to use different fracts, then we need to change that
+        
+
     uint16_t strSizeOut;
     char * strInt;
 
+    //parenthesis
     addData(&chStart, 1);
 
+    //delta
     strInt = itoa( timeStamp,  strSizeOut);
     addData(strInt, strSizeOut);
     
+    //colon
     addData(&chSeparator, 1);
 
-    strInt = itoa( val,  strSizeOut);
+    //int part
+    strInt = itoa( val >>fractBits,  strSizeOut);
     addData(strInt, strSizeOut);
 
+    //comma
+    addData(&chComma, 1);
+    
+    //fract part
+    if (val > 0)
+    {
+        val &= ~(~0u << fractBits);
+    }
+    else
+    {
+        val |= ~0u << fractBits;
+        val = -val;
+    }
+    val *= 100;
+    val /= 16;
+
+    strInt = itoa( val ,  strSizeOut);
+    addData(strInt, strSizeOut);
+    //closing parethesis
     addData(&chEnd, 1); 
+
+#if 1    
+    addData((const char *)HKCommDefs::commandEOLOnResponceSequence, 
+            NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)
+    );
+    //
+#endif
 
  }
 

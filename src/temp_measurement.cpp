@@ -44,18 +44,10 @@ void TempMeasure::initMeasureTemperature(void)
 TempMeasure::TempMeasurement TempMeasure::getSingleTempMeasurement(void)
 {
     float reading =  TempSensor::readTemperature();
-#if 0
-    //hex
-    uint16_t X = uint16_t(reading * 16);
- 
-#else
-    uint16_t X = 0;
-    X |= (uint16_t(reading / 10) % 10 ) << 12;
-    X |= (uint16_t(reading / 1) % 10 )  << 8;
-    X |= 0xD0;
-    X |= (uint16_t(reading * 10) % 10 )  << 0;
 
-#endif
+    //hex, will be decimalized later
+    uint16_t X = uint16_t(reading * 16);
+
     return X;
 }
 

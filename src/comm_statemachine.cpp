@@ -140,11 +140,12 @@ bool  HKComm::respondSerial(void)
             uint16_t toWrite =  g_OutBuilder.getStrLenght();
             uint16_t written = HKSerial::write(
                 g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
-               
+          
              //write extra records if any
             bool valid = 0;
             do
-            {
+            {   
+                g_OutBuilder.reset();
                 uint8_t ret = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
                 if (ret != 0)
                 {
