@@ -68,6 +68,8 @@ public:
     static void command_DER(OutBuilder & bld);
     static void command_RTH(const InCommandWrap & inCmd, OutBuilder & bld);
     static void command_RTM(OutBuilder & bld); 
+    static void command_AVI(OutBuilder & bld);
+
 
     static OutBuilder & accessOutBuilder()
     {

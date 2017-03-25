@@ -174,8 +174,15 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
     }
     else
     {
+        if (measurementsToReturn == 0)
+        {
+            //special case, make a measurement now and store it.
+            TempMeasure::measureTemperature();
+            measurementsToReturn = 1; //so we return the last one.
+        }
+
     //check for size correctness
-        if (measurementsToReturn == 0 || measurementsToReturn > TempMeasure::capacity())
+        if (measurementsToReturn > TempMeasure::capacity())
         {
             //if its zero return all.
             measurementsToReturn = TempMeasure::capacity();
@@ -198,8 +205,62 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
             HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
         }
     }
-
 }
+
+void HKComm::command_AVI( OutBuilder & bld)
+{
+    bld.putCMD("AVI");
+    bld.addData(" 0.6.0", 6);
+
+    // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
+
+
+    /*Releases
+    0.5.0:
+    + version information
+    + shortened RTH
+    + sending temperature readings set up by blinker
+
+    0.5.1 Development
+    0.5.1.1 Development
+    + Improved current power saving algo. 
+    + Starting serial now in main loop after non-wd power up 
+    and waiting a delay afterwards
+    0.5.1.2 Development
+    +Improved blinker setting
+    0.5.1.3 Development
+    +Improved blinker setting, fixed auto send
+    0.5.1.4 Development (11,280) bytes
+    +Added compatible commands as macro
+    !not tested on system
+    0.5.1.5 Development (11,280)
+    + 
+    0.5.2.0
+    improved power save mode
+    //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
+    0.5.2.1
+    LED off capability
+    //see http://www.home-automation-community.com/arduino-low-power-how-to-run-atmega328p-for-a-year-on-coin-cell-battery/
+
+    0.6.0 change to protocol!. Not all previous commands are supported
+
+    0.?.1
+    + batery reading
+    // see https://forum.arduino.cc/index.php?topic=38119.0
+    0.?.1
+    + Any AC value reading with autoscale
+    0.?.1
+    + Bluetooth settings
+    0.?.1 
+    + eeprom
+    1.0.0 all above works
+
+
+
+    */
+ 
+}
+
 #if 0
 uint8_t HKComm::command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
 {

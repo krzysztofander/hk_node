@@ -48,12 +48,12 @@ TEST_F(SerialFixture, Blinker01)
     ASSERT_EQ(HKCommExtraRecordsHDL::dataReciever, &HKCommExtraHLRs::RTHdataReciever);
     ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 0);
 
-    const int VHTlenght = 11;
+    const int VHTlenght = 11 + 2/*if we use EOL sequence here*/;
 
     EXPECT_CALL(mockSerial, write(_,VHTlenght ))
         .Times(1). WillRepeatedly(Return(VHTlenght));
     EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
-        .Times(1). WillRepeatedly(Return(NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)));
+        .Times(1). WillRepeatedly(Return(uint8_t(NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))));
     HKComm::respondSerial();
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Preable);
     

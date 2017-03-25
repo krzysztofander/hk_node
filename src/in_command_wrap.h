@@ -41,7 +41,8 @@ public:
         command_CRS = 0x435253,  //reset
         command_CSM = 0x43534d,  //power saving mode
         command_CSA = 0x435641,  //power down inactivity
-        command_AVI = 0x415649,  //aux version information
+            command_AVI = 0x415649,  //aux version information
+            command_RVI = 0x525649,  //read version information (deprecated)
         command_RTH = 0x525448,  //read temperature history
         command_RTM = 0x52544d,  //undocumented
         command_DER = 0x444552,

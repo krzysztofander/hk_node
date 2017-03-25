@@ -116,6 +116,12 @@ bool  HKComm::respondSerial(void)
                 case InCommandWrap::ECommands::command_RTM:
                     command_RTM(g_OutBuilder);
                     break;
+                case InCommandWrap::ECommands::command_RVI:
+                    //fall through
+                case InCommandWrap::ECommands::command_AVI:
+                    command_AVI(g_OutBuilder);
+                    break;
+
                 default:
                 {
                     g_commState.setErrorState(
