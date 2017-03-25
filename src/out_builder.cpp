@@ -94,10 +94,10 @@ void OutBuilder::putMeasurement( HKTime::SmallUpTime timeStamp, int16_t val)
 
 uint8_t OutBuilder::getError()
 {
-    return err;
+    return m_err;
 }
 
-void OutBuilder::putInt(uint32_t newInt)
+void OutBuilder::putInt(int64_t newInt)
 {
     dataSize = 0;
     HKCommCommon::uint32ToData(dataSize, inOutData, newInt);

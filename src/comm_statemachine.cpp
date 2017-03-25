@@ -29,24 +29,21 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "MiniInParser.h"
 
 
-uint8_t  HKComm::g_SerialState = HKCommDefs::serialState_Preable;
-uint8_t  HKComm::g_command[HKCommDefs::commandSize];
-uint8_t  HKComm::g_data[HKCommDefs::commandMaxDataSize];
-uint16_t HKComm::g_dataIt = 0;
-uint16_t HKComm::g_serialError = HKCommDefs::serialErr_None;
-InCommandWrap  HKComm::g_RecievedCmd; 
+HKCommState      HKComm::g_commState;    
+InCommandWrap    HKComm::g_RecievedCmd;  
+OutBuilder       HKComm::g_OutBuilder;   
 
 //------------------------------------------------------------------
 
 uint8_t HKComm::isActive(void)
 {
-    if (g_SerialState != HKCommDefs::serialState_Preable
+    if (g_commState.getState ()!= HKCommState::ESerialState::serialState_Preable
         || HKSerial::available() > 0)
         return 1;
     else
         return 0;
 }
-
+/*
 void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const uint16_t dataSize)
 {
     g_serialError = HKCommDefs::serialErr_None;
@@ -70,12 +67,12 @@ void HKComm::jumpToResp(const uint8_t * command, const  uint8_t * data, const ui
     g_SerialState = HKCommDefs::serialState_Respond;
 
 }
-
+*/
 
 
 void HKComm::command_DED(OutBuilder & bld)
 {
-    bld.err = HKCommDefs::serialErr_Assert;
+    bld.reset();
     bld.putCMD("DER");
     bld.putData(NULL, 0);
 }
@@ -90,22 +87,22 @@ bool  HKComm::respondSerial(void)
 {
 
     //alert(g_SerialState +1, false);
-    switch (g_SerialState)
+    switch (g_commState.getState())
     {
-        case HKCommDefs::serialState_Preable:
+        case HKCommState::ESerialState::serialState_Preable:
             //we wait here for serial to stabilize, e.g. start communication
             //or send preamble
             
-            //temporarily when there is something available
+            //temporarily: when there is something available
             //in serial go to ParseCommand
             if (HKSerial::available() > 0)
             {
-                g_SerialState =  HKCommDefs::serialState_ParseCommand;
+                g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
                 return true;
             }
             break;
 
-        case HKCommDefs::serialState_ParseCommand:
+        case HKCommState::ESerialState::serialState_ParseCommand:
         {
             if (HKSerial::available() > 0)
             {
@@ -120,7 +117,8 @@ bool  HKComm::respondSerial(void)
                     }
                     else
                     {
-                        g_serialError = HKCommDefs::serialErr_Parser + parseResult;
+                        g_serialError = HKCommDefs::serialErr_Parser
+                            + parseResult;
 
                         g_SerialState = HKCommDefs::serialState_Error;
                     }
@@ -129,7 +127,7 @@ bool  HKComm::respondSerial(void)
             }
             break;
         }
-        case HKCommDefs::serialState_Action:
+        case HKCommState::ESerialState::serialState_Action:
         {
             //we leave builder is errored state
             g_OutBuilder.err = HKCommDefs::serialErr_Assert;
@@ -174,7 +172,7 @@ bool  HKComm::respondSerial(void)
             }
             return true;
         }
-        case HKCommDefs::serialState_Respond:
+        case HKCommState::ESerialState::serialState_Respond:
         {
 
             //write command then variable number of data then end of line sequence.
@@ -219,7 +217,7 @@ bool  HKComm::respondSerial(void)
             break;
         }
         default:
-        case HKCommDefs::serialState_Error:
+        case HKCommState::ESerialState::serialState_Error:
         {
             //we will do more actions depending on type of g_serialError;
             g_OutBuilder.putCMD("ERR");

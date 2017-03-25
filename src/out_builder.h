@@ -26,20 +26,43 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class OutBuilder
 {
 public:
+
+    ENUM ELogicErr
+    {
+        None,
+
+
+    };
+
     static char *itoa(int i);
     void putCMD(const char * cmd);
-
     void putData(const char * data, const uint16_t size);
-
-    //@brief formats the measurement time/val pair directly into buffer
+    void putInt(int64_t newInt);
     void putMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);
-    uint8_t getError();
-    void putInt(uint32_t newInt);
 
+    void reset()
+    {
+        m_err = ELogicErr::None;
+        dataSize = 0;
+    }
+    void setError(ELogicErr err)
+    {
+        m_err = err;
+    }
+    ELogicErr getError();
+    bool isErr()
+    {
+        return m_err != ELogicErr::None;
+    }
+
+private:
+
+    
 
     uint8_t inOutCommand[HKCommDefs::commandSize];
     uint8_t inOutData[HKCommDefs::commandMaxDataSize];
     uint16_t dataSize;
-    uint8_t err;
+    
+    ELogicErr m_err;
 }; 
 #endif

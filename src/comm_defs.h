@@ -22,6 +22,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 
+#define ENUM enum class
+
+
 class HKCommDefs
 {
 public:
@@ -47,38 +50,18 @@ public:
 
     };
 
-    enum ESerialState
-    {
-        serialState_Preable = 0,
-        serialState_ParseCommand = 1,
-        serialState_Action = 2,
-        serialState_Respond = 3,
-        serialState_Error = 4,
-    };
-    
-    enum ESerialErrors
+  
+
+
+    enum ESerialErrors_DEPRECATED
     {
         serialErr_None,
-
-        serialErr_Assert    = 0x100,           // some assertion triggered
-        serialErr_Parser    = 0x200,           // parser could not reconize command
-
-        serialErr_Logic     = 0x400,           // command could not be executed
-        serialErr_WriteFail = 0x500,     //a number of bytes written is not same as expected
-
-
-        //for logic:        
-        serialErr_DataType_NumberExpected = 1,
-        serialErr_DataType_StringExpected = 2,
-        serialErr_DataType_UnsignedExpected = 3,
-
-
 
 
         serialErr_Assert_NotImpl = 0x11,           // not implemented yet
         serialErr_UnknownCommand = 0x60,   //a command recieved is not recognized
 
-        
+
         serialErr_Number_IncorrectFormat = 0x20,  //format of the number from serial is incorrect. 
         serialErr_Number_Uint16ToShort   =0x21 ,    //a number recieved from serial is to short. Recieved EOL to early
         serialErr_Number_Uint32ToShort   =0x22 ,    //a number recieved from serial is to short. Recieved EOL to early
@@ -90,6 +73,7 @@ public:
 
 
     };
+
 
 
     enum ECommands

@@ -54,6 +54,76 @@ public:
 };
 
 
+class HKCommState
+{
+public:
+    ENUM ESerialState
+    {
+        serialState_Preable = 0,
+        serialState_ParseCommand = 1,
+        serialState_Action = 2,
+        serialState_Respond = 3,
+        serialState_Error = 4,
+    };
+
+    ENUM ESerialErrorType
+    {
+        serialErr_None,
+        serialErr_Assert    = 0x1,             // some assertion triggered
+        serialErr_Parser    = 0x2,           // parser could not reconize command
+        serialErr_Logic     = 0x4,           // command could not be executed
+        serialErr_WriteFail = 0x5,           //a number of bytes written is not same as expected
+
+    };
+    ENUM ESerialErrorSubTypes
+    {
+        serialSubErr_None = 0,
+        //for logic:        
+        serialErr_DataType_NumberExpected = 1,
+        serialErr_DataType_StringExpected = 2,
+        serialErr_DataType_UnsignedExpected = 3,
+
+    };
+    HKCommState()
+        : m_state       (ESerialState::serialState_Preable)
+        , m_errorType   (ESerialErrorType::serialErr_None)
+        , m_errSubtype  (ESerialErrorSubTypes::serialSubErr_None)
+    {}
+
+
+    void setState(ESerialState state, ESerialErrorType errorType, ESerialErrorSubTypes errSubtype)
+    {
+        m_state          =   m_state         ;
+        m_errorType      =   m_errorType     ;
+        m_errSubtype     =   m_errSubtype    ;
+    }
+    
+    bool isError()
+    {
+        return m_errorType != ESerialErrorType::serialErr_None;
+    }
+
+    ESerialState getState()
+    {
+        return m_state;
+    }
+    ESerialErrorType getErrorType()
+    {
+        return m_errorType;
+    }
+
+    ESerialErrorSubTypes getErrSUBType()
+    {
+        return m_errSubtype;
+    }
+private:
+    ESerialState             m_state;
+    ESerialErrorType         m_errorType;
+    ESerialErrorSubTypes     m_errSubtype;
+
+};
+
+
 class HKComm
 {
 public:
@@ -86,17 +156,14 @@ public:
     static void echoLetter(uint8_t l);
     static uint8_t isActive(void);
 
-    static uint8_t g_command[HKCommDefs::commandSize];
-    static uint8_t g_data[HKCommDefs::commandMaxDataSize];
-    static uint16_t g_dataIt;
 
-    static uint8_t g_SerialState;
-    static uint16_t g_serialError;
+    static HKCommState      g_commState;           //!@ state of the machine
+    static InCommandWrap    g_RecievedCmd;         //!@ Input parser
+    static OutBuilder       g_OutBuilder;          //!@ Output builder
 
-    static InCommandWrap g_RecievedCmd;
-    static OutBuilder g_OutBuilder;
     static void command_DED(OutBuilder & bld);
     static void command_RTH(OutBuilder & bld, uint16_t elements);
+
 
 
 };
