@@ -89,14 +89,36 @@ public:
         return m_errSubtype;
     }
 
-    ESerialErrorSubTypes toSubErr(ParseResult parseResult)
+    static ESerialErrorSubTypes toSubErr(ParseResult parseResult)
     {
 
     }
 
-    ESerialErrorSubTypes toSubErr(OutBuilder::ELogicErr error)
+    static ESerialErrorSubTypes toSubErr(OutBuilder::ELogicErr error)
     {
 
+    }
+    static ESerialErrorSubTypes toSubErr(InCommandWrap::DataTypeError error)
+    {
+
+    }
+
+    void setErrorState(ESerialErrorType errorType, InCommandWrap::DataTypeError error)
+    {
+        m_state          =   ESerialState::serialState_Error ;
+        m_errorType      =   m_errorType     ;
+    }
+
+    void setErrorState(ESerialErrorType errorType, OutBuilder::ELogicErr error)
+    {
+        m_state          =   ESerialState::serialState_Error ;
+        m_errorType      =   m_errorType     ;
+    }
+
+    void setErrorState(ESerialErrorType errorType, ParseResult errSubtype)
+    {
+        m_state          =   ESerialState::serialState_Error ;
+        m_errorType      =   m_errorType     ;
     }
 
     void setErrorState(ESerialErrorType errorType, ESerialErrorSubTypes errSubtype)

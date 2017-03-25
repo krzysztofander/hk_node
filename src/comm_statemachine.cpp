@@ -112,16 +112,15 @@ bool  HKComm::respondSerial(void)
                 {
                     if (parseResult == ParseResult_SUCCESS)
                     {
-                        g_serialError = HKCommDefs::serialErr_None;
-                        g_SerialState = HKCommDefs::serialState_Action;
+                        g_commState.setState(HKCommState::ESerialState::serialState_Action);
                     }
                     else
                     {
-                        g_serialError = HKCommDefs::serialErr_Parser
-                            + parseResult;
+                        g_commState.setErrorState(
+                            HKCommState::ESerialErrorType::serialErr_Parser,
+                            parseResult  );
 
-                        g_SerialState = HKCommDefs::serialState_Error;
-                    }
+                     }
                     return true;
                 }
             }
@@ -130,10 +129,6 @@ bool  HKComm::respondSerial(void)
         case HKCommState::ESerialState::serialState_Action:
         {
             //we leave builder is errored state
-            g_OutBuilder.err = HKCommDefs::serialErr_Assert;
-            g_OutBuilder.putCMD("ERR");
-            g_OutBuilder.putInt(g_RecievedCmd.cmd);
-
             switch (g_RecievedCmd.cmd)
             {
                 case HKCommDefs::command_DED:

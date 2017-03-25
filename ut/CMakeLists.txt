@@ -62,6 +62,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/comm_defs.cpp
         ${TOP}/hk_node/src/comm_state.cpp
         ${TOP}/hk_node/src/MiniInParser.cpp
+        ${TOP}/hk_node/src/in_command_wrap.cpp
         serial_ut.cc
         serial_ut_r.cc 
         blinker_ut.cc
@@ -72,6 +73,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/comm.h
         ${TOP}/hk_node/src/out_builder.h
+        ${TOP}/hk_node/src/in_command_wrap.h
 
         ${TOP}/hk_node/src/comm_extra_records.h
         ${TOP}/hk_node/src/comm_extra_rec_handlers.h

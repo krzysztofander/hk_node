@@ -25,104 +25,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_common.h"
 #include "MiniInParser.h"
 #include "out_builder.h"
-
-class InCommandWrap : public Command
-{
-public:
-    uint16_t getUint16(uint8_t & err)
-    {
-        uint16_t ret = 0;
-        if (outParamType != OutParamType_INT_DIGIT)
-        {
-            err = (uint8_t)HKCommDefs::serialErr_DataType_NumberExpected;
-        }
-        else
-        {
-            if (numericValue < 0)
-            {
-                err = (uint8_t)HKCommDefs::serialErr_DataType_UnsignedExpected;
-            }
-            else
-            {
-                err = (uint8_t)0;
-                ret = static_cast<uint16_t> (numericValue);
-            }
-        }
-        return ret;
-    }
-
-};
-
-
-class HKCommState
-{
-public:
-    ENUM ESerialState
-    {
-        serialState_Preable = 0,
-        serialState_ParseCommand = 1,
-        serialState_Action = 2,
-        serialState_Respond = 3,
-        serialState_Error = 4,
-    };
-
-    ENUM ESerialErrorType
-    {
-        serialErr_None,
-        serialErr_Assert    = 0x1,             // some assertion triggered
-        serialErr_Parser    = 0x2,           // parser could not reconize command
-        serialErr_Logic     = 0x4,           // command could not be executed
-        serialErr_WriteFail = 0x5,           //a number of bytes written is not same as expected
-
-    };
-    ENUM ESerialErrorSubTypes
-    {
-        serialSubErr_None = 0,
-        //for logic:        
-        serialErr_DataType_NumberExpected = 1,
-        serialErr_DataType_StringExpected = 2,
-        serialErr_DataType_UnsignedExpected = 3,
-
-    };
-    HKCommState()
-        : m_state       (ESerialState::serialState_Preable)
-        , m_errorType   (ESerialErrorType::serialErr_None)
-        , m_errSubtype  (ESerialErrorSubTypes::serialSubErr_None)
-    {}
-
-
-    void setState(ESerialState state, ESerialErrorType errorType, ESerialErrorSubTypes errSubtype)
-    {
-        m_state          =   m_state         ;
-        m_errorType      =   m_errorType     ;
-        m_errSubtype     =   m_errSubtype    ;
-    }
-    
-    bool isError()
-    {
-        return m_errorType != ESerialErrorType::serialErr_None;
-    }
-
-    ESerialState getState()
-    {
-        return m_state;
-    }
-    ESerialErrorType getErrorType()
-    {
-        return m_errorType;
-    }
-
-    ESerialErrorSubTypes getErrSUBType()
-    {
-        return m_errSubtype;
-    }
-private:
-    ESerialState             m_state;
-    ESerialErrorType         m_errorType;
-    ESerialErrorSubTypes     m_errSubtype;
-
-};
-
+#include "comm_state.h"
+#include "in_command_wrap.h"
 
 class HKComm
 {
@@ -143,7 +47,7 @@ public:
     static uint8_t command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
 
-
+/*
     //sets serial state to action after specific command
     //can be used to send responsce w/o  request for debug purposes
     static void jumpToAction(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize);
@@ -151,7 +55,7 @@ public:
     //sets serial state to action after specific command
     //can be used to immediately send something responsce w/o  request for debug purposes
     static void jumpToResp(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize);
-
+    */
     static bool respondSerial(void);
     static void echoLetter(uint8_t l);
     static uint8_t isActive(void);
