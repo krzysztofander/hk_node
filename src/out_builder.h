@@ -38,14 +38,14 @@ public:
         UnsignedExpected,
         NumberExpected,
         BufferOverrun,
-
-
     };
+
     static char *itoa(int64_t i    , uint16_t & strSizeOut);
 
     void putErr(ELogicErr err);
     ELogicErr getError() const;
-    bool isErr()
+    bool isErr();
+
     void putCMD(const char * cmd);
     void addData(const char * data, const uint16_t size);
     void addInt(int64_t newInt);
