@@ -153,6 +153,8 @@ TEST_F (Serial_D_method_Fixture, checkWriteError)
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Action);
     retVal = HKComm::respondSerial();
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
+    
+    
     EXPECT_CALL(mockSerial, write(_, 3))
         .Times(1). WillRepeatedly(Return(3));
     EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
@@ -163,7 +165,7 @@ TEST_F (Serial_D_method_Fixture, checkWriteError)
     retVal = HKComm::respondSerial();
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
 
-    const int sizeofErrorResp = 3 + 4;
+    const int sizeofErrorResp = 0x18;
 
     EXPECT_CALL(mockSerial, write(_, sizeofErrorResp))
         .Times(1). WillRepeatedly(Return(sizeofErrorResp));

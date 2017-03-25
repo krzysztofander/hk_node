@@ -182,21 +182,38 @@ bool  HKComm::respondSerial(void)
             HKCommState::ESerialErrorType  err  =  g_commState.getErrorType();
             uint8_t                        serr = g_commState.getErrSUBType();
             int64_t errorcode = 0;
-            if (err == HKCommState::ESerialErrorType::serialErr_LogicNoSuchCommand)
-            {
-                errorcode = static_cast<uint32_t>(g_RecievedCmd.getCommand());
-                errorcode *= 10000000;
-            }
-            //we will do more actions depending on type of g_serialError;
+            uint32_t lastCmd = 0;
+ 
+            lastCmd = static_cast<uint32_t>(g_RecievedCmd.getCommand());
+    
+
+            g_OutBuilder.reset();
+            g_OutBuilder.putCMD("ERR");
+            g_OutBuilder.addData(" code:",6);
  
             errorcode += static_cast <uint8_t>(err);
             errorcode *= 1000;
             errorcode += serr;
 
-            g_OutBuilder.reset();
-            g_OutBuilder.putCMD("ERR");
             g_OutBuilder.addInt(errorcode);
 
+            g_OutBuilder.addData(",lstcmd:",8);
+
+            for (int8_t i =2; i >=0 ; i--)
+            {
+                uint8_t c = (char)(lastCmd >> (i * 8) );
+                if (c < uint8_t(' ') || c > 127)
+                {
+                    g_OutBuilder.addData("\\",1);
+                    g_OutBuilder.addInt(c);
+                }
+                else
+                {
+                    g_OutBuilder.addData((char * )(&c),1);
+                }
+            }
+
+            miniInParserReset();
             g_commState.setState(HKCommState::ESerialState::serialState_Respond);
 
             return 1;
