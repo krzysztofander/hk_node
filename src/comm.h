@@ -70,7 +70,7 @@ public:
     static void command_RTM(OutBuilder & bld); 
     static void command_AVI(OutBuilder & bld);
 #if HAVE_HUMAN_READABLE
-    void HKComm::command_AHR(OutBuilder & bld);
+    static void command_AHR(OutBuilder & bld);
 #endif
 
     static OutBuilder & accessOutBuilder()

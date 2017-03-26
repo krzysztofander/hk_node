@@ -31,7 +31,7 @@ class HKCommDefs
 public:
     static const uint8_t preamble  = '!';
     static const uint8_t commandEOLSignOnRecieve  = 0x0dU;
-    static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
+    static const uint8_t commandEOLOnResponceSequence[1]; //sequence send as an end of line on response
 
     /*
     enum ECommandsConsts

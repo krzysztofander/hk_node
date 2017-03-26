@@ -121,7 +121,11 @@ bool  HKComm::respondSerial(void)
                 case InCommandWrap::ECommands::command_AVI:
                     command_AVI(g_OutBuilder);
                     break;
-
+#if HAVE_HUMAN_READABLE
+                case InCommandWrap::ECommands::command_AHR:
+                    command_AHR(g_OutBuilder);
+                    break;
+#endif
                 default:
                 {
                     g_commState.setErrorState(

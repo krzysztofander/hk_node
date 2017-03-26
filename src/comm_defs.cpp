@@ -19,6 +19,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 #include "comm_defs.h"
-
+#if 0
 const uint8_t  HKCommDefs::commandEOLOnResponceSequence[2] ={ '\x0d', '\x0a' }; //sequence send as an end of line on response
+#else
+const uint8_t  HKCommDefs::commandEOLOnResponceSequence[1] ={ '\x0d' }; //sequence send as an end of line on response
 
+#endif
