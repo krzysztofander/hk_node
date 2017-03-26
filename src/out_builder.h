@@ -49,6 +49,8 @@ public:
     bool isErr();
 
     void putCMD(const char * cmd);
+    void putCMD(uint32_t cmdCode);
+
     void addData(const char * data, const uint16_t size);
     void addInt(int64_t newInt);
     void addMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);

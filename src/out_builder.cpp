@@ -91,6 +91,15 @@ void OutBuilder::putCMD(const char * cmd)
     m_buffer[2] = cmd[2];
 }
 
+void OutBuilder::putCMD(uint32_t cmdCode)
+{
+    m_buffer[2] = (uint8_t)(cmdCode & 0xFF);
+    cmdCode >>= 8;
+    m_buffer[1] = (uint8_t)(cmdCode & 0xFF) ;
+    cmdCode >>= 8;
+    m_buffer[0] = (uint8_t)(cmdCode & 0xFF) ;
+}
+
 void OutBuilder::putErr(ELogicErr err)
 {
     m_dataSize = 0;

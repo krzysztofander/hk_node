@@ -159,6 +159,7 @@ void HKComm::command_RTM(OutBuilder & bld)
     HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
 
     bld.putCMD("VTM");
+
     bld.addMeasurement(0, singleTempMeasurement);
 
 }
@@ -209,8 +210,10 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 
 void HKComm::command_AVI( OutBuilder & bld)
 {
-    bld.putCMD("AVI");
-    bld.addData(" 0.6.0", 6);
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
+    static const char v[] ={ ' ','0','.','6','.','0' };
+
+    bld.addData(v, NUM_ELS(v));
 
     // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 

@@ -34,14 +34,15 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void HKComm::command_DER(OutBuilder & bld)
 {
     bld.reset();
-    bld.putCMD("DER");
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_DER));
 }
 #if HAVE_HUMAN_READABLE
 void HKComm::command_AHR(OutBuilder & bld)
 {
-    g_OutBuilder.putCMD("AHR");
-    g_OutBuilder.addInt(1);
-    g_OutBuilder.setHumanReadable();
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AHR) );
+
+    bld.addInt(1);
+    bld.setHumanReadable();
 }
 #endif
 /*
