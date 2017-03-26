@@ -57,11 +57,21 @@ public:
 
     const int getStrLenght() const;
     const uint8_t * getStrToWrite() const;
- 
+#if HAVE_HUMAN_READABLE
+    void setHumanReadable()
+    {
+        g_HumanReadableMode = true;
+    }
+    static bool g_HumanReadableMode; 
+#endif
+
+
 private:  
     uint8_t m_buffer[static_cast<int>(Consts::BufferSize)];
     uint16_t m_dataSize;
     
     ELogicErr m_err;
+
+   
 }; 
 #endif

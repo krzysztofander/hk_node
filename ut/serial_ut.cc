@@ -125,8 +125,8 @@ TEST_F (Serial_D_method_Fixture, echoD)
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Respond);
     EXPECT_CALL(mockSerial, write(_, 3))
         .Times(1). WillRepeatedly(Return(3));
-    EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
-        .Times(1). WillRepeatedly(Return(NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)));
+    EXPECT_CALL(mockSerial, write(_, (size_t)NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
+        .Times(1). WillRepeatedly(Return((uint8_t)NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)));
     retVal = HKComm::respondSerial();
     ASSERT_EQ(HKComm::g_commState.getState(), HKCommState::ESerialState::serialState_Preable);
 
@@ -170,7 +170,7 @@ TEST_F (Serial_D_method_Fixture, checkWriteError)
     EXPECT_CALL(mockSerial, write(_, sizeofErrorResp))
         .Times(1). WillRepeatedly(Return(sizeofErrorResp));
     EXPECT_CALL(mockSerial, write(_, NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)))
-        .Times(1). WillRepeatedly(Return(2));
+        .Times(1). WillRepeatedly(Return((uint8_t)NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)));
 
     retVal = HKComm::respondSerial();
 

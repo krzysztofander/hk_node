@@ -36,7 +36,14 @@ void HKComm::command_DER(OutBuilder & bld)
     bld.reset();
     bld.putCMD("DER");
 }
-
+#if HAVE_HUMAN_READABLE
+void HKComm::command_AHR(OutBuilder & bld)
+{
+    bld.putCMD("AHR");
+    bld.addInt(1);
+    bld.setHumanReadable();
+}
+#endif
 /*
 
 void HKComm::echoLetter(uint8_t l)

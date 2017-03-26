@@ -48,7 +48,12 @@ TEST_F(SerialFixture, Blinker01)
     ASSERT_EQ(HKCommExtraRecordsHDL::dataReciever, &HKCommExtraHLRs::RTHdataReciever);
     ASSERT_EQ(HKCommExtraRecordsHDL::totalRecords, 0);
 
-    const int VHTlenght = 11 + 2/*if we use EOL sequence here*/;
+    int VHTlenght = 11 ;
+
+    if (OutBuilder::g_HumanReadableMode)
+    {
+        VHTlenght+= 2;
+    }
 
     EXPECT_CALL(mockSerial, write(_,VHTlenght ))
         .Times(1). WillRepeatedly(Return(VHTlenght));

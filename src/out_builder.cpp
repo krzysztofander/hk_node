@@ -28,6 +28,10 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_rec_handlers.h"
 #include "MiniInParser.h"
 
+#if HAVE_HUMAN_READABLE
+bool OutBuilder::g_HumanReadableMode = false;
+#endif
+
 char *OutBuilder::itoa(int64_t i, uint16_t & strSizeOut)
 {
     strSizeOut = 0;
@@ -166,10 +170,13 @@ void OutBuilder::addMeasurement( HKTime::SmallUpTime timeStamp, int16_t val)
     //closing parethesis
     addData(&chEnd, 1); 
 
-#if 1    
-    addData((const char *)HKCommDefs::commandEOLOnResponceSequence, 
-            NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)
-    );
+#if HAVE_HUMAN_READABLE   
+    if (g_HumanReadableMode)
+    {
+        addData((const char *)HKCommDefs::commandEOLOnResponceSequence,
+                NUM_ELS(HKCommDefs::commandEOLOnResponceSequence)
+        );
+    }
     //
 #endif
 
@@ -179,5 +186,7 @@ OutBuilder::ELogicErr OutBuilder::getError() const
 {
     return m_err;
 }
+
+
 
 
