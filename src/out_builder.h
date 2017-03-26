@@ -48,7 +48,6 @@ public:
 
     bool isErr();
 
-    void putCMD(const char * cmd);
     void putCMD(uint32_t cmdCode);
 
     void addData(const char * data, const uint16_t size);

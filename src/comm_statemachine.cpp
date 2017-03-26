@@ -199,7 +199,7 @@ bool  HKComm::respondSerial(void)
     
 
             g_OutBuilder.reset();
-            g_OutBuilder.putCMD("ERR");
+            g_OutBuilder.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_ERR));
             g_OutBuilder.addData(" code:",6);
  
             errorcode += static_cast <uint8_t>(err);

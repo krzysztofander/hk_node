@@ -82,17 +82,9 @@ const uint8_t * OutBuilder::getStrToWrite() const
     return &m_buffer[0];
 }
 
-
-void OutBuilder::putCMD(const char * cmd)
-{
-    m_dataSize  = 3; //reset
-    m_buffer[0] = cmd[0];
-    m_buffer[1] = cmd[1];
-    m_buffer[2] = cmd[2];
-}
-
 void OutBuilder::putCMD(uint32_t cmdCode)
 {
+    m_dataSize  = 3;
     m_buffer[2] = (uint8_t)(cmdCode & 0xFF);
     cmdCode >>= 8;
     m_buffer[1] = (uint8_t)(cmdCode & 0xFF) ;

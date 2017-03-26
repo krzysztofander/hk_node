@@ -158,7 +158,7 @@ void HKComm::command_RTM(OutBuilder & bld)
     HKCommExtraRecordsHDL::setNumRecords(0);
     HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
 
-    bld.putCMD("VTM");
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VTM));
 
     bld.addMeasurement(0, singleTempMeasurement);
 
@@ -188,7 +188,7 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
             //if its zero return all.
             measurementsToReturn = TempMeasure::capacity();
         }
-        bld.putCMD("VTM");
+        bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VTM));
 
         //measurementsToReturn contains how many. First one returns difference of current to timestamp
         HKTime::UpTime diff = Sleeper::getUpTime();
