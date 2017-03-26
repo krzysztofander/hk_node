@@ -126,6 +126,13 @@ bool  HKComm::respondSerial(void)
                     command_AHR(g_OutBuilder);
                     break;
 #endif
+                case  InCommandWrap::ECommands::command_CTP:
+                    commandCTP(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CSM:
+                    commandCSM(g_RecievedCmd, g_OutBuilder);
+                    break;
+
                 default:
                 {
                     g_commState.setErrorState(

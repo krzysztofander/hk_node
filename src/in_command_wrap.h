@@ -47,8 +47,7 @@ public:
         command_RTM = 0x52544d,  //undocumented
         command_VTM = 0x56544d,
         command_DER = 0x444552,
-        command_DLY = 0x444c59,  //LEDS yes  
-        command_DLN = 0x444c4e,  //LEDS no
+        command_DLS = 0x444c56,  //LEDS status
 #if HAVE_HUMAN_READABLE
         command_AHR = 0x414852,  //switch on human readable mode
 #endif
@@ -68,7 +67,7 @@ public:
     };
     */
 
-    uint16_t getUint16(OutBuilder::ELogicErr & err)
+    uint16_t getUint16(OutBuilder::ELogicErr & err) const
     {
         uint16_t ret = 0;
         if (outParamType != OutParamType_INT_DIGIT)
@@ -89,10 +88,28 @@ public:
         }
         return ret;
     }
+    int32_t getInt32(OutBuilder::ELogicErr & err) const
+    {
+        if (outParamType != OutParamType_INT_DIGIT)
+        {
+            err = OutBuilder::ELogicErr::NumberExpected;
+        }
+        else
+        {
+            err = OutBuilder::ELogicErr ::None;
+        }
+        return static_cast<int32_t> (numericValue);
+    }
+
     ECommands getCommand () const
     {
         return static_cast<ECommands>(cmd >> 8);
     }
+    bool hasData() const
+    {
+        return (OutParamType_NONE != outParamType);
+    }
+
     void setCommand (ECommands newCmd)
     {
         cmd =  static_cast<uint32_t>(newCmd) << 8;

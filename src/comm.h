@@ -72,6 +72,8 @@ public:
 #if HAVE_HUMAN_READABLE
     static void command_AHR(OutBuilder & bld);
 #endif
+    static void commandCTP(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCSM(const InCommandWrap & inCmd, OutBuilder & bld);
 
     static OutBuilder & accessOutBuilder()
     {
