@@ -23,6 +23,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "blinker.h"
 #include "comm_common.h"
 #include "comm.h"
+#include "in_command_wrap.h"
 #include "sleeper.h"
 //------------------------------------------------------------------
 uint8_t Blinker::g_blinkSetting = 1;
@@ -78,13 +79,15 @@ void Blinker::blinkAction()
                 if (0 ||
                     (uint8_t)(counter & (uint8_t)0x03) == (uint8_t)0)
                 {
-                    HKComm::jumpToAction((const uint8_t*)"RTM", 0, 0);
+                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_RTM);
+                    HKComm::accessInCommandWrap().setIntData(0);
+                    HKComm::jumpToAction();
                 }
                 else
                 {
-                    uint16_t dataSize = 0;
-                    HKCommCommon::uint8ToData(dataSize, HKComm::g_data, counter);
-                    HKComm::jumpToResp((const uint8_t*)"AHL",HKComm::g_data , dataSize);
+                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_DER);
+                    HKComm::accessInCommandWrap().setIntData(0);
+                    HKComm::jumpToAction();
                 }
                 counter++;
             }

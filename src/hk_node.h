@@ -23,6 +23,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Arduino.h"
 #define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
 
+#define HAVE_HUMAN_READABLE 1
+
 class HKTime
 {
 public:

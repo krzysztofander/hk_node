@@ -22,11 +22,16 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 #include "comm_defs.h"
+#include "comm_common.h"
+#include "MiniInParser.h"
+#include "out_builder.h"
+#include "comm_state.h"
+#include "in_command_wrap.h"
 
 class HKComm
 {
 public:
-    
+    /*
     static uint8_t formatResponceUnkL1(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize);
     static uint8_t formatResponceUnkL2(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize);
     static uint8_t formatResponceOK(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
@@ -41,7 +46,8 @@ public:
 
     static uint8_t command_RTM(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
     static uint8_t command_RTH(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize);
-
+    */
+/*
     //sets serial state to action after specific command
     //can be used to send responsce w/o  request for debug purposes
     static void jumpToAction(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize);
@@ -49,17 +55,39 @@ public:
     //sets serial state to action after specific command
     //can be used to immediately send something responsce w/o  request for debug purposes
     static void jumpToResp(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize);
-
-    static uint8_t respondSerial(void);
-    static void echoLetter(uint8_t l);
+    */
+    static bool respondSerial(void);
+  /*  static void echoLetter(uint8_t l);*/
     static uint8_t isActive(void);
 
-    static uint8_t g_command[HKCommDefs::commandSize];
-    static uint8_t g_data[HKCommDefs::commandMaxDataSize];
-    static uint16_t g_dataIt;
+    static void jumpToResp(void);     //@!Immediately set serial state to response
+    static void jumpToAction(void);   //@!Immediately set serial state to action
 
-    static uint8_t g_SerialState;
-    static uint8_t g_serialError;
+
+
+    static void command_DER(OutBuilder & bld);
+    static void command_RTH(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void command_RTM(OutBuilder & bld); 
+    static void command_AVI(OutBuilder & bld);
+#if HAVE_HUMAN_READABLE
+    static void command_AHR(OutBuilder & bld);
+#endif
+    static void commandCTP(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCSM(const InCommandWrap & inCmd, OutBuilder & bld);
+
+    static OutBuilder & accessOutBuilder()
+    {
+        return g_OutBuilder;
+    }
+
+    static InCommandWrap & accessInCommandWrap()
+    {
+        return g_RecievedCmd;
+    }
+
+    static HKCommState      g_commState;           //!@ state of the machine
+    static InCommandWrap    g_RecievedCmd;         //!@ Input parser
+    static OutBuilder       g_OutBuilder;          //!@ Output builder
 
 
 };

@@ -52,6 +52,10 @@ TempMeasure::TempRecord TempMeasure::getTempMeasurementRecord(uint16_t howManyRe
 {
     return MockTempMeasurement::instance().getTempMeasurementRecord(howManyRecordsBack);
 }
+void TempMeasure::measureTemperature(void)
+{
+    //
+}
 //------------------------------------------------------------------------
 
 void Executor::setExecutionTime(uint8_t t, Sleeper::SleepTime  s)

@@ -17,33 +17,62 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_COMM_EXTRA_RECORDS_H
-#define HK_COMM_EXTRA_RECORDS_H
+#ifndef HK_OUT_BUILDER_H
+#define HK_OUT_BUILDER_H
 
 #include "hk_node.h"
 #include "comm_defs.h"
-#include "comm_extra_rec_handlers.h"
-#include "out_builder.h"
-
-class HKCommExtraRecordsHDL
+#include "MiniInParser.h"
+class OutBuilder
 {
 public:
-    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
-
-    //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
-    // in valid returs if record is valid or run ouf of scheduled elems
-   // static uint8_t formatedMeasurement(uint8_t & valid, uint16_t & inOutOffset, uint8_t (&outData)[HKCommDefs::commandMaxDataSize]);
-    static uint8_t formatedMeasurement(bool & valid, OutBuilder & bld);
-    static void setNumRecords(uint16_t records);
-    static void setDataReciever(DataReciever newDataReciver)
+    ENUM (Consts)
     {
-        dataReciever = newDataReciver;
+        BufferSize = 64,
+
+    };
+
+    ENUM (ELogicErr)
+    {
+        None,
+        UnsignedExpected,
+        NumberExpected,
+        BufferOverrun,
+    };
+
+    static char *itoa(int64_t i    , uint16_t & strSizeOut);
+
+    void putErr(ELogicErr err);
+    ELogicErr getError() const;
+
+
+    bool isErr();
+
+    void putCMD(uint32_t cmdCode);
+
+    void addData(const char * data, const uint16_t size);
+    void addInt(int64_t newInt);
+    void addMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);
+
+    void reset();
+
+    const int getStrLenght() const;
+    const uint8_t * getStrToWrite() const;
+#if HAVE_HUMAN_READABLE
+    void setHumanReadable()
+    {
+        g_HumanReadableMode = true;
     }
+    static bool g_HumanReadableMode; 
+#endif
+
+
+private:  
+    uint8_t m_buffer[static_cast<int>(Consts::BufferSize)];
+    uint16_t m_dataSize;
     
-    static int16_t recordsIt;
-    static int16_t totalRecords;
-    static DataReciever  dataReciever;
-};
+    ELogicErr m_err;
 
-
+   
+}; 
 #endif

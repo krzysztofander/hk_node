@@ -28,6 +28,7 @@ HKCommExtraRecordsHDL::DataReciever  HKCommExtraRecordsHDL::dataReciever      = 
 
 //@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
 // in valid returs if record is valid or run ouf of scheduled elems
+#if 0
 uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
                                              uint16_t & inOutOffset, 
                                              uint8_t (&outData)[HKCommDefs::commandMaxDataSize])
@@ -51,6 +52,28 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
         valid = 1;
     }
     return err;
+}
+#endif
+uint8_t HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bld)
+
+{
+    valid = false;
+    HKTime::SmallUpTime timeReturned;
+    int16_t  value;
+    if (dataReciever == 0 || recordsIt >= totalRecords  )
+    {
+        //run out of data
+        return 0;
+    }
+    uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
+    recordsIt++;
+    if (err != 0)
+    {
+        return err;
+    }
+    bld.addMeasurement(timeReturned, value);
+    valid = true;
+    return 0;
 }
 
 void HKCommExtraRecordsHDL::setNumRecords(uint16_t records)

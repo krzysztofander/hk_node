@@ -26,249 +26,214 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_common.h"
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
+#include "MiniInParser.h"
 
-uint8_t  HKComm::g_SerialState = HKCommDefs::serialState_ReadCommand;
-uint8_t  HKComm::g_command[HKCommDefs::commandSize];
-uint8_t  HKComm::g_data[HKCommDefs::commandMaxDataSize];
-uint16_t HKComm::g_dataIt = 0;
-uint8_t  HKComm::g_serialError = HKCommDefs::serialErr_None;
 
+HKCommState      HKComm::g_commState;    
+InCommandWrap    HKComm::g_RecievedCmd;  
+OutBuilder       HKComm::g_OutBuilder;   
 
 //------------------------------------------------------------------
 
 uint8_t HKComm::isActive(void)
 {
-    if (g_SerialState != HKCommDefs::serialState_ReadCommand
+    if (g_commState.getState () != HKCommState::ESerialState::serialState_Preable
         || HKSerial::available() > 0)
         return 1;
     else
         return 0;
 }
 
-void HKComm::jumpToAction(const uint8_t * command,const uint8_t * data, const uint16_t dataSize)
+
+void HKComm::jumpToAction()
 {
-    g_serialError = HKCommDefs::serialErr_None;
-    g_SerialState = HKCommDefs::serialState_Action;
-    g_dataIt      = 0;
-
-    g_command[0] = command[0];
-    g_command[1] = command[1];
-    g_command[2] = command[2];
-
-    for (g_dataIt = 0; (g_dataIt < dataSize) && (g_dataIt < NUM_ELS(g_data)); g_dataIt++)
-    {
-        *g_data = *data;
-    }
-
+    g_commState.setState(HKCommState::ESerialState::serialState_Action);
 }
 
-void HKComm::jumpToResp(const uint8_t * command, const  uint8_t * data, const uint16_t dataSize)
+void HKComm::jumpToResp()
 {
-    jumpToAction(command, data, dataSize);
-    g_SerialState = HKCommDefs::serialState_Respond;
-
+    g_commState.setState(HKCommState::ESerialState::serialState_Respond);
 }
+
 
 
 
 // @brief Main function responding to serial data
 // @returns True if switched state and shall be called immediately.
 
-uint8_t  HKComm::respondSerial(void)
+bool  HKComm::respondSerial(void)
 {
 
     //alert(g_SerialState +1, false);
-    switch (g_SerialState)
+    switch (g_commState.getState())
     {
-        case HKCommDefs::serialState_ReadCommand:
-        {
-            // read whole command first.
-            if (HKSerial::available() >=  NUM_ELS(g_command))
-            {
-                //peek for preamble:
-                if (HKSerial::peek() == HKCommDefs::preamble)
-                {
-                    //ignore preamble
-                    HKSerial::read();
-                    return false;   // the upper condition may not be met. Returning to main loop
-                }
-                g_serialError = HKCommDefs::serialErr_None;
-                g_SerialState = HKCommDefs::serialState_ReadData;
-                g_dataIt      = 0;
-
-                for (uint8_t commandIt = 0; commandIt  < NUM_ELS(g_command); commandIt ++)
-                {
-                    g_command[commandIt] = HKSerial::read();
-                    //in case of error here
-                    if (g_command[commandIt] == uint8_t(HKCommDefs::commandEOLSignOnRecieve))
-                    {
-                        g_serialError = HKCommDefs::serialErr_eolInCommand;
-                        g_SerialState =  HKCommDefs::serialState_Error;
-                        //loop will continue reading whole command (3 chars) anyway.
-                    }
-                }
-                return 1;
-            }
+        case HKCommState::ESerialState::serialState_Preable:
+            //we wait here for serial to stabilize, e.g. start communication
+            //or send preamble
             
-            break;
-        }
-
-        case HKCommDefs::serialState_ReadData:
-        {
-            if (HKSerial::available() >= 1)
+            //temporarily: when there is something available
+            //in serial go to ParseCommand
+            if (HKSerial::available() > 0)
             {
-                //read up to end of line or to error
-                g_data[g_dataIt] = HKSerial::read();
-                //echoLetter(g_data[g_dataIt] );
-                if (g_data[g_dataIt] == uint8_t(HKCommDefs::commandEOLSignOnRecieve))
+                g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
+                return true;
+            }
+            break;
+
+        case HKCommState::ESerialState::serialState_ParseCommand:
+        {
+            if (HKSerial::available() > 0)
+            {
+                char currentChar = HKSerial::read();
+                ParseResult parseResult  = miniInParse(currentChar, &g_RecievedCmd);
+                if (parseResult != ParseResult_WILL_CONTINUE)
                 {
-                      //found end of line
-                    g_SerialState =  HKCommDefs::serialState_Action;
-                    return 1;
-                }
-                else
-                {   
-                    if (g_dataIt >= NUM_ELS(g_data) - 1 /*cannot increase g_dataIt as next read we would go out of buffer*/ )
+                    if (parseResult == ParseResult_SUCCESS)
                     {
-                        //lost end of line and have a buffer full already. It must be an error
-                        g_serialError = HKCommDefs::serialErr_noEolFound;
-                        g_SerialState =  HKCommDefs::serialState_Error;
-                        //terminating data with EOL anyway
-                        g_data[NUM_ELS(g_data) - 1] = uint8_t(HKCommDefs::commandEOLSignOnRecieve);
-                        return 1;
+                        g_commState.setState(HKCommState::ESerialState::serialState_Action);
                     }
                     else
                     {
-                        //still place and did not recieve the end of line yet. Keep gathering
-                        g_dataIt++;
-                        
-                        return 1; //maybe the is more data, so try immediately
-                    }
+                        g_commState.setErrorState( parseResult  );
+
+                     }
+                    return true;
                 }
             }
             break;
         }
-        case HKCommDefs::serialState_Action:
+        case HKCommState::ESerialState::serialState_Action:
         {
-            //command  and data recieved. Handle that...
-            //TODO remove this state.
-            
-            switch (g_command[HKCommDefs::commandIdentifierPos])
+            g_OutBuilder.reset();
+            switch (g_RecievedCmd.getCommand())
             {
-            case 'D':
-                g_serialError = command_D(g_command, g_data, g_dataIt);
-                break;
-            case 'C':
-                g_serialError = command_C(g_command, g_data, g_dataIt);
-                break;
-            case 'R':
-                g_serialError = command_R(g_command, g_data, g_dataIt);
-                break;
+                case InCommandWrap::ECommands::command_DER:
+                   command_DER(g_OutBuilder);
+                    break;
+                case InCommandWrap::ECommands::command_RTH:
+                    command_RTH(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case InCommandWrap::ECommands::command_RTM:
+                    command_RTM(g_OutBuilder);
+                    break;
+                case InCommandWrap::ECommands::command_RVI:
+                    //fall through
+                case InCommandWrap::ECommands::command_AVI:
+                    command_AVI(g_OutBuilder);
+                    break;
+#if HAVE_HUMAN_READABLE
+                case InCommandWrap::ECommands::command_AHR:
+                    command_AHR(g_OutBuilder);
+                    break;
+#endif
+                case  InCommandWrap::ECommands::command_CTP:
+                    commandCTP(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CSM:
+                    commandCSM(g_RecievedCmd, g_OutBuilder);
+                    break;
 
-            default :
-                g_serialError  = HKCommDefs::serialErr_UnknownCommand;
+                default:
+                {
+                    g_commState.setErrorState(
+                        HKCommState::ESerialErrorType::serialErr_LogicNoSuchCommand);
+                }
+
             }
-
-            if (g_serialError == HKCommDefs::serialErr_None)
+            if (g_OutBuilder.isErr())
             {
-                //we have response command and response data in buffers. 
-
-                g_SerialState = HKCommDefs::serialState_Respond;
+                g_commState.setErrorState( g_OutBuilder.getError() );
             }
-            else
+            if (! g_commState.isError())
             {
-                g_SerialState = HKCommDefs::serialState_Error;
+                g_commState.setState(HKCommState::ESerialState::serialState_Respond);
             }
-            return 1;
-            break;
+            return true;
         }
-        case HKCommDefs::serialState_Respond:
+        case HKCommState::ESerialState::serialState_Respond:
         {
 
             //write command then variable number of data then end of line sequence.
-            uint16_t written = HKSerial::write(g_command, NUM_ELS(g_command));
-            if (g_dataIt != 0)
-            {
-                written += HKSerial::write(g_data, g_dataIt);
-            }
-            //write extra records if any
-            uint8_t valid = 0;
-            uint8_t err = 0;
-            uint16_t extraRecChars;
-            uint16_t extraRecCharsCounter = 0;
+            uint16_t toWrite =  g_OutBuilder.getStrLenght();
+            uint16_t written = HKSerial::write(
+                g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
+          
+             //write extra records if any
+            bool valid = 0;
             do
-            {
-                extraRecChars  =0;
-                g_serialError = HKCommExtraRecordsHDL::formatedMeasurement(valid, extraRecChars, g_data);
-                if (g_serialError != HKCommDefs::serialErr_None)
+            {   
+                g_OutBuilder.reset();
+                uint8_t ret = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
+                if (ret != 0)
                 {
-                    g_SerialState = HKCommDefs::serialState_Error;
+                    g_commState.setErrorState(
+                        HKCommState::ESerialErrorType::serialErr_WriteFail );
+
                     return 1;
                 }
-                if (valid != 0)
+                if (valid)
                 {
-                    written += HKSerial::write(g_data, g_dataIt);
-                    extraRecCharsCounter += extraRecChars;
+                    toWrite += g_OutBuilder.getStrLenght();
+                    written += HKSerial::write(g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
                 }
-
-            } while (valid != 0);
+            } while (valid);
 
 
             written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
 
             //check if ammount written matches to what was expected
-            if (written != NUM_ELS(g_command)+ g_dataIt + extraRecCharsCounter + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
+            if (written != toWrite + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
             {
-                g_serialError = HKCommDefs::serialErr_WriteFail;
-                g_SerialState = HKCommDefs::serialState_Error;
-                //leaving g_dataIt  as is for debug purposes...
+                g_commState.setErrorState(
+                    HKCommState::ESerialErrorType::serialErr_WriteFail);
             }
             else
             {
-                g_serialError = HKCommDefs::serialErr_None;
-                g_SerialState = HKCommDefs::serialState_ReadCommand;
-                g_dataIt = 0;
+                g_commState.setState(HKCommState::ESerialState::serialState_Preable);
             }
             return 1;
             break;
         }
         default:
-        case HKCommDefs::serialState_Error:
+        case HKCommState::ESerialState::serialState_Error:
         {
-            g_dataIt = 0;
-            g_data[g_dataIt++] = ' ';
-            for (uint8_t i = 0; i < NUM_ELS(g_command); i++)
+            HKCommState::ESerialErrorType  err  =  g_commState.getErrorType();
+            uint8_t                        serr = g_commState.getErrSUBType();
+            int64_t errorcode = 0;
+            uint32_t lastCmd = 0;
+ 
+            lastCmd = static_cast<uint32_t>(g_RecievedCmd.getCommand());
+    
+
+            g_OutBuilder.reset();
+            g_OutBuilder.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_ERR));
+            g_OutBuilder.addData(" code:",6);
+ 
+            errorcode += static_cast <uint8_t>(err);
+            errorcode *= 1000;
+            errorcode += serr;
+
+            g_OutBuilder.addInt(errorcode);
+
+            g_OutBuilder.addData(",lstcmd:",8);
+
+            for (int8_t i =2; i >=0 ; i--)
             {
-                if (g_command[i] > uint8_t (' ') && g_command[i] < 127)
+                uint8_t c = (char)(lastCmd >> (i * 8) );
+                if (c < uint8_t(' ') || c > 127)
                 {
-                    g_data[g_dataIt++] = g_command[i];
+                    g_OutBuilder.addData("\\",1);
+                    g_OutBuilder.addInt(c);
                 }
                 else
                 {
-                    g_data[g_dataIt++] = '\\';
-                    HKCommCommon::uint8ToData(g_dataIt, g_data, g_command[i]);
+                    g_OutBuilder.addData((char * )(&c),1);
                 }
             }
 
-            g_data[g_dataIt++] = '-';
-            if ((uint8_t)HKCommDefs::serialErr_WriteFail == g_serialError)
-            {
-                //lets attempt to do something anyway...
-                HKSerial::flush();
-                HKSerial::end();
-                HKSerial::begin(9600);
-            }
+            miniInParserReset();
+            g_commState.setState(HKCommState::ESerialState::serialState_Respond);
 
-            g_command[0]='E';
-            g_command[1]='R';
-            g_command[2]='R';
-
-          
-            HKCommCommon::shortToData(g_dataIt, g_data, g_serialError);
-            
-
-            g_SerialState = HKCommDefs::serialState_Respond;
-            g_serialError = HKCommDefs::serialErr_None;
             return 1;
 
             break;

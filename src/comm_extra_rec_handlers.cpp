@@ -29,12 +29,12 @@ uint8_t HKCommExtraHLRs::RTHdataReciever(HKTime::SmallUpTime & timeReturned, int
 {
     if (whichRecordBack == 0)
     {
-        return HKCommDefs::serialErr_Assert;
+        return 1;
     }
     timeReturned =    TempMeasure::getTempMeasurementRecord(whichRecordBack -1).timeStamp //newer
         - TempMeasure::getTempMeasurementRecord(whichRecordBack   ).timeStamp;  //older (current temp)
                                                                                 //subtracting older from newer 
     value        =  TempMeasure::getTempMeasurementRecord(whichRecordBack).tempFPCelcjus;
 
-    return HKCommDefs::serialErr_None;
+    return 0;
 }

@@ -22,14 +22,18 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 
+#define ENUM(name) enum class name : uint8_t
+#define BIGENUM(name) enum class name : uint32_t
+
+
 class HKCommDefs
 {
 public:
     static const uint8_t preamble  = '!';
     static const uint8_t commandEOLSignOnRecieve  = 0x0dU;
-    static const uint8_t commandEOLOnResponceSequence[2]; //sequence send as an end of line on response
+    static const uint8_t commandEOLOnResponceSequence[1]; //sequence send as an end of line on response
 
-
+    /*
     enum ECommandsConsts
     {
         commandSize = 3,
@@ -46,26 +50,19 @@ public:
         commandMaxDataSize = command_DataSize + commandEOLSizeOnRecieve
 
     };
+    */
+  
+    /*
 
-    enum ESerialState
-    {
-     //   serialState_Preable,
-        serialState_ReadCommand = 0,
-        serialState_ReadData = 1,
-        serialState_Action = 2,
-        
-        serialState_Respond = 3,
-        serialState_Error = 4,
-    };
-    
-    enum ESerialErrors
+    enum ESerialErrors_DEPRECATED
     {
         serialErr_None,
 
-        serialErr_Assert = 0x10,           // some assertion triggered
-        serialErr_Assert_NotImpl = 0x11,           // not implemented yet
 
-        
+        serialErr_Assert_NotImpl = 0x11,           // not implemented yet
+        serialErr_UnknownCommand = 0x60,   //a command recieved is not recognized
+
+
         serialErr_Number_IncorrectFormat = 0x20,  //format of the number from serial is incorrect. 
         serialErr_Number_Uint16ToShort   =0x21 ,    //a number recieved from serial is to short. Recieved EOL to early
         serialErr_Number_Uint32ToShort   =0x22 ,    //a number recieved from serial is to short. Recieved EOL to early
@@ -74,9 +71,13 @@ public:
 
         serialErr_eolInCommand =0x40 ,
         serialErr_noEolFound = 0x50,
-        serialErr_UnknownCommand =0x60,   //a command recieved is not recognized
-        serialErr_WriteFail = 0x70,     //a number of bytes written is not same as expected
+
 
     };
+
+
+    */
+ 
+
 };
 #endif

@@ -31,6 +31,66 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "blinker.h"
 
 
+void HKComm::command_DER(OutBuilder & bld)
+{
+    bld.reset();
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_DER));
+}
+#if HAVE_HUMAN_READABLE
+void HKComm::command_AHR(OutBuilder & bld)
+{
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AHR) );
+
+    bld.addInt(1);
+    bld.setHumanReadable();
+}
+#endif
+void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+  
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        int32_t newPeriod = g_RecievedCmd.getInt32(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else
+        {
+            Executor::setExecutionTime(
+                (uint8_t)Executor::temperatureMeasurer,
+                newPeriod);
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CTP));
+    bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer));
+}
+
+void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint16_t newPowerMode = g_RecievedCmd.getUint16(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else
+        {
+            Sleeper::setPowerSaveMode( Sleeper::PowerSaveMode( newPowerMode) );
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSM));
+    bld.addInt(Sleeper::getPowerSaveMode());
+}
+
+
+/*
+
 void HKComm::echoLetter(uint8_t l)
 {
     uint8_t sequence[] = "0x?? \n\r";
@@ -263,6 +323,6 @@ uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint
     }
     return err;
 }
-
+*/
 
 //------------------------------------------------------------------

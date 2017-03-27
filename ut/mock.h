@@ -106,12 +106,7 @@ public:
 class SerialFixtureComm : public ::testing::Test
 {
 public:
-    enum
-    {
-        serialResponce_OK_dataLength = 3
-
-    };
-
+   
 };
 
 class SerialFixture : public SerialFixtureComm
@@ -124,9 +119,7 @@ public:
     virtual void SetUp()
     {
         Serial.install(&mockSerial);
-        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;
-        HKComm::g_dataIt = 0;
-        HKComm::g_serialError = 0;
+        HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
     }
 };
 
@@ -134,18 +127,20 @@ public:
 class NiceSerialFixture : public SerialFixtureComm{
 public: 
     NiceMock<MockSerial>  mockSerial;
-    InSequence dummy;    virtual void SetUp()    {
-        Serial.install(&mockSerial);        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;        HKComm::g_dataIt = 0;        HKComm::g_serialError = 0;    }
+    virtual void SetUp()    {        miniInParserReset();
+        Serial.install(&mockSerial);        HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);    }
 };
 class StrictSerialFixture : public SerialFixtureComm
 {
 public: 
     StrictMock<MockSerial>  mockSerial;
     InSequence dummy;    virtual void SetUp()    {
-        Serial.install(&mockSerial);        HKComm::g_SerialState =  HKCommDefs::serialState_ReadCommand;        HKComm::g_dataIt = 0;        HKComm::g_serialError = 0;    }};
+        Serial.install(&mockSerial);        HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);    }
+};
 
 class SerialBufferHandler : public SerialFixture
 {
+    /*
 public:
     class SerialBufferHldrInt
     {
@@ -180,6 +175,7 @@ public:
             //termination sign (\r) does not count
         }
     }rcData;
+    */
 };
 
 class Serial_D_method_Fixture : public SerialFixture
@@ -193,15 +189,15 @@ class Serial_R_method_Fixture : public SerialBufferHandler
 {
 public:
     
-    enum
-    {
-        serialResponce_Format4_8_dataLength = 1+4+1+8+1 + /*for eol:*/ 2
+    //enum
+    //{
+    //    serialResponce_Format4_8_dataLength = 1+4+1+8+1 + /*for eol:*/ 2
 
-    };
+    //};
 
     MockTempMeasurement mckTm;
     MockSleeper mckS;
-
+/*
     uint16_t & dataSize()
     {
         return rcData.dataSize;
@@ -218,17 +214,13 @@ public:
     {
         return rcData;
     }
+    */
 };
 
 class Serial_RTH_method_Fixture : public Serial_R_method_Fixture
 {
 public:
-    uint8_t inOutCommand[HKCommDefs::commandSize] =
-    {   //command to send
-        'R',
-        'T',
-        'H'
-    };
+  
 };
 #endif
 
