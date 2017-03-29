@@ -24,7 +24,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "serial.h"
 #include "comm.h"
 #include "supp.h"
-#include "comm_common.h"
 #include "comm_state.h"
 
 

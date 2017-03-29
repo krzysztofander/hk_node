@@ -58,7 +58,6 @@ project (unit_tests)
         ${TOP}/hk_node/src/blinker.cpp
         ${TOP}/hk_node/src/comm_extra_records.cpp
         ${TOP}/hk_node/src/comm_extra_rec_handlers.cpp
-        ${TOP}/hk_node/src/comm_common.cpp
         ${TOP}/hk_node/src/comm_defs.cpp
         ${TOP}/hk_node/src/comm_state.cpp
         ${TOP}/hk_node/src/MiniInParser.cpp
@@ -77,7 +76,6 @@ project (unit_tests)
 
         ${TOP}/hk_node/src/comm_extra_records.h
         ${TOP}/hk_node/src/comm_extra_rec_handlers.h
-        ${TOP}/hk_node/src/comm_common.h
         ${TOP}/hk_node/src/comm_defs.h
         ${TOP}/hk_node/src/comm_state.h
 

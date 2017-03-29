@@ -19,41 +19,13 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 #include "comm_extra_records.h"
-#include "comm_common.h"
 
 
 int16_t                             HKCommExtraRecordsHDL::recordsIt   = 0;
 int16_t                             HKCommExtraRecordsHDL::totalRecords   = 0;
 HKCommExtraRecordsHDL::DataReciever  HKCommExtraRecordsHDL::dataReciever      = 0;
 
-//@brief returs formatted string in outData and increments the inOutOffset with amount of chars.
-// in valid returs if record is valid or run ouf of scheduled elems
-#if 0
-uint8_t HKCommExtraRecordsHDL::formatedMeasurement(uint8_t & valid,
-                                             uint16_t & inOutOffset, 
-                                             uint8_t (&outData)[HKCommDefs::commandMaxDataSize])
-{
-    valid = 0;
-    HKTime::SmallUpTime timeReturned;
-    int16_t  value;
-    if (dataReciever == 0 || recordsIt >= totalRecords  )
-    {
-        return HKCommDefs::serialErr_None;
-    }
-    uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
-    recordsIt++;
-    if (err != HKCommDefs::serialErr_None)
-    {
-        return err;
-    }
-    err  = HKCommCommon::formatMeasurement(inOutOffset, outData, timeReturned, value);
-    if (err == HKCommDefs::serialErr_None)
-    {
-        valid = 1;
-    }
-    return err;
-}
-#endif
+
 uint8_t HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bld)
 
 {

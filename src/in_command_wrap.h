@@ -53,19 +53,7 @@ public:
 #endif
         command_ERR = 0x455252,  //Return an error
     };
-    /*
-    uint32_t        cmd;
-    OutParamType    outParamType;
-    union
-    {
-    uint64_t        numericValue;
-    struct
-    {
-    char*           stringValue;
-    uint8_t         stringValueMaxLen;
-    };
-    };
-    */
+
 
     uint16_t getUint16(OutBuilder::ELogicErr & err) const
     {
