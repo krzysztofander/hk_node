@@ -73,7 +73,13 @@ public:
     static void command_AHR(OutBuilder & bld);
 #endif
     static void commandCTP(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCBP(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCBS(const InCommandWrap & inCmd, OutBuilder & bld);
     static void commandCSM(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCST(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCSA(const InCommandWrap & inCmd, OutBuilder & bld);
+    static void commandCNN(const InCommandWrap & inCmd, OutBuilder & bld);
+
 
     static OutBuilder & accessOutBuilder()
     {

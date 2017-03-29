@@ -68,6 +68,58 @@ void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
     bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer));
 }
 
+void HKComm::commandCBP(const InCommandWrap & inCmd, OutBuilder & bld)
+{  //This command is read only
+    
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBP));
+    bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::blinker));
+}
+
+void HKComm::commandCBS(const InCommandWrap & inCmd, OutBuilder & bld)
+{  
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint16_t newPattern = g_RecievedCmd.getUint16(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else if (newPattern >= 256)
+        {
+            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
+        }
+        else
+        {
+            Blinker::setBlinkPattern((uint8_t)newPattern);
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBS));
+    bld.addInt( Blinker::getBlinkPattern());
+}
+void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
+{  
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        int64_t newTime = g_RecievedCmd.getInt64(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else
+        {
+            Sleeper::setTime(newTime);
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CST));
+    bld.addInt( Sleeper::getUpTime());
+}
+
+
+
 void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     if (inCmd.hasData())
@@ -88,6 +140,62 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
     bld.addInt(Sleeper::getPowerSaveMode());
 }
 
+void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint16_t newPowerDownPeriod = g_RecievedCmd.getUint16(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else if (newPowerDownPeriod >= 256)
+        {
+            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
+        }
+        else
+        {
+            Sleeper::setNoPowerDownPeriod( uint8_t( newPowerDownPeriod) );
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSA));
+    bld.addInt(Sleeper::getNoPowerDownPeriod());
+
+}
+
+void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    static char name[16]; //@todo put that somewhere
+    static uint8_t nameLenght = 0; //@todo put that somewhere
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint8_t strLength;
+        const char * newName = g_RecievedCmd.getString(strLength, err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else if (strLength >= 16)
+        {
+            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
+        }
+        else
+        {
+            nameLenght = strLength;
+            for (auto i = 0; i < 16 && i < strLength; i++)
+            {
+                name[i] = newName[i];
+            }
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
+    bld.addData(name,nameLenght);
+
+}
 
 /*
 

@@ -108,7 +108,7 @@ bool  HKComm::respondSerial(void)
             switch (g_RecievedCmd.getCommand())
             {
                 case InCommandWrap::ECommands::command_DER:
-                   command_DER(g_OutBuilder);
+                    command_DER(g_OutBuilder);
                     break;
                 case InCommandWrap::ECommands::command_RTH:
                     command_RTH(g_RecievedCmd, g_OutBuilder);
@@ -129,8 +129,23 @@ bool  HKComm::respondSerial(void)
                 case  InCommandWrap::ECommands::command_CTP:
                     commandCTP(g_RecievedCmd, g_OutBuilder);
                     break;
+                case  InCommandWrap::ECommands::command_CBP:
+                    commandCBP(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CBS:
+                    commandCBS(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CST:
+                    commandCST(g_RecievedCmd, g_OutBuilder);
+                    break;
                 case  InCommandWrap::ECommands::command_CSM:
                     commandCSM(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CSA:
+                    commandCSA(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CNN:
+                    commandCNN(g_RecievedCmd, g_OutBuilder);
                     break;
 
                 default:

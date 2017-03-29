@@ -29,29 +29,29 @@ class InCommandWrap : public Command
 public:
     BIGENUM(ECommands)
     {
-        command_CTR = 0x435452,  //temperature resolution
-        command_CTP = 0x435450,  //temperature perion
-        command_CBP = 0x435042,  //blinker period
+        command_CTR = 0x435452,  //!temperature resolution
+        command_CTP = 0x435450,  //!temperature period
+        command_CBP = 0x435042,  //!blinker period
                       
-        command_CBS = 0x435053,  //Blinker settings (pattern)
+        command_CBS = 0x435053,  //!Blinker settings (pattern)
                       
         command_CPP = 0x435050,  //power(batery level) period
-        command_CST = 0x435354,  //system time
+        command_CST = 0x435354,  //!system time
         command_CNN = 0x434e4e,  //node name (string)
         command_CRS = 0x435253,  //reset
-        command_CSM = 0x43534d,  //power saving mode
-        command_CSA = 0x435641,  //power down inactivity
-        command_AVI = 0x415649,  //aux version information
-        command_RVI = 0x525649,  //read version information (deprecated)
-        command_RTH = 0x525448,  //read temperature history
-        command_RTM = 0x52544d,  //undocumented
-        command_VTM = 0x56544d,
-        command_DER = 0x444552,
+        command_CSM = 0x43534d,  //!power saving mode
+        command_CSA = 0x435641,  //!power down inactivity
+        command_AVI = 0x415649,  //!aux version information
+        command_RVI = 0x525649,  //!read version information (deprecated)
+        command_RTH = 0x525448,  //!read temperature history
+        command_RTM = 0x52544d,  //!undocumented
+        command_VTM = 0x56544d,  //!return temperature values
+        command_DER = 0x444552,  //!return Debug Echo Responce
         command_DLS = 0x444c56,  //LEDS status
 #if HAVE_HUMAN_READABLE
         command_AHR = 0x414852,  //switch on human readable mode
 #endif
-        command_ERR = 0x455252,
+        command_ERR = 0x455252,  //Return an error
     };
     /*
     uint32_t        cmd;
@@ -80,6 +80,10 @@ public:
             {
                 err = OutBuilder::ELogicErr ::UnsignedExpected;
             }
+            else if (numericValue >= 65536)
+            {
+                err = OutBuilder::ELogicErr::SettingToBig;
+            }
             else
             {
                 err = OutBuilder::ELogicErr ::None;
@@ -99,6 +103,33 @@ public:
             err = OutBuilder::ELogicErr ::None;
         }
         return static_cast<int32_t> (numericValue);
+    }
+
+    int64_t getInt64(OutBuilder::ELogicErr & err) const
+    {
+        if (outParamType != OutParamType_INT_DIGIT)
+        {
+            err = OutBuilder::ELogicErr::NumberExpected;
+        }
+        else
+        {
+            err = OutBuilder::ELogicErr ::None;
+        }
+        return static_cast<int64_t> (numericValue);
+    }
+
+    const char * getString(uint8_t & retStrLen, OutBuilder::ELogicErr & err) const
+    {
+        if (outParamType != OutParamType_STRING)
+        {
+            err = OutBuilder::ELogicErr::StringExpected;
+        }
+        else
+        {
+            err = OutBuilder::ELogicErr ::None;
+        }
+        retStrLen = stringValueMaxLen;
+        return stringValue;
     }
 
     ECommands getCommand () const
