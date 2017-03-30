@@ -137,8 +137,9 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.6.0 change to protocol!. Not all previous commands are supported
     0.6.1 change to protocol!. Restored previous commands
     0.6.2 Fixed RTH, CNN, CSA, CBP, and others
-    0.6.3 Limited temperature results to available only
-    0.6.4 Abstracted serial
+0.6.3 Limited temperature results to available only (working)
+
+    0.6.4 Abstracted serial (not tested)
     0.6.5 Added preamble and BT support. Not tested
 
     0.?.1
