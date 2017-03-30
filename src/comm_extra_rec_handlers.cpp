@@ -24,16 +24,20 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_rec_handlers.h"
 
 //@brief a function passed to HKCommExtraRecordsHDL so it returns extra records
-uint8_t HKCommExtraHLRs::RTHdataReciever(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack)
+HKCommExtraHLRs::exitCode HKCommExtraHLRs::RTHdataReciever(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack)
 {
     if (whichRecordBack == 0)
     {
-        return 1;
+        return HKCommExtraHLRs::exitCode::generalError;
     }
     timeReturned =    TempMeasure::getTempMeasurementRecord(whichRecordBack -1).timeStamp //newer
         - TempMeasure::getTempMeasurementRecord(whichRecordBack   ).timeStamp;  //older (current temp)
                                                                                 //subtracting older from newer 
     value        =  TempMeasure::getTempMeasurementRecord(whichRecordBack).tempFPCelcjus;
 
-    return 0;
+    if (value == TempMeasure::tempMeasurement_invalid)
+    {
+        return HKCommExtraHLRs::exitCode::noValidData;
+    }
+    return HKCommExtraHLRs::exitCode::ok;
 }

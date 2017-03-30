@@ -28,9 +28,19 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class HKCommExtraRecordsHDL
 {
 public:
-    typedef   uint8_t (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
+    ENUM(exitCodes)
+    {
+        ok,
+        noMoreData,
+        generalError
+    };
 
-    static uint8_t formatedMeasurement(bool & valid, OutBuilder & bld);
+
+
+
+    typedef   HKCommExtraHLRs::exitCode (* DataReciever)(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
+
+    static exitCodes formatedMeasurement(bool & valid, OutBuilder & bld);
     static void setNumRecords(uint16_t records);
     static void setDataReciever(DataReciever newDataReciver)
     {

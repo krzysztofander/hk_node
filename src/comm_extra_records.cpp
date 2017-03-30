@@ -26,7 +26,7 @@ int16_t                             HKCommExtraRecordsHDL::totalRecords   = 0;
 HKCommExtraRecordsHDL::DataReciever  HKCommExtraRecordsHDL::dataReciever      = 0;
 
 
-uint8_t HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bld)
+HKCommExtraRecordsHDL::exitCodes HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bld)
 
 {
     valid = false;
@@ -35,17 +35,24 @@ uint8_t HKCommExtraRecordsHDL::formatedMeasurement(bool & valid, OutBuilder & bl
     if (dataReciever == 0 || recordsIt >= totalRecords  )
     {
         //run out of data
-        return 0;
+        return HKCommExtraRecordsHDL::exitCodes::ok;
     }
-    uint8_t err = dataReciever(timeReturned, value, recordsIt + 1);
+    auto exitCode = dataReciever(timeReturned, value, recordsIt + 1);
     recordsIt++;
-    if (err != 0)
+    if (exitCode == HKCommExtraHLRs::exitCode::noValidData)
     {
-        return err;
+        return HKCommExtraRecordsHDL::exitCodes::noMoreData;
     }
-    bld.addMeasurement(timeReturned, value);
-    valid = true;
-    return 0;
+    else if (exitCode == HKCommExtraHLRs::exitCode::ok)
+    {
+        bld.addMeasurement(timeReturned, value);
+        valid = true;
+        return HKCommExtraRecordsHDL::exitCodes::ok;
+    }
+    else //if (exitCode == HKCommExtraHLRs::exitCode::generalError)
+    {
+        return HKCommExtraRecordsHDL::exitCodes::generalError;
+    }
 }
 
 void HKCommExtraRecordsHDL::setNumRecords(uint16_t records)
