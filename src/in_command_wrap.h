@@ -40,14 +40,14 @@ public:
         command_CNN = 0x434e4e,  //node name (string)               NOT implemented
         command_CRS = 0x435253,  //reset                            NOT implemented
         command_CSM = 0x43534d,  //!power saving mode                   OK
-        command_CSA = 0x435641,  //!power down inactivity           NOT implemented
+        command_CSA = 0x435341,  //!power down inactivity         !!!  NOT implemented
         command_AVI = 0x415649,  //!aux version information             OK
         command_RVI = 0x525649,  //!read version information (deprecated) 
-        command_RTH = 0x525448,  //!read temperature history            RTH param - OK
+        command_RTH = 0x525448,  //!read temperature history            OK
         command_RTM = 0x52544d,  //!undocumented
         command_VTM = 0x56544d,  //!return temperature values
         command_DER = 0x444552,  //!return Debug Echo Responce
-        command_DLS = 0x444c56,  //LEDS status                      NOT implemented
+        command_DLS = 0x444c53,  //LEDS status                    !!!  NOT implemented
 #if HAVE_HUMAN_READABLE
         command_AHR = 0x414852,  //switch on human readable mode        OK
 #endif
@@ -106,7 +106,7 @@ public:
         return static_cast<int64_t> (numericValue);
     }
 
-    const char * getString(uint8_t & retStrLen, OutBuilder::ELogicErr & err) const
+    const char * getString(OutBuilder::ELogicErr & err) const
     {
         if (outParamType != OutParamType_STRING)
         {
@@ -116,9 +116,14 @@ public:
         {
             err = OutBuilder::ELogicErr ::None;
         }
-        retStrLen = stringValueMaxLen;
         return stringValue;
     }
+
+    const int8_t getMaxString() const
+    {
+        return (int8_t)NUM_ELS(g_strBuff);
+    }
+
 
     ECommands getCommand () const
     {
@@ -142,7 +147,7 @@ public:
     void reset()
     {
         stringValue = g_strBuff;
-        stringValueMaxLen =  (int8_t)NUM_ELS(g_strBuff);
+        stringValueMaxLen =  getMaxString();
 
     }
     char g_strBuff[16];  //null terminated
