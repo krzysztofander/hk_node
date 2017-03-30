@@ -182,21 +182,27 @@ bool  HKComm::respondSerial(void)
             do
             {   
                 g_OutBuilder.reset();
-                uint8_t ret = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
-                if (ret != 0)
+                auto ret = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
+                if (ret == HKCommExtraRecordsHDL::exitCodes::noMoreData)
+                {
+                    valid = 0;
+                }
+                else if (ret ==  HKCommExtraRecordsHDL::exitCodes::ok)
+                {
+                    if (valid)
+                    {
+                        toWrite += g_OutBuilder.getStrLenght();
+                        written += HKSerial::write(g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
+                    }
+                }
+                else//                if (ret == HKCommExtraRecordsHDL::exitCodes::generalError)
                 {
                     g_commState.setErrorState(
                         HKCommState::ESerialErrorType::serialErr_WriteFail );
 
                     return 1;
                 }
-                if (valid)
-                {
-                    toWrite += g_OutBuilder.getStrLenght();
-                    written += HKSerial::write(g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
-                }
             } while (valid);
-
 
             written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
 

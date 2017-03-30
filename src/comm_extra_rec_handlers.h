@@ -21,10 +21,18 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HK_COMM_EXTRA_REC_HANDLERS_H
 
 #include "hk_node.h"
+#include "comm_defs.h"
 
 class HKCommExtraHLRs
 {
 public:
-    static uint8_t RTHdataReciever(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
+    ENUM(exitCode)
+    {
+        ok,
+        noValidData,
+        generalError
+    };
+
+    static exitCode RTHdataReciever(HKTime::SmallUpTime & timeReturned, int16_t & value, uint16_t whichRecordBack);
 };
 #endif
