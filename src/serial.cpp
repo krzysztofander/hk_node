@@ -45,15 +45,13 @@ uint8_t HKSerial::write(const uint8_t * buff, size_t size)
 
 void HKSerial::flush()
 {
-    //TODO Enable that. Somehow it corrupts g_Command
-
-   // Serial.flush();
+    Serial.flush();
 }
 void HKSerial::end()
 {
-   // Serial.end();
+    Serial.end();
 }
 void HKSerial::begin(int speed)
 {
-   // Serial.begin(speed);
+    Serial.begin(speed);
 }

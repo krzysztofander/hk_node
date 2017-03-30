@@ -220,6 +220,7 @@ void Sleeper::init(void)
     EIMSK = 0;                              //disable Int0, int 1
     PCMSK2 = bit (PCINT16) | bit(PCINT19);  // want pin 0 and 3 ONLY
     //interrupts will be enabled just before sleep
+    HKSerial::begin(9600);
 }
 //---------------------------------------------------------------
 
@@ -239,8 +240,8 @@ void Sleeper::goToSleep(void)
 
         //finish off serial
         //NOTE: Apparently serial have to be ON to call flush or end. Otherwise locks here...
-        Serial.flush();
-        Serial.end();
+        HKSerial::flush();
+        HKSerial::end();
 
         //Prepare for sleep
 
@@ -336,7 +337,7 @@ void Sleeper::goToSleep(void)
             //it was from watchdog. Clear the indication flag so it gets set again in WD ISR
             gv_wdInterrupt = 0;         //WARNING: This flag is cleared only here....
 
-            Serial.begin(9600);         //@TODO investigate whether is better to use that...
+            HKSerial::begin(9600);         //@TODO investigate whether is better to use that...
                                         //       UCSR0B |= bit (RXEN0);  // enable receiver
                                         //       UCSR0B |= bit (TXEN0);  // enable transmitter
             Supp::watchdogWakeUp();

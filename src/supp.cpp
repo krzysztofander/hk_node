@@ -32,7 +32,7 @@ void Supp::init()
     
     if (getPlatformType() == TempMeasurer)
     {
-        Serial.begin(9600);
+   //     Serial.begin(9600);
         pinMode(LED_BUILTIN, OUTPUT);
         pinMode(AlPin1, OUTPUT);
         pinMode(AlPin2, OUTPUT);
