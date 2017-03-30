@@ -102,7 +102,7 @@ void HKComm::command_AVI( OutBuilder & bld)
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
     static const char v[] ={ ' ','0','.','6','.','2' };
 
-    bld.addData(v, NUM_ELS(v));
+    bld.addString(v, NUM_ELS(v));
 
     // Datasheet: http://www.atmel.com/Images/Atmel-42735-8-bit-AVR-Microcontroller-ATmega328-328P_Datasheet.pdf
 

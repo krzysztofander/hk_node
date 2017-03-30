@@ -40,14 +40,14 @@ public:
         command_CNN = 0x434e4e,  //node name (string)               NOT implemented
         command_CRS = 0x435253,  //reset                            NOT implemented
         command_CSM = 0x43534d,  //!power saving mode                   OK
-        command_CSA = 0x435341,  //!power down inactivity         !!!  NOT implemented
+        command_CSA = 0x435341,  //!power down inactivity               OK
         command_AVI = 0x415649,  //!aux version information             OK
         command_RVI = 0x525649,  //!read version information (deprecated) 
         command_RTH = 0x525448,  //!read temperature history            OK
         command_RTM = 0x52544d,  //!undocumented
         command_VTM = 0x56544d,  //!return temperature values
         command_DER = 0x444552,  //!return Debug Echo Responce
-        command_DLS = 0x444c53,  //LEDS status                    !!!  NOT implemented
+        command_DLS = 0x444c53,  //LEDS status                          OK
 #if HAVE_HUMAN_READABLE
         command_AHR = 0x414852,  //switch on human readable mode        OK
 #endif

@@ -214,7 +214,7 @@ void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
         }
     }
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
-    bld.addData(name,nameLenght);
+    bld.addString(name,nameLenght);
 
 }
 
