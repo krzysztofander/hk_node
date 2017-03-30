@@ -22,8 +22,11 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 
+class SerialFixtureComm;
 class HKSerial
 {
+    friend class SerialFixtureComm;
+
     ENUM(PreableState)
     {
         none,

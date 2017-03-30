@@ -100,7 +100,7 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','6','.','4' };
+    static const char v[] ={ ' ','0','.','6','.','5' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -139,6 +139,7 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.6.2 Fixed RTH, CNN, CSA, CBP, and others
     0.6.3 Limited temperature results to available only
     0.6.4 Abstracted serial
+    0.6.5 Added preamble and BT support. Not tested
 
     0.?.1
     + batery reading
