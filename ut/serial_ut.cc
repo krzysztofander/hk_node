@@ -4,7 +4,6 @@
 #include "executor.h"
 #include "comm.h"
 #include "comm_defs.h"
-#include "comm_common.h"
 #include "serial.h"
 #include "temp_measurement.h"
 #include "mock.h"

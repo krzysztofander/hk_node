@@ -21,7 +21,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 #include "supp.h"
 #include "blinker.h"
-#include "comm_common.h"
 #include "comm.h"
 #include "in_command_wrap.h"
 #include "sleeper.h"

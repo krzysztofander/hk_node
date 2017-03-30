@@ -25,7 +25,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm.h"
 #include "supp.h"
 #include "temp_measurement.h"
-#include "comm_common.h"
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"

@@ -25,7 +25,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm.h"
 #include "supp.h"
 #include "temp_measurement.h"
-#include "comm_common.h"
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
@@ -68,6 +67,58 @@ void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
     bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer));
 }
 
+void HKComm::commandCBP(const InCommandWrap & inCmd, OutBuilder & bld)
+{  //This command is read only
+    
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBP));
+    bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::blinker));
+}
+
+void HKComm::commandCBS(const InCommandWrap & inCmd, OutBuilder & bld)
+{  
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint16_t newPattern = g_RecievedCmd.getUint16(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else if (newPattern >= 256)
+        {
+            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
+        }
+        else
+        {
+            Blinker::setBlinkPattern((uint8_t)newPattern);
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBS));
+    bld.addInt( Blinker::getBlinkPattern());
+}
+void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
+{  
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        int64_t newTime = g_RecievedCmd.getInt64(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else
+        {
+            Sleeper::setTime(newTime);
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CST));
+    bld.addInt( Sleeper::getUpTime());
+}
+
+
+
 void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     if (inCmd.hasData())
@@ -88,6 +139,62 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
     bld.addInt(Sleeper::getPowerSaveMode());
 }
 
+void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint16_t newPowerDownPeriod = g_RecievedCmd.getUint16(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else if (newPowerDownPeriod >= 256)
+        {
+            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
+        }
+        else
+        {
+            Sleeper::setNoPowerDownPeriod( uint8_t( newPowerDownPeriod) );
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSA));
+    bld.addInt(Sleeper::getNoPowerDownPeriod());
+
+}
+
+void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    static char name[16]; //@todo put that somewhere
+    static uint8_t nameLenght = 0; //@todo put that somewhere
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint8_t strLength;
+        const char * newName = g_RecievedCmd.getString(strLength, err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else if (strLength >= 16)
+        {
+            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
+        }
+        else
+        {
+            nameLenght = strLength;
+            for (auto i = 0; i < 16 && i < strLength; i++)
+            {
+                name[i] = newName[i];
+            }
+        }
+    }
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
+    bld.addData(name,nameLenght);
+
+}
 
 /*
 
@@ -114,215 +221,7 @@ void HKComm::echoLetter(uint8_t l)
         HKSerial::write(sequence, NUM_ELS(sequence)- 1); //no need for terminating null
     }  
 }
-
-//@brief Returns standardize responce for unknown command of given main cathegory
-uint8_t HKComm::formatResponceUnkL1(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize)
-{
-    //inOutCommand[HKCommDefs::commandIdentifierPos] = as is
-    inOutCommand[HKCommDefs::command_subIdPos1] = 'u';
-    inOutCommand[HKCommDefs::command_subIdPos2] =  'n';
-    dataSize = 0;
-    return HKCommDefs::serialErr_None;
-}
-
-//@brief Returns standardize responce for unknown command of given sub cathegory
-uint8_t HKComm::formatResponceUnkL2(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint16_t & dataSize)
-{
-    //inOutCommand[HKCommDefs::commandIdentifierPos] = as is
-    //inOutCommand[HKCommDefs::command_subIdPos1] = as us
-    inOutCommand[HKCommDefs::command_subIdPos2] =  'u';
-    dataSize = 0;
-    return HKCommDefs::serialErr_None;
-
-}
-
-//@brief Returns standardize responce when command is correct, especially for configure
-uint8_t HKComm::formatResponceOK(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    (void)inOutCommand;
-    //inOutCommand[HKCommDefs::commandIdentifierPos] = as is
-    //inOutCommand[HKCommDefs::command_subIdPos1] = as us
-    //inOutCommand[HKCommDefs::command_subIdPos2] = as is
-    inOutData[0] = ' ';
-    inOutData[1] = 'o';
-    inOutData[2] = 'k';
-    dataSize = 3;
-    return HKCommDefs::serialErr_None;
-}
-
-
-
-
-//------------------------------------------------------------------
-// @brief Response for D (debug) function  
-
-uint8_t HKComm::command_D(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    uint8_t err = HKCommDefs::serialErr_Assert;
-    switch (inOutCommand[HKCommDefs::command_subIdPos1])
-    {
-    case 'E': //echo 
-        //Ignore inOutCommand[command_subIdPos2] 
-        //Response:
-        //inOutCommand[commandIdentifierPos] = 'D';//already 'D'
-          inOutCommand[HKCommDefs::command_subIdPos1] = 'R';
-        //inOutCommand[command_subIdPos2] = as is
-        err = formatResponceOK(inOutCommand,inOutData, dataSize);
-        break;
-    case 'L':
-        if (inOutCommand[HKCommDefs::command_subIdPos2] == '0')
-        {
-            Supp::extLEDMasterCtrl(0);
-        }
-        else
-        {
-            Supp::extLEDMasterCtrl(1);
-        }
-        err = formatResponceOK(inOutCommand,inOutData, dataSize);
-        break;
-    default:  //unknown 'D' command
-        err = formatResponceUnkL1(inOutCommand, dataSize);
-        break;
-    }
-    return err;
-}
-
-//------------------------------------------------------------------
-// @brief Response for C (configuration) request function  
-// @Returns 0 ok, 1 or above - serial error
-
-uint8_t HKComm::command_C(uint8_t (&inOutCommand)[HKCommDefs::commandSize], uint8_t (&inOutData)[HKCommDefs::commandMaxDataSize], uint16_t & dataSize)
-{
-    uint8_t err = HKCommDefs::serialErr_Assert;
-
-    switch (inOutCommand[HKCommDefs::command_subIdPos1])
-    {
-    case 'T': //configure temperature
-        switch (inOutCommand[HKCommDefs::command_subIdPos2])
-        {
-        case 'M': //CTM
-        case 'P':   //Congigure Temperature Period
-        {
-            Sleeper::SleepTime sleepTime = 0;
-            if (dataSize < sizeof(uint16_t) * 2)
-            {
-                err = HKCommDefs::serialErr_Number_Uint16ToShort;
-                break;
-            }
-            else if (dataSize == sizeof(uint16_t) * 2)
-            {
-                uint16_t tempMeasmntInterval;
-                err = HKCommCommon::dataToUnsignedShort(0, inOutData, tempMeasmntInterval);
-                if (err != HKCommDefs::serialErr_None)
-                {
-                    break;
-                }
-                sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
-            }
-            else if (dataSize == sizeof(int32_t) * 2)
-            {
-                uint32_t tempMeasmntInterval;
-                err = HKCommCommon::dataToUnsigned32(0, inOutData, tempMeasmntInterval);
-                if (err != HKCommDefs::serialErr_None)
-                {
-                    break;
-                }
-                sleepTime = (Sleeper::SleepTime)tempMeasmntInterval;
-            }
-            else
-            {
-                err = HKCommDefs::serialErr_Number_NoCorrectLength;
-                break;
-            }
-            Executor::setExecutionTime((uint8_t)Executor::temperatureMeasurer, sleepTime);
-            err = formatResponceOK(inOutCommand,inOutData, dataSize);
-          
-        }
-        break;
-        default:
-            err = formatResponceUnkL2(inOutCommand, dataSize);
-             break;
-        }
-        break;
-    case 'S' :
-        switch (inOutCommand[HKCommDefs::command_subIdPos2])
-        {
-            case 'T':
-            {  //configire system time
-                uint64_t newTime;
-                err = HKCommCommon::dataToUnsigned64(0, inOutData, newTime);
-                if (err != HKCommDefs::serialErr_None)
-                {
-                    break;
-                }
-                Sleeper::setTime(HKTime::UpTime(newTime));
-                err = formatResponceOK(inOutCommand, inOutData, dataSize);
-            }
-            break;
-            default:
-                err = formatResponceUnkL2(inOutCommand, dataSize);
-                break;
-        }
-        break;
-    case 'P' : //power saving mode
-        switch (inOutCommand[HKCommDefs::command_subIdPos2])
-        {
-            case 'M': //mode
-            {
-                uint8_t PsMode;
-                err = HKCommCommon::dataToUnsigned8(0, inOutData, PsMode);
-                if (err != HKCommDefs::serialErr_None)
-                {
-                    break;
-                }
-                Sleeper::setPowerSaveMode((Sleeper::PowerSaveMode)PsMode);
-                err = formatResponceOK(inOutCommand, inOutData, dataSize);
-            }
-            break;
-            case 'A': //power awake time after non-wd wake up
-            {
-                uint8_t PMAwake;
-                err = HKCommCommon::dataToUnsigned8(0, inOutData, PMAwake);
-                if (err != HKCommDefs::serialErr_None)
-                {
-                    break;
-                }
-                Sleeper::setNoPowerDownPeriod(PMAwake);
-                err = formatResponceOK(inOutCommand, inOutData, dataSize);
-            }
-            break;
-            default:
-                err = formatResponceUnkL2(inOutCommand, dataSize);
-                break;
-        }
-        break;
-    case 'B' : //power saving mode
-        switch (inOutCommand[HKCommDefs::command_subIdPos2])
-        {
-            case 'P': //mode
-            {
-                uint8_t pattern;
-                err = HKCommCommon::dataToUnsigned8(0, inOutData, pattern);
-                if (err != HKCommDefs::serialErr_None)
-                {
-                    break;
-                }
-                Blinker::setBlinkPattern(pattern);
-                err = formatResponceOK(inOutCommand, inOutData, dataSize);
-            }
-            break;
-            default:
-                err = formatResponceUnkL2(inOutCommand, dataSize);
-                break;
-        }
-        break;
-    default:  //unknown 'C' command
-        //Response:
-        err = formatResponceUnkL1(inOutCommand, dataSize);
-        break;
-    }
-    return err;
-}
 */
+
 
 //------------------------------------------------------------------

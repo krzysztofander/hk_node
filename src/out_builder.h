@@ -37,6 +37,9 @@ public:
         None,
         UnsignedExpected,
         NumberExpected,
+        StringExpected,
+        SettingToBig,
+        NoDataExpected,
         BufferOverrun,
     };
 
