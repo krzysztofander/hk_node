@@ -25,6 +25,10 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define HAVE_HUMAN_READABLE 1
 
+#define ENUM(name) enum class name : uint8_t
+#define BIGENUM(name) enum class name : uint32_t
+
+
 class HKTime
 {
 public:

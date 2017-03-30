@@ -37,7 +37,7 @@ OutBuilder       HKComm::g_OutBuilder;
 uint8_t HKComm::isActive(void)
 {
     if (g_commState.getState () != HKCommState::ESerialState::serialState_Preable
-        || HKSerial::available() > 0)
+        || HKSerial::checkActive() )
         return 1;
     else
         return 0;
@@ -67,21 +67,13 @@ bool  HKComm::respondSerial(void)
     switch (g_commState.getState())
     {
         case HKCommState::ESerialState::serialState_Preable:
-            //we wait here for serial to stabilize, e.g. start communication
-            //or send preamble
-            
-            //temporarily: when there is something available
-            //in serial go to ParseCommand
-
-
-            if (HKSerial::available() > 0)
+            if (HKSerial::checkActive() )
             {
                 g_RecievedCmd.reset();
                 g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
                 return true;
             }
             break;
-
         case HKCommState::ESerialState::serialState_ParseCommand:
         {
             if (HKSerial::available() > 0)
@@ -214,6 +206,7 @@ bool  HKComm::respondSerial(void)
             }
             else
             {
+                HKSerial::commandProcessed();
                 g_commState.setState(HKCommState::ESerialState::serialState_Preable);
             }
             return 1;

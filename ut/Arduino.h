@@ -19,6 +19,12 @@ public:
 class TSerial
 {
 public:
+    void setTimeout(int) {};
+    uint8_t readBytes(char *, int)
+    {
+        return 0;
+    }
+
     uint8_t read() { return s->read(); };
     uint8_t peek() { return s->peek(); };
     uint8_t available() { return s->available(); };

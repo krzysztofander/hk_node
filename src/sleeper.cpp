@@ -229,7 +229,8 @@ void Sleeper::goToSleep(void)
      
     HKTime::UpTime time = getUpTime();
     
-    
+    HKSerial::nextLoop((uint8_t)time);
+
     if (1 
         && gv_NoPowerDownPeriod == 0 //if we recetly came out of sleep not because of watchdog, loop until WD tick again.
         && g_sleepTime > 0          //we want to sleep

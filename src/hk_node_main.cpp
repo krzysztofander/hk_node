@@ -95,6 +95,8 @@ void loopBody()
 
 void initAllFunctions(void)
 {
+    HKSerial::init();
+
     Supp::init();
     Blinker::init();
     TempSensor::init();

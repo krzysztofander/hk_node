@@ -22,8 +22,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 
-#define ENUM(name) enum class name : uint8_t
-#define BIGENUM(name) enum class name : uint32_t
 
 
 class HKCommDefs
