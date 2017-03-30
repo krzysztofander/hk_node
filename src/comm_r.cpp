@@ -47,7 +47,17 @@ void HKComm::command_RTM(OutBuilder & bld)
 void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     OutBuilder::ELogicErr err;
-    uint16_t measurementsToReturn = g_RecievedCmd.getUint16(err);
+    uint16_t measurementsToReturn ;
+    if (g_RecievedCmd.hasData())
+    {
+        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+    }
+    else
+    {
+        err = OutBuilder::ELogicErr::None;
+        measurementsToReturn = 0;
+    }
+    
     if (err != OutBuilder::ELogicErr::None )
     {
         bld.putErr(err);
@@ -90,7 +100,7 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','6','.','1' };
+    static const char v[] ={ ' ','0','.','6','.','2' };
 
     bld.addData(v, NUM_ELS(v));
 
@@ -126,6 +136,7 @@ void HKComm::command_AVI( OutBuilder & bld)
 
     0.6.0 change to protocol!. Not all previous commands are supported
     0.6.1 change to protocol!. Restored previous commands
+    0.6.2 Fixed RTH, 
 
     0.?.1
     + batery reading

@@ -12,5 +12,7 @@ project (miniparser)
         MiniInParserTests.h
 
     )
+   include_directories(../src)
+
 
    add_executable(miniparser ${SOURCES})

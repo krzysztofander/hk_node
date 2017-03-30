@@ -31,9 +31,9 @@ public:
     {
         command_CTR = 0x435452,  //!temperature resolution          NOT implemented
         command_CTP = 0x435450,  //!temperature period                  OK
-        command_CBP = 0x435042,  //!blinker period                  NOT implemented
+        command_CBP = 0x434250,  //!blinker period                      OK
                       
-        command_CBS = 0x435053,  //!Blinker settings (pattern)      NOT implemented
+        command_CBS = 0x434253,  //!Blinker settings (pattern)          OK
                       
         command_CPP = 0x435050,  //power(batery level) period       NOT implemented
         command_CST = 0x435354,  //!system time                         OK
