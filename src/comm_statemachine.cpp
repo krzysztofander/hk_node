@@ -72,8 +72,11 @@ bool  HKComm::respondSerial(void)
             
             //temporarily: when there is something available
             //in serial go to ParseCommand
+
+
             if (HKSerial::available() > 0)
             {
+                g_RecievedCmd.reset();
                 g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
                 return true;
             }

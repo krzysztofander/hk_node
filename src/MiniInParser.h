@@ -36,7 +36,7 @@ typedef struct {
 #else
     uint64_t        numericValue;
     char*           stringValue;
-    uint8_t         stringValueMaxLen;
+    int8_t         stringValueMaxLen;
     
 #endif
 } Command;

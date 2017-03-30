@@ -139,6 +139,14 @@ public:
         numericValue = (uint64_t)((int64_t) cmd);
     }
 
+    void reset()
+    {
+        stringValue = g_strBuff;
+        stringValueMaxLen =  (int8_t)NUM_ELS(g_strBuff);
+
+    }
+    char g_strBuff[16];  //null terminated
+    
 };
 
 #endif
