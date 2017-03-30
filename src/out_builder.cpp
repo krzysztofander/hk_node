@@ -120,6 +120,15 @@ void OutBuilder::addInt(int64_t newInt)
     addData(strInt, strSizeOut);
 }
 
+void OutBuilder::addString(const char * data, const uint16_t size)
+{
+    static const char quote = '"';
+
+    addData(&quote, 1);
+    addData(data, size);
+    addData(&quote, 1);
+
+}
 
 void OutBuilder::addMeasurement( HKTime::SmallUpTime timeStamp, int16_t val)
 {

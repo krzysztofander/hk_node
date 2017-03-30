@@ -29,27 +29,27 @@ class InCommandWrap : public Command
 public:
     BIGENUM(ECommands)
     {
-        command_CTR = 0x435452,  //!temperature resolution
-        command_CTP = 0x435450,  //!temperature period
-        command_CBP = 0x435042,  //!blinker period
+        command_CTR = 0x435452,  //!temperature resolution          NOT implemented
+        command_CTP = 0x435450,  //!temperature period                  OK
+        command_CBP = 0x434250,  //!blinker period                      OK
                       
-        command_CBS = 0x435053,  //!Blinker settings (pattern)
+        command_CBS = 0x434253,  //!Blinker settings (pattern)          OK
                       
-        command_CPP = 0x435050,  //power(batery level) period
-        command_CST = 0x435354,  //!system time
-        command_CNN = 0x434e4e,  //node name (string)
-        command_CRS = 0x435253,  //reset
-        command_CSM = 0x43534d,  //!power saving mode
-        command_CSA = 0x435641,  //!power down inactivity
-        command_AVI = 0x415649,  //!aux version information
-        command_RVI = 0x525649,  //!read version information (deprecated)
-        command_RTH = 0x525448,  //!read temperature history
+        command_CPP = 0x435050,  //power(batery level) period       NOT implemented
+        command_CST = 0x435354,  //!system time                         OK
+        command_CNN = 0x434e4e,  //node name (string)               NOT implemented
+        command_CRS = 0x435253,  //reset                            NOT implemented
+        command_CSM = 0x43534d,  //!power saving mode                   OK
+        command_CSA = 0x435341,  //!power down inactivity               OK
+        command_AVI = 0x415649,  //!aux version information             OK
+        command_RVI = 0x525649,  //!read version information (deprecated) 
+        command_RTH = 0x525448,  //!read temperature history            OK
         command_RTM = 0x52544d,  //!undocumented
         command_VTM = 0x56544d,  //!return temperature values
         command_DER = 0x444552,  //!return Debug Echo Responce
-        command_DLS = 0x444c56,  //LEDS status
+        command_DLS = 0x444c53,  //LEDS status                          OK
 #if HAVE_HUMAN_READABLE
-        command_AHR = 0x414852,  //switch on human readable mode
+        command_AHR = 0x414852,  //switch on human readable mode        OK
 #endif
         command_ERR = 0x455252,  //Return an error
     };
@@ -106,7 +106,7 @@ public:
         return static_cast<int64_t> (numericValue);
     }
 
-    const char * getString(uint8_t & retStrLen, OutBuilder::ELogicErr & err) const
+    const char * getString(OutBuilder::ELogicErr & err) const
     {
         if (outParamType != OutParamType_STRING)
         {
@@ -116,9 +116,14 @@ public:
         {
             err = OutBuilder::ELogicErr ::None;
         }
-        retStrLen = stringValueMaxLen;
         return stringValue;
     }
+
+    const int8_t getMaxString() const
+    {
+        return (int8_t)NUM_ELS(g_strBuff);
+    }
+
 
     ECommands getCommand () const
     {
@@ -139,6 +144,14 @@ public:
         numericValue = (uint64_t)((int64_t) cmd);
     }
 
+    void reset()
+    {
+        stringValue = g_strBuff;
+        stringValueMaxLen =  getMaxString();
+
+    }
+    char g_strBuff[16];  //null terminated
+    
 };
 
 #endif

@@ -29,7 +29,7 @@ typedef enum {
 
 static MiniInParserMode mode = MiniInParserMode_EXPECT_COMMAND;
 static ParserHelperState parserHelper = ParserHelperState_START_OF_MODE;
-static uint8_t parserIndex;
+static int8_t parserIndex;
 static bool negative;
 static uint16_t fracPart;
 
@@ -78,7 +78,7 @@ void handleStringArgument(char nextChar, Command* outCmd, ParseResult* result) {
         }
     }
 
-    if (parserIndex == outCmd->stringValueMaxLen) {
+    if (parserIndex >= outCmd->stringValueMaxLen - 1) {
         if (nextChar == '"') {
             outCmd->stringValue[parserIndex] = 0;
             parserHelper = ParserHelperState_EXPECT_EOL;

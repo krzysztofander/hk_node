@@ -51,7 +51,7 @@ public:
     static void commandCST(const InCommandWrap & inCmd, OutBuilder & bld);
     static void commandCSA(const InCommandWrap & inCmd, OutBuilder & bld);
     static void commandCNN(const InCommandWrap & inCmd, OutBuilder & bld);
-
+    static void commandDLS(const InCommandWrap & inCmd, OutBuilder & bld);
 
     static OutBuilder & accessOutBuilder()
     {

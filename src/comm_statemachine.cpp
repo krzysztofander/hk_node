@@ -72,8 +72,11 @@ bool  HKComm::respondSerial(void)
             
             //temporarily: when there is something available
             //in serial go to ParseCommand
+
+
             if (HKSerial::available() > 0)
             {
+                g_RecievedCmd.reset();
                 g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
                 return true;
             }
@@ -146,7 +149,9 @@ bool  HKComm::respondSerial(void)
                 case  InCommandWrap::ECommands::command_CNN:
                     commandCNN(g_RecievedCmd, g_OutBuilder);
                     break;
-
+                case  InCommandWrap::ECommands::command_DLS:
+                    commandDLS(g_RecievedCmd, g_OutBuilder);
+                    break;
                 default:
                 {
                     g_commState.setErrorState(

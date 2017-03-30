@@ -50,7 +50,7 @@ void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        int32_t newPeriod = g_RecievedCmd.getInt32(err);
+        int32_t newPeriod = inCmd.getInt32(err);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -69,17 +69,35 @@ void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
 
 void HKComm::commandCBP(const InCommandWrap & inCmd, OutBuilder & bld)
 {  //This command is read only
-    
+
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBP));
     bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::blinker));
 }
+void HKComm::commandDLS(const InCommandWrap & inCmd, OutBuilder & bld)
+{  //This command is read only
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        uint8_t newStat = (uint8_t)inCmd.getUint16(err);
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        Supp::extLEDMasterCtrl((uint8_t)newStat);
+    }
+
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_DLS));
+    bld.addInt(Supp::getExtLEDMasterCtrl());
+}
+
+
 
 void HKComm::commandCBS(const InCommandWrap & inCmd, OutBuilder & bld)
 {  
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint16_t newPattern = g_RecievedCmd.getUint16(err);
+        uint16_t newPattern = inCmd.getUint16(err);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -102,7 +120,7 @@ void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        int64_t newTime = g_RecievedCmd.getInt64(err);
+        int64_t newTime = inCmd.getInt64(err);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -124,7 +142,7 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint16_t newPowerMode = g_RecievedCmd.getUint16(err);
+        uint16_t newPowerMode = inCmd.getUint16(err);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -144,7 +162,7 @@ void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint16_t newPowerDownPeriod = g_RecievedCmd.getUint16(err);
+        uint16_t newPowerDownPeriod = inCmd.getUint16(err);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -166,33 +184,37 @@ void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
 
 void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
 {
-    static char name[16]; //@todo put that somewhere
-    static uint8_t nameLenght = 0; //@todo put that somewhere
+    enum
+    {
+        maxNameLenght = 16,
+    };
+    static char name[maxNameLenght]= "Node"; //@todo put that somewhere
+    static int8_t nameLenght = 4; //@todo put that somewhere
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint8_t strLength;
-        const char * newName = g_RecievedCmd.getString(strLength, err);
+        
+        const char * newName = inCmd.getString(err);  //null terminated
 
         if (err != OutBuilder::ELogicErr::None)
         {
             bld.putErr(err);
         }
-        else if (strLength >= 16)
-        {
-            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
-        }
         else
         {
-            nameLenght = strLength;
-            for (auto i = 0; i < 16 && i < strLength; i++)
+            for (nameLenght = 0; 
+                 nameLenght < inCmd.getMaxString() 
+                    && nameLenght <= (int8_t)maxNameLenght
+                    && newName[nameLenght] != '\x0' ;
+                 nameLenght++)
             {
-                name[i] = newName[i];
+                
+                name[nameLenght] = newName[nameLenght];
             }
         }
     }
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
-    bld.addData(name,nameLenght);
+    bld.addString(name,nameLenght);
 
 }
 

@@ -55,6 +55,7 @@ public:
 
     void addData(const char * data, const uint16_t size);
     void addInt(int64_t newInt);
+    void addString(const char * data, const uint16_t size);
     void addMeasurement(HKTime::SmallUpTime timeStamp, int16_t val);
 
     void reset();

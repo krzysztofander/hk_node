@@ -23,6 +23,7 @@ typedef enum {
 typedef struct {
     uint32_t        cmd;
     OutParamType    outParamType;
+#if 0
     union
     {
         uint64_t        numericValue;
@@ -32,6 +33,12 @@ typedef struct {
             uint8_t         stringValueMaxLen;
         };
     };
+#else
+    uint64_t        numericValue;
+    char*           stringValue;
+    int8_t         stringValueMaxLen;
+    
+#endif
 } Command;
 
 typedef enum {
