@@ -37,7 +37,7 @@ OutBuilder       HKComm::g_OutBuilder;
 uint8_t HKComm::isActive(void)
 {
     if (g_commState.getState () != HKCommState::ESerialState::serialState_Preable
-        || HKSerial::checkActive() )
+        || HKSerial::isActive() )
         return 1;
     else
         return 0;
@@ -62,12 +62,12 @@ void HKComm::jumpToResp()
 
 bool  HKComm::respondSerial(void)
 {
-
-    //alert(g_SerialState +1, false);
     switch (g_commState.getState())
     {
         case HKCommState::ESerialState::serialState_Preable:
-            if (HKSerial::checkActive() )
+            HKSerial::activate();
+            
+            if (HKSerial::preambleRecieved() )
             {
                 g_RecievedCmd.reset();
                 g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);

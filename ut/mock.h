@@ -103,6 +103,20 @@ public:
 
 //------------------------------------------------------------------------
 
+class PreableTestFixture : public ::testing::Test
+{
+public:
+    MockSerial mockSerial;
+
+    virtual void SetUp()
+    {
+        Serial.install(&mockSerial);
+
+       
+    }
+
+};
+
 class SerialFixtureComm : public ::testing::Test
 {
 public:

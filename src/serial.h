@@ -22,11 +22,11 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hk_node.h"
 
-class SerialFixtureComm;
 class HKSerial
 {
-    friend class SerialFixtureComm;
-
+#ifdef INUNITTEST
+public:
+#endif
     ENUM(PreableState)
     {
         none,
@@ -40,20 +40,20 @@ class HKSerial
     };
 
     static PreableState  g_preableState;
-    static int8_t preableFinishTime;
-    static void advanceAndHandleSMState();
+    static int8_t g_preableFinishTime;
 
     static void traverseSM(char charRead);
     static void resetSM();
-    static bool preambleRecieved();
     static void sendReadBT(const char * command, int8_t size);
 public:
+    static bool preambleRecieved();
+    static void activate();
     static void nextLoop(uint8_t tickCnt);
     static void init();
     static void BTinit();
     static uint8_t read();
     static uint8_t available();
-    static bool checkActive();      //! Indicates that transmission, e.g. preable started
+    static bool isActive();      //! Indicates that transmission, e.g. preable started
     static void commandProcessed(); //! Information from upper layer that it finished
     static uint8_t peek();
     static uint8_t write(const uint8_t * buff, size_t size);

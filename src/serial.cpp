@@ -26,7 +26,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //+ '!' + '#'
 
 HKSerial::PreableState  HKSerial::g_preableState = HKSerial::PreableState::none;
-int8_t HKSerial::preableFinishTime = 8;
+int8_t HKSerial::g_preableFinishTime = 8;
 
 
 void HKSerial::traverseSM(char charRead)
@@ -110,7 +110,8 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
     if (secondsCnt != prevSecondsCnt)
     {
         prevSecondsCnt =  secondsCnt;
-        if (checkActive()  && !preambleRecieved())
+        activate();
+        if (isActive()  && !preambleRecieved())
         {
             //state when we have something, but not a preable
             timeOut++;
@@ -120,7 +121,7 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
             timeOut = 0;
         }
         
-        if (timeOut >= preableFinishTime)
+        if (timeOut >= g_preableFinishTime)
         {
             //N seconds has passed since activity was detected
             //we need to put serial to sleep
@@ -151,7 +152,7 @@ void HKSerial::init()
     
 }
 
-void HKSerial::advanceAndHandleSMState()
+void HKSerial::activate()
 {
     if (!preambleRecieved())
     {
@@ -171,16 +172,15 @@ void HKSerial::advanceAndHandleSMState()
 
 //Advances SM
 //@returns true if anything got recieved
-bool HKSerial::checkActive()
+bool HKSerial::isActive()
 {
-    advanceAndHandleSMState();
     //Something was recived when:
     return g_preableState != HKSerial::PreableState::none;
 
 }
 uint8_t HKSerial::available()
 {
-    advanceAndHandleSMState(); //will advance SM 
+    activate(); //will advance SM 
     if (preambleRecieved())
     {
         return Serial.available();

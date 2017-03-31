@@ -65,6 +65,7 @@ project (unit_tests)
         serial_ut.cc
         serial_ut_r.cc 
         blinker_ut.cc
+        preamble_and_bt_ut.cc
         mock.cc
         mock.h
         Arduino.h
@@ -82,7 +83,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/serial.h
         ${TOP}/hk_node/src/MiniInParser.h
     )
-
+    add_definitions(-DINUNITTEST)
     add_test_executable(serial_ut "${GOOGLET_UT_LIBS}" "${SERIAL_SOURCES}" )
 
     set(EXECUTUR_SOURCES
