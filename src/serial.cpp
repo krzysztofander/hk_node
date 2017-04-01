@@ -27,7 +27,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 HKSerial::PreableState  HKSerial::g_preableState = HKSerial::PreableState::none;
 int8_t HKSerial::g_preableFinishTime = 8;
-
+int8_t HKSerial::g_preambleInactivityTime = 0;
 
 void HKSerial::traverseSM(char charRead)
 {
@@ -87,6 +87,7 @@ void HKSerial::traverseSM(char charRead)
 void HKSerial::resetSM()
 {
     g_preableState = HKSerial::PreableState::none;
+    g_preambleInactivityTime = 0;
 }
 
 bool HKSerial::preambleRecieved()
@@ -106,7 +107,6 @@ void HKSerial::sendReadBT(const char * command, int8_t size)
 void HKSerial::nextLoop(uint8_t secondsCnt)
 {
     static uint8_t prevSecondsCnt = 255; 
-    static int8_t timeOut = 0;
     if (secondsCnt != prevSecondsCnt)
     {
         prevSecondsCnt =  secondsCnt;
@@ -114,19 +114,19 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
         if (isActive()  && !preambleRecieved())
         {
             //state when we have something, but not a preable
-            timeOut++;
+            g_preambleInactivityTime++;
         }
         else
         {
-            timeOut = 0;
+            g_preambleInactivityTime = 0;
         }
         
-        if (timeOut >= g_preableFinishTime)
+        if (g_preambleInactivityTime >= g_preableFinishTime)
         {
             //N seconds has passed since activity was detected
             //we need to put serial to sleep
             resetSM();
-            timeOut = 0;
+            g_preambleInactivityTime = 0;
         }
     }
 }
@@ -160,6 +160,7 @@ void HKSerial::activate()
         {
             char nextChar = Serial.read();  //consume it, we are handling preable
             traverseSM(nextChar);
+            g_preambleInactivityTime = 0;   //have processed something so reset timeout
         }
     }
     if (g_preableState == HKSerial::PreableState::okLost_T)

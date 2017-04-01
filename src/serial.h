@@ -41,6 +41,9 @@ public:
 
     static PreableState  g_preableState;
     static int8_t g_preableFinishTime;
+    static int8_t g_preambleInactivityTime;    //!time since recieving 
+                                               // last character in preamble state;
+
 
     static void traverseSM(char charRead);
     static void resetSM();
