@@ -179,9 +179,3 @@ TEST_F (Serial_D_method_Fixture, checkWriteError)
 }
 
 
-TEST_F(NiceSerialFixture, testCTM0000)
-{
-  
-}
-
-

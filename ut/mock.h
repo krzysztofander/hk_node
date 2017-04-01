@@ -9,7 +9,7 @@
 
 #include "Arduino.h"
 #include "temp_measurement.h"
-
+#include "serial.h"
 //using ::testing::AtLeast;  
 //using ::testing::Return;
 using ::testing::InSequence;
@@ -103,10 +103,27 @@ public:
 
 //------------------------------------------------------------------------
 
+class PreableTestFixture : public ::testing::Test
+{
+public:
+    MockSerial mockSerial;
+
+    virtual void SetUp()
+    {
+        Serial.install(&mockSerial);
+
+       
+    }
+
+};
+
 class SerialFixtureComm : public ::testing::Test
 {
 public:
-   
+    virtual void SetUp()
+    {
+        HKSerial::g_preableState = HKSerial::PreableState::finished;
+    }
 };
 
 class SerialFixture : public SerialFixtureComm
@@ -118,6 +135,7 @@ public:
     
     virtual void SetUp()
     {
+        SerialFixtureComm::SetUp();
         Serial.install(&mockSerial);
         HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
     }
@@ -127,14 +145,15 @@ public:
 class NiceSerialFixture : public SerialFixtureComm{
 public: 
     NiceMock<MockSerial>  mockSerial;
-    virtual void SetUp()    {        miniInParserReset();
-        Serial.install(&mockSerial);        HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);    }
+    virtual void SetUp()    {        SerialFixtureComm::SetUp();
+        miniInParserReset();
+        Serial.install(&mockSerial);              HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);    }
 };
 class StrictSerialFixture : public SerialFixtureComm
 {
 public: 
     StrictMock<MockSerial>  mockSerial;
-    InSequence dummy;    virtual void SetUp()    {
+    InSequence dummy;    virtual void SetUp()    {        SerialFixtureComm::SetUp();
         Serial.install(&mockSerial);        HKComm::g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);    }
 };
 
