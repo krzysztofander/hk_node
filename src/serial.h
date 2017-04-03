@@ -43,11 +43,11 @@ public:
     static int8_t g_preableFinishTime;
     static int8_t g_preambleInactivityTime;    //!time since recieving 
                                                // last character in preamble state;
-
+    static char g_BTName[12];
 
     static void traverseSM(char charRead);
     static void resetSM();
-    static void sendReadBT(const char * command, int8_t size);
+    static void sendBTCommand(const char * command, int8_t size, bool waitResponse);
 public:
     static bool preambleRecieved();
     static void activate();

@@ -145,6 +145,7 @@ void HKComm::command_AVI( OutBuilder & bld)
         Have not checked whether BT module indeed goes to low power mode,
         But it seems to (getting some wake from serial) sent connection lost
     0.6.6 Timeout now is reset on any character recieved
+        Setting up BT name
 
     0.?.1
     + batery reading

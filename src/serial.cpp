@@ -28,7 +28,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 HKSerial::PreableState  HKSerial::g_preableState = HKSerial::PreableState::none;
 int8_t HKSerial::g_preableFinishTime = 8;
 int8_t HKSerial::g_preambleInactivityTime = 0;
-
+char HKSerial::g_BTName[12] = { 'H','K','N','o','d','e','D','e','f','l','t', '\x0' };
 void HKSerial::traverseSM(char charRead)
 {
     if (HKSerial::PreableState::finished != g_preableState)
@@ -95,13 +95,16 @@ bool HKSerial::preambleRecieved()
     return  g_preableState == HKSerial::PreableState::finished;
 }
 
-void HKSerial::sendReadBT(const char * command, int8_t size)
+void HKSerial::sendBTCommand(const char * command, int8_t size, bool waitResponse)
 {
-    char buffer[16];
+    char buffer[24];
     Serial.begin(9600);
     Serial.write((const uint8_t*)command, size);
-    Serial.setTimeout(800);
-    Serial.readBytes(buffer, NUM_ELS(buffer));
+    if (waitResponse)
+    {
+        Serial.setTimeout(800);
+        Serial.readBytes(buffer, NUM_ELS(buffer));
+    }
 }
 
 void HKSerial::nextLoop(uint8_t secondsCnt)
@@ -130,19 +133,24 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
         }
     }
 }
+#include "string.h"
 void HKSerial::BTinit()
 {
     //init bluetooth
-    sendReadBT("AT+RENEW", 8);
-    sendReadBT("AT+MODE1", 8);
-    sendReadBT("AT+PIO11", 8);
-    sendReadBT("AT+ADVI4", 8);
-    //at name here
-    sendReadBT("AT+RESET", 8);
-    sendReadBT("AT+MODE1", 8);
-    sendReadBT("AT+POWE3", 8);
-    sendReadBT("AT+NOTI1", 8);
-    sendReadBT("AT+SLEEP", 8);
+    sendBTCommand("AT+RENEW", 8,true);
+    sendBTCommand("AT+MODE1", 8,true);
+    sendBTCommand("AT+PIO11", 8,true);
+    sendBTCommand("AT+ADVI4", 8,true);
+    //at name here          ,true
+    sendBTCommand("AT+NAME",  7,false);
+    sendBTCommand(g_BTName ,  strlen(g_BTName),true);
+
+
+    sendBTCommand("AT+RESET", 8,true);
+    sendBTCommand("AT+MODE1", 8,true);
+    sendBTCommand("AT+POWE3", 8,true);
+    sendBTCommand("AT+NOTI1", 8,true);
+    sendBTCommand("AT+SLEEP", 8,true);
 }
 
 void HKSerial::init()
@@ -166,7 +174,7 @@ void HKSerial::activate()
     if (g_preableState == HKSerial::PreableState::okLost_T)
     {
         //put bluetooth to sleep here...
-        sendReadBT("AT+SLEEP", 8);
+        sendBTCommand("AT+SLEEP", 8, true);
         resetSM();
     }
 }
