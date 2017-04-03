@@ -37,6 +37,7 @@ public:
                       
         command_CPP = 0x435050,  //power(batery level) period       NOT implemented
         command_CST = 0x435354,  //!system time                         OK
+        command_CSC = 0x435343,  //!system capabilities (read only)     OK
         command_CNN = 0x434e4e,  //node name (string)               NOT implemented
         command_CRS = 0x435253,  //reset                            NOT implemented
         command_CSM = 0x43534d,  //!power saving mode                   OK

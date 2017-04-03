@@ -132,6 +132,9 @@ bool  HKComm::respondSerial(void)
                 case  InCommandWrap::ECommands::command_CST:
                     commandCST(g_RecievedCmd, g_OutBuilder);
                     break;
+                case  InCommandWrap::ECommands::command_CSC:
+                    commandCSC(g_RecievedCmd, g_OutBuilder);
+                    break;
                 case  InCommandWrap::ECommands::command_CSM:
                     commandCSM(g_RecievedCmd, g_OutBuilder);
                     break;
