@@ -134,8 +134,21 @@ void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CST));
     bld.addInt( Sleeper::getUpTime());
 }
+void HKComm::commandCSC(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSC));
 
+    enum SystemCapabilities
+    {
+        tempMeasurement         = 1U << 0,
+        //other external measurement,
+        bateryMeasurement       = 1U << 8,
+        //other analog measuremet
+        //control of output     = 1U << 16
+    };
 
+    bld.addInt(tempMeasurement);
+}
 
 void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
 {

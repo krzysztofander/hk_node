@@ -31,6 +31,10 @@ ref `http://www.tablesgenerator.com/text_tables`
 |             |                 |            |         | System       |                                     |
 |             |                 |            |         | Time         |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
+| M           | CSC number      | QR         |         | Configure    | Queries for node capabilities       |
+|             |                 |            |         | System       | 0x1 - temperature measurement ver A |
+|             |                 |            |         | Capabilities | 0x100 - batery level measurement    |
++-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CNN string      | QSR        |         | Configure    |                                     |
 |             |                 |            |         | Node         |                                     |
 |             |                 |            |         | Name         |                                     |
