@@ -24,22 +24,53 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class NV
 {
 public:
-    enum NVData
+    ENUM( NVData )
     {
-        nvTempMeasureSchedule
+        nvTestProgrammed = 0,
+         nvBTName  = 1,
 
     };
+    ENUM( NVDataSize )
+    {
+        nvTestProgrammed = sizeof(uint32_t),
+        nvBTName  = 12 + 1 /*for \x0*/,
 
+    };
+private:
 
-    static void save(uint8_t what, uint8_t dataToSave);
-    static void save(uint8_t what, uint16_t dataToSave);
-    static void save(uint8_t what, uint32_t dataToSave);
+    SHORTENUM(NVDataAddr)
+    {
+       base = 0,
+       nvTestProgrammed = static_cast<uint16_t>(base),
 
-    static void read(uint8_t what, uint8_t  & dataToRead);
-    static void read(uint8_t what, uint16_t & dataToRead);
-    static void read(uint8_t what, uint32_t & dataToRead);
+       nvBTName  =   static_cast<uint16_t>(nvTestProgrammed)
+                   + static_cast<uint16_t>(NVDataSize::nvTestProgrammed),
+       //next =    
+       //          
+       
+    };
 
+    struct NVDescr
+    {
+        NVDescr()
+            : size(0),
+            address(0),
+            stopAt0(false)
+        {}
+        uint8_t size ;
+        uint16_t address;
+        bool stopAt0 ;
+    };
 
+    static void getDesrc(NVData what, NVDescr & dsr);
+    static const uint32_t g_testProgrammed;
+
+public:
+
+    static void save(NVData what, const void * dataToSave);
+    static void read(NVData what, void * dataToLoad);
+    static void init();
+    static void forceFactoryDefaults();
 };
 
 

@@ -21,14 +21,14 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "serial.h"
-
+#include "string.h"
+#include "nv.h"
 //  preable is any series of characters
 //+ '!' + '#'
 
 HKSerial::PreableState  HKSerial::g_preableState = HKSerial::PreableState::none;
 int8_t HKSerial::g_preableFinishTime = 8;
-
-
+int8_t HKSerial::g_preambleInactivityTime = 0;
 void HKSerial::traverseSM(char charRead)
 {
     if (HKSerial::PreableState::finished != g_preableState)
@@ -87,6 +87,7 @@ void HKSerial::traverseSM(char charRead)
 void HKSerial::resetSM()
 {
     g_preableState = HKSerial::PreableState::none;
+    g_preambleInactivityTime = 0;
 }
 
 bool HKSerial::preambleRecieved()
@@ -94,19 +95,21 @@ bool HKSerial::preambleRecieved()
     return  g_preableState == HKSerial::PreableState::finished;
 }
 
-void HKSerial::sendReadBT(const char * command, int8_t size)
+void HKSerial::sendBTCommand(const char * command, int8_t size, bool waitResponse)
 {
-    char buffer[16];
+    char buffer[24];
     Serial.begin(9600);
     Serial.write((const uint8_t*)command, size);
-    Serial.setTimeout(800);
-    Serial.readBytes(buffer, NUM_ELS(buffer));
+    if (waitResponse)
+    {
+        Serial.setTimeout(800);
+        Serial.readBytes(buffer, NUM_ELS(buffer));
+    }
 }
 
 void HKSerial::nextLoop(uint8_t secondsCnt)
 {
     static uint8_t prevSecondsCnt = 255; 
-    static int8_t timeOut = 0;
     if (secondsCnt != prevSecondsCnt)
     {
         prevSecondsCnt =  secondsCnt;
@@ -114,35 +117,46 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
         if (isActive()  && !preambleRecieved())
         {
             //state when we have something, but not a preable
-            timeOut++;
+            g_preambleInactivityTime++;
         }
         else
         {
-            timeOut = 0;
+            g_preambleInactivityTime = 0;
         }
         
-        if (timeOut >= g_preableFinishTime)
+        if (g_preambleInactivityTime >= g_preableFinishTime)
         {
             //N seconds has passed since activity was detected
             //we need to put serial to sleep
             resetSM();
-            timeOut = 0;
+            g_preambleInactivityTime = 0;
         }
     }
 }
+
 void HKSerial::BTinit()
 {
+    char nameBuffer[static_cast<int>(NV::NVDataSize::nvBTName)];
+    NV::read(NV::NVData::nvBTName, nameBuffer);
+    uint8_t nameSize = strlen(nameBuffer);
+
+
+
     //init bluetooth
-    sendReadBT("AT+RENEW", 8);
-    sendReadBT("AT+MODE1", 8);
-    sendReadBT("AT+PIO11", 8);
-    sendReadBT("AT+ADVI4", 8);
-    //at name here
-    sendReadBT("AT+RESET", 8);
-    sendReadBT("AT+MODE1", 8);
-    sendReadBT("AT+POWE3", 8);
-    sendReadBT("AT+NOTI1", 8);
-    sendReadBT("AT+SLEEP", 8);
+    sendBTCommand("AT+RENEW", 8,true);
+    sendBTCommand("AT+MODE1", 8,true);
+    sendBTCommand("AT+PIO11", 8,true);
+    sendBTCommand("AT+ADVI4", 8,true);
+    //at name here          ,true
+    
+    sendBTCommand("AT+NAME",  7,false);
+    sendBTCommand(nameBuffer ,nameSize,true);
+    
+    sendBTCommand("AT+RESET", 8,true);
+    sendBTCommand("AT+MODE1", 8,true);
+    sendBTCommand("AT+POWE3", 8,true);
+    sendBTCommand("AT+NOTI1", 8,true);
+    sendBTCommand("AT+SLEEP", 8,true);
 }
 
 void HKSerial::init()
@@ -160,12 +174,13 @@ void HKSerial::activate()
         {
             char nextChar = Serial.read();  //consume it, we are handling preable
             traverseSM(nextChar);
+            g_preambleInactivityTime = 0;   //have processed something so reset timeout
         }
     }
     if (g_preableState == HKSerial::PreableState::okLost_T)
     {
         //put bluetooth to sleep here...
-        sendReadBT("AT+SLEEP", 8);
+        sendBTCommand("AT+SLEEP", 8, true);
         resetSM();
     }
 }

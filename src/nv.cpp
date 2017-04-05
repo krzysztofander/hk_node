@@ -19,38 +19,97 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 #include <Arduino.h>
 #include "nv.h"
+#include <EEPROM.h>
 //------------------------------------------------------------------
-
-
-
-void NV::save(uint8_t what, uint8_t dataToSave)
+void NV::getDesrc(NV::NVData what, NV::NVDescr & dsr)
 {
-
-}
-void NV::save(uint8_t what, uint16_t dataToSave)
-{
+    dsr.size = 0;
+    dsr.stopAt0 = false;
 
 
-}
-void NV::save(uint8_t what, uint32_t dataToSave)
-{
+    switch (what)
+    {
+        case NV::NVData::nvTestProgrammed:
 
-}
+            dsr.size        = static_cast<uint8_t> (NV::NVDataSize::nvTestProgrammed);
+            dsr.address     = static_cast<uint16_t>(NV::NVDataAddr::nvTestProgrammed);
+            break;
 
+        case NV::NVData::nvBTName:
+            dsr.size        = static_cast<uint8_t> (NV::NVDataSize::nvBTName);
+            dsr.address     = static_cast<uint16_t>(NV::NVDataAddr::nvBTName);
+            dsr.stopAt0     = true;
+            break;
 
-void NV::read(uint8_t what, uint8_t  & dataToRead)
-{
+        default:
+            //this is an error, do nothing
+            break;
+    }
 
-}
-void NV::read(uint8_t what, uint16_t & dataToRead)
-{
-
-}
-void NV::read(uint8_t what, uint32_t & dataToRead)
-{
 
 }
 
+
+void NV::save(NV::NVData what, const void * dataToSave)
+{
+    NV::NVDescr dsr;
+    getDesrc(what, dsr);
+    
+    for (uint8_t i = 0; i < dsr.size; i++)
+    {
+        uint8_t c = ((uint8_t*)dataToSave)[i];
+        EEPROM.write(dsr.address + i, c);
+        if (dsr.stopAt0 && (c == '\x0'))
+        {
+            break;
+        }
+    }
+    
+  
+}
+void NV::read(NV::NVData what, void * dataToLoad)
+{
+    NV::NVDescr dsr;
+    getDesrc(what, dsr);
+
+   
+    for (uint8_t i = 0; i < dsr.size; i++)
+    {
+        uint8_t c = EEPROM.read(dsr.address + i);
+        ((uint8_t*)dataToLoad)[i] = c;
+        if (dsr.stopAt0 && (c == '\x0'))
+        {
+            break;
+        }
+    }
+
+}
+
+const uint32_t NV::g_testProgrammed = 0x12345678;
+
+void NV::forceFactoryDefaults()
+{
+    //need to put default values to eeprom
+    NV::save(NV::NVData::nvBTName, "HCNode" );
+
+
+    //finally the marker
+    NV::save(NV::NVData::nvTestProgrammed, &g_testProgrammed );
+
+}
+
+
+void NV::init()
+{
+    //BT name:
+    uint32_t ui32Data;
+    NV::read(NV::NVData::nvTestProgrammed, &ui32Data);
+    if (g_testProgrammed != ui32Data)
+    {
+        forceFactoryDefaults();
+    }
+
+}
 
 
 

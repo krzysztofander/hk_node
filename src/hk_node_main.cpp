@@ -27,6 +27,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sleeper.h"
 #include "temp_sensor.h"
 #include "blinker.h"
+#include "nv.h"
 
 /*
     Version notes:
@@ -95,6 +96,7 @@ void loopBody()
 
 void initAllFunctions(void)
 {
+    NV::init();
     HKSerial::init();
 
     Supp::init();
