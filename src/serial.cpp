@@ -21,7 +21,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "hk_node.h"
 #include "serial.h"
-
+#include "string.h"
 //  preable is any series of characters
 //+ '!' + '#'
 
@@ -133,7 +133,7 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
         }
     }
 }
-#include "string.h"
+
 void HKSerial::BTinit()
 {
     //init bluetooth

@@ -26,15 +26,51 @@ class NV
 public:
     ENUM( NVData )
     {
-      //  nvTempMeasureSchedule =1,
-
+        nvTestProgrammed = 0,
          nvBTName  = 1,
 
     };
+    ENUM( NVDataSize )
+    {
+        nvTestProgrammed = sizeof(uint32_t),
+        nvBTName  = 12 + 1 /*for \x0*/,
+
+    };
+private:
+
+    SHORTENUM(NVDataAddr)
+    {
+       base = 0,
+       nvTestProgrammed = static_cast<uint16_t>(base),
+
+       nvBTName  =   static_cast<uint16_t>(nvTestProgrammed)
+                   + static_cast<uint16_t>(NVDataSize::nvTestProgrammed),
+       //next =    
+       //          
+       
+    };
+
+    struct NVDescr
+    {
+        NVDescr()
+            : size(0),
+            address(0),
+            stopAt0(false)
+        {}
+        uint8_t size ;
+        uint16_t address;
+        bool stopAt0 ;
+    };
+
+    static void getDesrc(NVData what, NVDescr & dsr);
+    static const uint32_t g_testProgrammed;
+
+public:
 
     static void save(NVData what, const void * dataToSave);
     static void read(NVData what, void * dataToLoad);
-
+    static void init();
+    static void forceFactoryDefaults();
 };
 
 

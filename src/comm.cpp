@@ -28,7 +28,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
-
+#include "nv.h"
+#include "string.h"
 
 void HKComm::command_DER(OutBuilder & bld)
 {
@@ -197,37 +198,28 @@ void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
 
 void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
 {
-    enum
-    {
-        maxNameLenght = 16,
-    };
-    static char name[maxNameLenght]= "Node"; //@todo put that somewhere
-    static int8_t nameLenght = 4; //@todo put that somewhere
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
         
         const char * newName = inCmd.getString(err);  //null terminated
-
         if (err != OutBuilder::ELogicErr::None)
         {
             bld.putErr(err);
         }
         else
         {
-            for (nameLenght = 0; 
-                 nameLenght < inCmd.getMaxString() 
-                    && nameLenght <= (int8_t)maxNameLenght
-                    && newName[nameLenght] != '\x0' ;
-                 nameLenght++)
-            {
-                
-                name[nameLenght] = newName[nameLenght];
-            }
+            NV::save(NV::NVData::nvBTName, newName);
         }
     }
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
-    bld.addString(name,nameLenght);
+    else
+    {
+        char buffer[static_cast<int>(NV::NVDataSize::nvBTName)];
+        NV::read(NV::NVData::nvBTName, buffer);
+
+        bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
+        bld.addString(buffer, strlen(buffer) );
+    }
 
 }
 
