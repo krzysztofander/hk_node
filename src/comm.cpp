@@ -212,15 +212,12 @@ void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
             NV::save(NV::NVData::nvBTName, newName);
         }
     }
-    else
-    {
-        char buffer[static_cast<int>(NV::NVDataSize::nvBTName)];
-        NV::read(NV::NVData::nvBTName, buffer);
+    char buffer[static_cast<int>(NV::NVDataSize::nvBTName)];
+    NV::read(NV::NVData::nvBTName, buffer);
 
-        bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
-        bld.addString(buffer, strlen(buffer) );
-    }
-
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
+    bld.addString(buffer, strlen(buffer) );
+    
 }
 
 /*

@@ -22,13 +22,13 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 #include "serial.h"
 #include "string.h"
+#include "nv.h"
 //  preable is any series of characters
 //+ '!' + '#'
 
 HKSerial::PreableState  HKSerial::g_preableState = HKSerial::PreableState::none;
 int8_t HKSerial::g_preableFinishTime = 8;
 int8_t HKSerial::g_preambleInactivityTime = 0;
-char HKSerial::g_BTName[12] = { 'H','K','N','o','d','e','D','e','f','l','t', '\x0' };
 void HKSerial::traverseSM(char charRead)
 {
     if (HKSerial::PreableState::finished != g_preableState)
@@ -136,16 +136,22 @@ void HKSerial::nextLoop(uint8_t secondsCnt)
 
 void HKSerial::BTinit()
 {
+    char nameBuffer[static_cast<int>(NV::NVDataSize::nvBTName)];
+    NV::read(NV::NVData::nvBTName, nameBuffer);
+    uint8_t nameSize = strlen(nameBuffer);
+
+
+
     //init bluetooth
     sendBTCommand("AT+RENEW", 8,true);
     sendBTCommand("AT+MODE1", 8,true);
     sendBTCommand("AT+PIO11", 8,true);
     sendBTCommand("AT+ADVI4", 8,true);
     //at name here          ,true
+    
     sendBTCommand("AT+NAME",  7,false);
-    sendBTCommand(g_BTName ,  strlen(g_BTName),true);
-
-
+    sendBTCommand(nameBuffer ,nameSize,true);
+    
     sendBTCommand("AT+RESET", 8,true);
     sendBTCommand("AT+MODE1", 8,true);
     sendBTCommand("AT+POWE3", 8,true);
