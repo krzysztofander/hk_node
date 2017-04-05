@@ -24,21 +24,16 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class NV
 {
 public:
-    enum NVData
+    ENUM( NVData )
     {
-        nvTempMeasureSchedule
+      //  nvTempMeasureSchedule =1,
+
+         nvBTName  = 1,
 
     };
 
-
-    static void save(uint8_t what, uint8_t dataToSave);
-    static void save(uint8_t what, uint16_t dataToSave);
-    static void save(uint8_t what, uint32_t dataToSave);
-
-    static void read(uint8_t what, uint8_t  & dataToRead);
-    static void read(uint8_t what, uint16_t & dataToRead);
-    static void read(uint8_t what, uint32_t & dataToRead);
-
+    static void save(NVData what, const void * dataToSave);
+    static void read(NVData what, void * dataToLoad);
 
 };
 

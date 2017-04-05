@@ -20,36 +20,32 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 #include "nv.h"
 //------------------------------------------------------------------
-
-
-
-void NV::save(uint8_t what, uint8_t dataToSave)
+void NV::save(NV::NVData what, const void * dataToSave)
 {
+    switch (what)
+    {
+        case NV::NVData::nvBTName:
+
+            break;
+        default:
+            //this is an error, do nothing
+    }
+}
+void NV::read(NV::NVData what, void * dataToLoad)
+{
+    switch (what)
+    {
+        case NV::NVData::nvBTName:
+
+            break;
+        default:
+            //this is an error, do nothing
+    }
+
 
 }
-void NV::save(uint8_t what, uint16_t dataToSave)
-{
 
 
-}
-void NV::save(uint8_t what, uint32_t dataToSave)
-{
-
-}
-
-
-void NV::read(uint8_t what, uint8_t  & dataToRead)
-{
-
-}
-void NV::read(uint8_t what, uint16_t & dataToRead)
-{
-
-}
-void NV::read(uint8_t what, uint32_t & dataToRead)
-{
-
-}
 
 
 
