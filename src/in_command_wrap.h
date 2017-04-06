@@ -49,6 +49,11 @@ public:
         command_VTM = 0x56544d,  //!return temperature values
         command_DER = 0x444552,  //!return Debug Echo Responce
         command_DLS = 0x444c53,  //LEDS status                          OK
+
+        command_RPM = 0x52504d,  //read power measurement (battery level)
+        command_VPM = 0x56504d,  //return read power measurement (battery level) in mV
+
+
 #if HAVE_HUMAN_READABLE
         command_AHR = 0x414852,  //switch on human readable mode        OK
 #endif

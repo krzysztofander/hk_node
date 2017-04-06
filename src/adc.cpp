@@ -17,64 +17,40 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef NV_H
-#define NV_H
 #include <Arduino.h>
-#include "hk_node.h"
+#include "nv.h"
+#include <EEPROM.h>
+#include "adc.h"
 //------------------------------------------------------------------
 
-class NV
+int32_t ADC::readBandgap()
 {
-public:
-    ENUM( NVData )
-    {
-        nvTestProgrammed = 0,
-         nvBTName  = 1,
-
-    };
-    ENUM( NVDataSize )
-    {
-        nvTestProgrammed = sizeof(uint32_t),
-        nvBTName  = 12 + 1 /*for \x0*/,
-
-    };
-private:
-
-    SHORTENUM(NVDataAddr)
-    {
-       base = 0,
-       nvTestProgrammed = static_cast<uint16_t>(base),
-
-       nvBTName  =   static_cast<uint16_t>(nvTestProgrammed)
-                   + static_cast<uint16_t>(NVDataSize::nvTestProgrammed),
-       //next =    
-       //          
+    const int32_t internalReferenceVoltage = 1100L;  // Adust this value to your specific internal BG voltage x1000
+    // REFS1 REFS0          --> 0 1, AVcc internal ref.
+    // MUX3 MUX2 MUX1 MUX0  --> 1110 1.1V (VBG)
+ 
+    ADCSRA |= (1 << ADEN);          //enable ADC
+    ADCSRA &= ~(1 << ADIE);         //we do not want interrupt
        
-    };
+    ADMUX = (0<<REFS1) | (1<<REFS0) 
+          | (0<<ADLAR) 
+          | (1<<MUX3) | (1<<MUX2) | (1<<MUX1) | (0<<MUX0);
+    // Start a conversion  
+   
+    
+    ADCSRA |= ( 1<< ADSC );
+    // Wait for it to complete
+    while( ( (ADCSRA & (1<<ADSC)) != 0 ) );
+    // Scale the value
+   // int32_t results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L;
+    int32_t results = ((internalReferenceVoltage * 1024L) / ADC);
+   
+    ADCSRA &= ~(1 << ADEN);          //Disable ADC
 
-    struct NVDescr
-    {
-        NVDescr()
-            : size(0),
-            address(0),
-            stopAt0(false)
-        {}
-        uint8_t size ;
-        uint16_t address;
-        bool stopAt0 ;
-    };
 
-    static void getDesrc(NVData what, NVDescr & dsr);
-    static const uint32_t g_testProgrammed;
+    return results;
 
-public:
-
-    static void save(NVData what, const void * dataToSave);
-    static void read(NVData what, void * dataToLoad);
-    static void init();
-    static void forceFactoryDefaults();
-};
+}
 
 
 //---------------------------------------------------------------
-#endif

@@ -17,64 +17,18 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef NV_H
-#define NV_H
+#ifndef ADC_H
+#define ADC_H
+
 #include <Arduino.h>
 #include "hk_node.h"
 //------------------------------------------------------------------
 
-class NV
+class ADC
 {
-public:
-    ENUM( NVData )
-    {
-        nvTestProgrammed = 0,
-         nvBTName  = 1,
-
-    };
-    ENUM( NVDataSize )
-    {
-        nvTestProgrammed = sizeof(uint32_t),
-        nvBTName  = 12 + 1 /*for \x0*/,
-
-    };
-private:
-
-    SHORTENUM(NVDataAddr)
-    {
-       base = 0,
-       nvTestProgrammed = static_cast<uint16_t>(base),
-
-       nvBTName  =   static_cast<uint16_t>(nvTestProgrammed)
-                   + static_cast<uint16_t>(NVDataSize::nvTestProgrammed),
-       //next =    
-       //          
-       
-    };
-
-    struct NVDescr
-    {
-        NVDescr()
-            : size(0),
-            address(0),
-            stopAt0(false)
-        {}
-        uint8_t size ;
-        uint16_t address;
-        bool stopAt0 ;
-    };
-
-    static void getDesrc(NVData what, NVDescr & dsr);
-    static const uint32_t g_testProgrammed;
-
-public:
-
-    static void save(NVData what, const void * dataToSave);
-    static void read(NVData what, void * dataToLoad);
-    static void init();
-    static void forceFactoryDefaults();
+    public: 
+    static    int32_t readBandgap();
 };
 
-
-//---------------------------------------------------------------
 #endif
+//---------------------------------------------------------------

@@ -28,6 +28,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
+#include "adc.h"
 
 void HKComm::command_RTM(OutBuilder & bld)
 {
@@ -93,6 +94,37 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
         {
             HKCommExtraRecordsHDL::setNumRecords(measurementsToReturn);
             HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
+        }
+    }
+}
+
+void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    OutBuilder::ELogicErr err;
+    uint16_t measurementsToReturn ;
+    if (g_RecievedCmd.hasData())
+    {
+        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+    }
+    else
+    {
+        err = OutBuilder::ELogicErr::None;
+        measurementsToReturn = 0;
+    }
+
+    if (err != OutBuilder::ELogicErr::None )
+    {
+        bld.putErr(err);
+    }
+    else
+    {
+        if (measurementsToReturn == 0)
+        {
+            //special case, make a measurement now and store it.
+            int32_t val = ADC::readBandgap();
+            measurementsToReturn = 1; //so we return the last one.
+            bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VPM));
+            bld.addInt(val);
         }
     }
 }
