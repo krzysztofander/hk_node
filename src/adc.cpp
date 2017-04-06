@@ -23,28 +23,43 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "adc.h"
 //------------------------------------------------------------------
 
-int32_t ADC::readBandgap()
+int32_t ADCSupport::readBandgap()
 {
+    ENUM(ADCSupportConfig)
+    {
+        bandgapMeasurementsSeries = 4,
+
+    };
+    
     const int32_t internalReferenceVoltage = 1100L;  // Adust this value to your specific internal BG voltage x1000
+    int32_t results;
+
+
     // REFS1 REFS0          --> 0 1, AVcc internal ref.
     // MUX3 MUX2 MUX1 MUX0  --> 1110 1.1V (VBG)
- 
+
+
     ADCSRA |= (1 << ADEN);          //enable ADC
     ADCSRA &= ~(1 << ADIE);         //we do not want interrupt
-       
-    ADMUX = (0<<REFS1) | (1<<REFS0) 
-          | (0<<ADLAR) 
-          | (1<<MUX3) | (1<<MUX2) | (1<<MUX1) | (0<<MUX0);
-    // Start a conversion  
-   
-    
-    ADCSRA |= ( 1<< ADSC );
-    // Wait for it to complete
-    while( ( (ADCSRA & (1<<ADSC)) != 0 ) );
-    // Scale the value
-   // int32_t results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L;
-    int32_t results = ((internalReferenceVoltage * 1024L) / ADC);
-   
+
+    ADMUX = (0 << REFS1) | (1 << REFS0)
+        | (0 << ADLAR)
+        | (1 << MUX3) | (1 << MUX2) | (1 << MUX1) | (0 << MUX0);
+  // Start a conversion  
+
+    for (auto i = 0; i < static_cast<int8_t>(ADCSupportConfig::bandgapMeasurementsSeries); i++)
+    {
+
+        ADCSRA |= (1 << ADSC);
+        // Wait for it to complete
+        while (((ADCSRA & (1 << ADSC)) != 0));
+        //results = ADC;
+        // Scale the value
+        // results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L;
+        results = ((internalReferenceVoltage * 1024L) / ADC);
+
+    }
+
     ADCSRA &= ~(1 << ADEN);          //Disable ADC
 
 

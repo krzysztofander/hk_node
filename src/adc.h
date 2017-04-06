@@ -24,7 +24,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 //------------------------------------------------------------------
 
-class ADC
+class ADCSupport
 {
     public: 
     static    int32_t readBandgap();
