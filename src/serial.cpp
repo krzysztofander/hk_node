@@ -1,4 +1,4 @@
-/************************************************************************************************************************
+﻿/************************************************************************************************************************
 Copyright (c) 2016, Krzysztof Bartczak
 All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -99,6 +99,7 @@ void HKSerial::sendBTCommand(const char * command, int8_t size, bool waitRespons
 {
     char buffer[24];
     Serial.begin(9600);
+    //@todo, expect only given characters.
     Serial.write((const uint8_t*)command, size);
     if (waitResponse)
     {
@@ -140,22 +141,97 @@ void HKSerial::BTinit()
     NV::read(NV::NVData::nvBTName, nameBuffer);
     uint8_t nameSize = strlen(nameBuffer);
 
+    /*
+    http://fab.cba.mit.edu/classes/863.15/doc/tutorials/programming/bluetooth/bluetooth40_en.pdf
+    */
+    //Krzysztof:
+    /*  
+    //Query/Set Advertising interval 
+    sendBTCommand("AT+ADVIF", 8,true); 
+        F: 7000ms 
+    
+    //Query/Set Module work type 
+    AT+IMME? 
+        1: When module is powered on, only respond the AT Command, don’t do anything.
+        until AT + START is received, or can use  AT+CON,AT+CONNL
+        0: When power on, work immediately 
+        **This command is only used for Central role. **
+    AT+MODE?
+        Mode 0: Before establishing a connection, you can use the AT command
+            configuration module through UART.
+            After established a connection, you can send data to remote side from
+            each other.
+        Mode 1: Before establishing a connection, you can use the AT command
+            configuration module through UART.
+            After established a connection, you can send data to remote side. Remote
+            side can do fellows: 
+                Send AT command configuration module.
+                Collect PIO04 to the PIO11 pins input state of HM-10.
+                Collect PIO03 pins input state of HM-11.
+                Remote control PIO2, PIO3 pins output state of HM-10.
+                Remote control PIO2 pin output state of HM-11.
+                Send data to module UART port (not include any AT command and per
+                package must less than 20 bytes).
+        Mode 2: Before establishing a connection, you can use the AT command
+            configuration module through UART.
+            After established a connection, you can send data to remote side. Remote
+            side can do fellows:
+                Send AT command configuration module.
+                Remote control PIO2 to PIO11 pins output state of HM-10.
+                Remote control PIO2, PIO3 pins output state of HM-11.
+                Send data to module UART port (not include any AT command and per
+                package must less than 20 bytes). 
 
+    //Query/Set Notify information 
+    AT+NOTI? 
+        If this value is set to 1, when link ESTABLISHED or LOSTED module will
+        send OK+CONN or OK+LOST string through UART. 
+
+    //Query/Set Module name 
+    AT+NAME？
+        Para1: module name, Max length is 12. 
+
+    //Query/Set Module Power 
+    AT+POWE? 
+        3: 6dbm 
+
+    //Restore all setup value to factory setup 
+    AT+RENEW 
+
+    //.Restart module
+    AT+RESET 
+
+    //Query/Set Master and Slaver Role
+    AT+ROLE[para1] 
+        0: Peripheral
+        1: Central
+        Default: 0 
+
+    //Query Module into sleep mode 
+    AT+SLEEP 
+        Only support Peripheral role. 
+    
+    //Query/Set Module sleep type 
+    AT+PWRM[para1] 
+        0:Auto sleep
+        1:don’t auto sleep 
+        Default: 1 
+        Only support peripheral role. 
+
+    */
 
     //init bluetooth
     sendBTCommand("AT+RENEW", 8,true);
-    sendBTCommand("AT+MODE1", 8,true);
-    sendBTCommand("AT+PIO11", 8,true);
-    sendBTCommand("AT+ADVI4", 8,true);
-    //at name here          ,true
-    
+    sendBTCommand("AT+MODE0", 8,true);
+    sendBTCommand("AT+ADVIF", 8,true);
     sendBTCommand("AT+NAME",  7,false);
-    sendBTCommand(nameBuffer ,nameSize,true);
-    
-    sendBTCommand("AT+RESET", 8,true);
-    sendBTCommand("AT+MODE1", 8,true);
+        sendBTCommand(nameBuffer ,nameSize,true);
     sendBTCommand("AT+POWE3", 8,true);
     sendBTCommand("AT+NOTI1", 8,true);
+
+    sendBTCommand("AT+RESET", 8,true);
+    //Lets try to keep it default and go to sleep. Perhapts the LED will go off anyway
+    //sendBTCommand("AT+PIO11", 8,true);  //put LED of when not commencted
     sendBTCommand("AT+SLEEP", 8,true);
 }
 
