@@ -132,7 +132,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','6','.','7' };
+    static const char v[] ={ ' ','0','.','7','.','0' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -179,6 +179,7 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.6.6 Timeout now is reset on any character recieved
         Setting up BT name
     0.6.7 BT works
+    0.7.0 Measurement of batery, no history so far
 
     0.?.1
     + batery reading
