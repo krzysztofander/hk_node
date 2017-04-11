@@ -56,7 +56,8 @@ public:
     static void commandDLS(const InCommandWrap & inCmd, OutBuilder & bld);
 
     static void commandRPM(const InCommandWrap & inCmd, OutBuilder & bld);
-
+    static void commandCRV(const InCommandWrap & inCmd, OutBuilder & bld);
+    
 
     static OutBuilder & accessOutBuilder()
     {

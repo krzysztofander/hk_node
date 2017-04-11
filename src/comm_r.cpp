@@ -121,7 +121,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
         if (measurementsToReturn == 0)
         {
             //special case, make a measurement now and store it.
-            int32_t val = ADCSupport::readBandgap();
+            int16_t val = ADCSupport::readBandgap();
             measurementsToReturn = 1; //so we return the last one.
             bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VPM));
             bld.addInt(val);

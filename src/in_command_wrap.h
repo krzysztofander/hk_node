@@ -38,7 +38,7 @@ public:
         command_CPP = 0x435050,  //power(batery level) period       NOT implemented
         command_CST = 0x435354,  //!system time                         OK
         command_CSC = 0x435343,  //!system capabilities (read only)     OK
-        command_CNN = 0x434e4e,  //node name (string)               NOT implemented
+        command_CNN = 0x434e4e,  //node name (string)                   OK
         command_CRS = 0x435253,  //reset                            NOT implemented
         command_CSM = 0x43534d,  //!power saving mode                   OK
         command_CSA = 0x435341,  //!power down inactivity               OK
@@ -46,12 +46,15 @@ public:
         command_RVI = 0x525649,  //!read version information (deprecated) 
         command_RTH = 0x525448,  //!read temperature history            OK
         command_RTM = 0x52544d,  //!undocumented
-        command_VTM = 0x56544d,  //!return temperature values
-        command_DER = 0x444552,  //!return Debug Echo Responce
+        command_VTM = 0x56544d,  //!return temperature values           OK
+        command_DER = 0x444552,  //!return Debug Echo Responce          OK
         command_DLS = 0x444c53,  //LEDS status                          OK
 
-        command_RPM = 0x52504d,  //read power measurement (battery level)
-        command_VPM = 0x56504d,  //return read power measurement (battery level) in mV
+        command_RPM = 0x52504d,  //read power measurement (battery level) ~ongoing
+        command_CRV = 0x435256,  //configure reference voltage            ~ongoing
+
+        command_VPM = 0x56504d,  //return read power measurement 
+                                 //(battery level) in mV                  ~ongoing
 
 
 #if HAVE_HUMAN_READABLE

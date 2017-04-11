@@ -23,16 +23,96 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "adc.h"
 //------------------------------------------------------------------
 
-int32_t ADCSupport::readBandgap()
-{
-    ENUM(ADCSupportConfig)
-    {
-        bandgapMeasurementsSeries = 4,
 
-    };
+void ADCSupport::adcPrepare(ADCSupport::ADCSupportConfigRefSrc ref, uint8_t src)
+{
+ 
+    ADCSRA |= (1 << ADEN);          //enable ADC
+    ADCSRA &= ~(1 << ADIE);         //we do not want interrupt
+
+    uint8_t newAmux = 0;
+
+    newAmux |= (0 << ADLAR);
+
+    if (ref == ADCSupport::ADCSupportConfigRefSrc::referenceInternal)
+    {
+        newAmux |= (1 << REFS1) | (1 << REFS0);
+    }
+    else
+    {
+        newAmux |= (0 << REFS1) | (1 << REFS0);//AVCC with external capacitor at AREF pin
+    }
     
-    const int32_t internalReferenceVoltage = 1100L;  // Adust this value to your specific internal BG voltage x1000
-    int32_t results;
+    newAmux |=  ((src & 0xF) << MUX0);
+
+    ADMUX = newAmux;
+
+}
+
+int16_t ADCSupport::adcRun(int8_t loops)
+{
+    int16_t result;
+    for (int8_t i = 0; i < loops; i++)
+    {
+
+        ADCSRA |= (1 << ADSC);
+        // Wait for it to complete
+        while (((ADCSRA & (1 << ADSC)) != 0));
+        result = ADC;
+
+    }
+    return result;
+}
+void ADCSupport::adcClose()
+{
+    ADCSRA &= ~(1 << ADEN);          //Disable ADC
+
+}
+
+int16_t ADCSupport::selectInternalReference()
+{
+
+    int16_t results;
+
+    adcPrepare(ADCSupport::ADCSupportConfigRefSrc::referenceInternal,
+               static_cast<uint8_t> (14)); //1110 1.1V (VBG)
+    
+    //we should have both reference and measurement of the VBG
+
+    results = adcRun(static_cast<int8_t>(
+        ADCSupport::ADCSupportConfig::bateryMeasurementsSeries
+    ));
+    adcClose();
+    return results;
+}
+
+int16_t ADCSupport::readBandgap()
+{
+#if 1
+    int16_t results;
+    int16_t internalReferenceVoltage;
+    NV::read(NV::NVData::nvBandgapVoltage, &internalReferenceVoltage);
+
+    adcPrepare(ADCSupport::ADCSupportConfigRefSrc::referenceACC,
+               static_cast<uint8_t> (14)); //1110 1.1V (VBG)
+    results = adcRun(static_cast<int8_t>(
+                        ADCSupport::ADCSupportConfig::bateryMeasurementsSeries
+                                        ) );
+    adcClose();
+    
+    // Scale the value
+    results = static_cast<int16_t>(
+        (static_cast<int32_t>(internalReferenceVoltage) << 10) / results
+        );
+
+
+    return results;
+
+#else
+    int16_t internalReferenceVoltage;
+    NV::read(NV::NVData::nvBandgapVoltage, &internalReferenceVoltage);
+
+    int16_t results;
 
 
     // REFS1 REFS0          --> 0 1, AVcc internal ref.
@@ -42,12 +122,12 @@ int32_t ADCSupport::readBandgap()
     ADCSRA |= (1 << ADEN);          //enable ADC
     ADCSRA &= ~(1 << ADIE);         //we do not want interrupt
 
-    ADMUX = (0 << REFS1) | (1 << REFS0)
+    ADMUX = (0 << REFS1) | (1 << REFS0)   //AVCC with external capacitor at AREF pin
         | (0 << ADLAR)
         | (1 << MUX3) | (1 << MUX2) | (1 << MUX1) | (0 << MUX0);
-  // Start a conversion  
+    // Start a conversion  
 
-    for (auto i = 0; i < static_cast<int8_t>(ADCSupportConfig::bandgapMeasurementsSeries); i++)
+    for (int8_t i = 0; i < static_cast<int8_t>(ADCSupportConfig::bandgapMeasurementsSeries); i++)
     {
 
         ADCSRA |= (1 << ADSC);
@@ -56,7 +136,9 @@ int32_t ADCSupport::readBandgap()
         //results = ADC;
         // Scale the value
         // results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L;
-        results = ((internalReferenceVoltage * 1024L) / ADC);
+        results = static_cast<int16_t>(
+            (static_cast<int32_t>(internalReferenceVoltage) << 10) / ADC
+                                       );
 
     }
 
@@ -64,8 +146,10 @@ int32_t ADCSupport::readBandgap()
 
 
     return results;
-
+#endif
 }
+
+
 
 
 //---------------------------------------------------------------

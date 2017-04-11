@@ -27,7 +27,26 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class ADCSupport
 {
     public: 
-    static    int32_t readBandgap();
+
+    ENUM(ADCSupportConfigRefSrc)
+    {
+        referenceInternal = 0,
+            referenceACC      = 1,
+    };
+
+
+    ENUM(ADCSupportConfig)
+    {
+        bateryMeasurementsSeries = 4,
+        generalInputMeasurementSerie = 3,
+
+    };
+    static void adcPrepare(ADCSupport::ADCSupportConfigRefSrc ref, uint8_t src);
+    static int16_t adcRun(int8_t loops);
+    static void adcClose();
+
+    static int16_t readBandgap();
+    static int16_t selectInternalReference();
 };
 
 #endif

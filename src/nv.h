@@ -29,14 +29,15 @@ public:
     ENUM( NVData )
     {
         nvTestProgrammed = 0,
-         nvBTName  = 1,
+        nvBTName         = 1,
+        nvBandgapVoltage = 2
 
     };
     ENUM( NVDataSize )
     {
-        nvTestProgrammed = sizeof(uint32_t),
-        nvBTName  = 12 + 1 /*for \x0*/,
-
+        nvTestProgrammed    = sizeof(uint32_t),
+        nvBTName            = 12 + 1 /*for \x0*/,
+        nvBandgapVoltage    = sizeof(int16_t),
     };
 private:
 
@@ -47,6 +48,10 @@ private:
 
        nvBTName  =   static_cast<uint16_t>(nvTestProgrammed)
                    + static_cast<uint16_t>(NVDataSize::nvTestProgrammed),
+
+       nvBandgapVoltage =    static_cast<uint16_t>(nvBTName)
+                           + static_cast<uint16_t>(NVDataSize::nvBTName),
+
        //next =    
        //          
        
