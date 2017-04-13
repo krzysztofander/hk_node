@@ -21,11 +21,12 @@ project (${PROJNAME})
 #sources
 
     set(DOC_CONF
-		${CMAKE_CURRENT_SOURCE_DIR}/doxygen-config.dxc.in
-		commands.rst
-		conf.py.in
-		index.rst.in
-		${TOP}/README.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/doxygen-config.dxc.in
+        commands.rst
+        parts.rst
+        conf.py.in
+        index.rst.in
+        ${TOP}/README.md
         )
 
 
@@ -70,7 +71,11 @@ project (${PROJNAME})
             "${CMAKE_CURRENT_SOURCE_DIR}/commands.rst"
             "${DOCGEN_CONF_INPUT_FOLDER}/commands.rst")
 
-        configure_file(
+            configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/parts.rst"
+            "${DOCGEN_CONF_INPUT_FOLDER}/parts.rst")
+
+            configure_file(
             "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
             "${DOCGEN_CONF_INPUT_FOLDER}/conf.py")
 
