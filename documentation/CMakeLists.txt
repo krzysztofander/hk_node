@@ -77,7 +77,7 @@ project (${PROJNAME})
             "${CMAKE_CURRENT_SOURCE_DIR}/parts.rst"
             "${DOCGEN_CONF_INPUT_FOLDER}/parts.rst")
 
-			configure_file(
+            configure_file(
             "${CMAKE_CURRENT_SOURCE_DIR}/board.rst"
             "${DOCGEN_CONF_INPUT_FOLDER}/board.rst")
 
