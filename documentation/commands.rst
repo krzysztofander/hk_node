@@ -43,6 +43,10 @@ ref `http://www.tablesgenerator.com/text_tables`
 |             |                 |            |         | Reset        | - 1 - BT reset                      |
 |             |                 |            |         | System       | - 2 - total factory reset           |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
+| M           | CRV numer       | QSR        |         | Configure    | Value of bandgap reference          |
+|             |                 |            |         | Reference    | voltage in milivolts.               |
+|             |                 |            |         | Voltage      | Used for ADC measuremnts e.g. batery|
++-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CSM number      | QSR        |         | Configure    | - 0 - low                           |
 |             |                 |            |         | Saving       | - 1 - medium                        |
 |             |                 |            |         | Mode         | - 2 - high                          |
