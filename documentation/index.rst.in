@@ -2,6 +2,7 @@ Secure Boot documentation
 **************************
 .. toctree::
     commands
+    board
     parts
 
 

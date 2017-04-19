@@ -175,7 +175,6 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     int16_t bandgapVoltage;
-    uint16_t internalReference;
 
     if (inCmd.hasData())
     {
@@ -246,7 +245,7 @@ void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
     NV::read(NV::NVData::nvBTName, buffer);
 
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
-    bld.addString(buffer, strlen(buffer) );
+    bld.addString(buffer, static_cast<uint16_t>(strlen(buffer)) );
     
 }
 

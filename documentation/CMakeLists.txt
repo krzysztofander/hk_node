@@ -24,6 +24,7 @@ project (${PROJNAME})
         ${CMAKE_CURRENT_SOURCE_DIR}/doxygen-config.dxc.in
         commands.rst
         parts.rst
+        board.rst
         conf.py.in
         index.rst.in
         ${TOP}/README.md
@@ -74,6 +75,11 @@ project (${PROJNAME})
             configure_file(
             "${CMAKE_CURRENT_SOURCE_DIR}/parts.rst"
             "${DOCGEN_CONF_INPUT_FOLDER}/parts.rst")
+
+			configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/board.rst"
+            "${DOCGEN_CONF_INPUT_FOLDER}/board.rst")
+
 
             configure_file(
             "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
