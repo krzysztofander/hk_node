@@ -18,6 +18,7 @@ project (${PROJNAME})
     SET(DOCGEN_CONF_INPUT_FOLDER ${CMAKE_CURRENT_BINARY_DIR})
     set(DocumentationOut "${CMAKE_CURRENT_BINARY_DIR}/out" CACHE STRING "Where to generate documentation to")
 
+    set(GENERATE_DOXYGEN  TRUE CACHE BOOL "Enable doxygen generation")
 #sources
 
     set(DOC_CONF
@@ -36,7 +37,7 @@ project (${PROJNAME})
         #if we do want documentation
 
 #doxygen
-        if (${DOXYGEN_FOUND})
+        if (${DOXYGEN_FOUND} AND ${GENERATE_DOXYGEN} )
             set (DOXYGEN_OUTPUT_DIRECTORY_APX doxygen_output)
             set (DOXYGEN_OUTPUT_DIRECTORY ${DocumentationOut}/${DOXYGEN_OUTPUT_DIRECTORY_APX})
             message (STATUS "Using doxygen to generate into ${DOXYGEN_OUTPUT_DIRECTORY}")
@@ -57,7 +58,7 @@ project (${PROJNAME})
                            )
 
         else()
-            message ("No doxygen found")
+            message ("No doxygen found or generation disabled")
         endif()
 
 
