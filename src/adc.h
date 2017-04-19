@@ -37,7 +37,7 @@ class ADCSupport
 
     ENUM(ADCSupportConfig)
     {
-        bateryMeasurementsSeries = 4,
+        bateryMeasurementsSeries = 40,
         generalInputMeasurementSerie = 3,
 
     };
@@ -46,7 +46,7 @@ class ADCSupport
     static void adcClose();
 
     static int16_t readBandgap();
-    static int16_t selectInternalReference();
+    static int16_t measureInternatToInternal();
 };
 
 #endif

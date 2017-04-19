@@ -192,8 +192,6 @@ void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
         }
     }
 
-    internalReference = ADCSupport::selectInternalReference();
-
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CRV));
 
     NV::read(NV::NVData::nvBandgapVoltage, &bandgapVoltage);

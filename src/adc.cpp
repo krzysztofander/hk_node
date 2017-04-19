@@ -21,11 +21,18 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "nv.h"
 #include <EEPROM.h>
 #include "adc.h"
+
+#include <avr/interrupt.h>
+#include <avr/power.h>
+#include <avr/sleep.h>
+
+#include "sleeper.h"
 //------------------------------------------------------------------
 
 
 void ADCSupport::adcPrepare(ADCSupport::ADCSupportConfigRefSrc ref, uint8_t src)
 {
+#if 1
  
     ADCSRA |= (1 << ADEN);          //enable ADC
     ADCSRA &= ~(1 << ADIE);         //we do not want interrupt
@@ -46,12 +53,42 @@ void ADCSupport::adcPrepare(ADCSupport::ADCSupportConfigRefSrc ref, uint8_t src)
     newAmux |=  ((src & 0xF) << MUX0);
 
     ADMUX = newAmux;
+#else
+    ADCSRA |= (1 << ADEN);          //enable ADC
+
+    uint8_t newAmux = 0;
+
+    newAmux |= (0 << ADLAR);
+
+    if (ref == ADCSupport::ADCSupportConfigRefSrc::referenceInternal)
+    {
+        newAmux |= (1 << REFS1) | (1 << REFS0);
+    }
+    else
+    {
+        newAmux |= (0 << REFS1) | (1 << REFS0);//AVCC with external capacitor at AREF pin
+    }
+
+    newAmux |=  ((src & 0xF) << MUX0);
+
+    ADMUX = newAmux;
+
+    ADCSRA |= (1 << ADIE);          //we DO want interrupt
+
+#endif
+
+}
+
+ISR(ADC_vect)
+{ // else application is reset
+
 
 }
 
 int16_t ADCSupport::adcRun(int8_t loops)
 {
-    int16_t result;
+#if 1
+    volatile int16_t result;
     for (int8_t i = 0; i < loops; i++)
     {
 
@@ -61,6 +98,25 @@ int16_t ADCSupport::adcRun(int8_t loops)
         result = ADC;
 
     }
+#else
+    volatile int16_t result;
+    for (int8_t i = 0; i < loops; i++)
+    {
+        do
+        {
+
+            lowPowerBodOff(SLEEP_MODE_ADC);
+          
+
+        // Wait for it to complete
+        } while (((ADCSRA & (1 << ADSC)) != 0));
+        result = ADC;
+        ADCSRA &= ~(1 << ADIE);    //disable int
+    }
+
+#endif
+
+
     return result;
 }
 void ADCSupport::adcClose()
@@ -68,8 +124,9 @@ void ADCSupport::adcClose()
     ADCSRA &= ~(1 << ADEN);          //Disable ADC
 
 }
-
-int16_t ADCSupport::selectInternalReference()
+//@brief Measures internal voltage against interal rerefence.
+//Only debug funtion, should be returning 0x3FF (10 bit full)
+int16_t ADCSupport::measureInternatToInternal()
 {
 
     int16_t results;
@@ -88,7 +145,6 @@ int16_t ADCSupport::selectInternalReference()
 
 int16_t ADCSupport::readBandgap()
 {
-#if 1
     int16_t results;
     int16_t internalReferenceVoltage;
     NV::read(NV::NVData::nvBandgapVoltage, &internalReferenceVoltage);
@@ -107,46 +163,6 @@ int16_t ADCSupport::readBandgap()
 
 
     return results;
-
-#else
-    int16_t internalReferenceVoltage;
-    NV::read(NV::NVData::nvBandgapVoltage, &internalReferenceVoltage);
-
-    int16_t results;
-
-
-    // REFS1 REFS0          --> 0 1, AVcc internal ref.
-    // MUX3 MUX2 MUX1 MUX0  --> 1110 1.1V (VBG)
-
-
-    ADCSRA |= (1 << ADEN);          //enable ADC
-    ADCSRA &= ~(1 << ADIE);         //we do not want interrupt
-
-    ADMUX = (0 << REFS1) | (1 << REFS0)   //AVCC with external capacitor at AREF pin
-        | (0 << ADLAR)
-        | (1 << MUX3) | (1 << MUX2) | (1 << MUX1) | (0 << MUX0);
-    // Start a conversion  
-
-    for (int8_t i = 0; i < static_cast<int8_t>(ADCSupportConfig::bandgapMeasurementsSeries); i++)
-    {
-
-        ADCSRA |= (1 << ADSC);
-        // Wait for it to complete
-        while (((ADCSRA & (1 << ADSC)) != 0));
-        //results = ADC;
-        // Scale the value
-        // results = (((InternalReferenceVoltage * 1024L) / ADC) + 5L) / 10L;
-        results = static_cast<int16_t>(
-            (static_cast<int32_t>(internalReferenceVoltage) << 10) / ADC
-                                       );
-
-    }
-
-    ADCSRA &= ~(1 << ADEN);          //Disable ADC
-
-
-    return results;
-#endif
 }
 
 
