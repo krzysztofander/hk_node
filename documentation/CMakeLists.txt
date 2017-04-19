@@ -63,37 +63,43 @@ project (${PROJNAME})
 
 
 #sphinx
+        set (THEMESFOLDER "${CMAKE_CURRENT_SOURCE_DIR}/sphinx_rtd_theme/sphinx_rtd_theme")
 
 
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/index.rst.in"
-            "${DOCGEN_CONF_INPUT_FOLDER}/index.rst")
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/index.rst.in"
+        "${DOCGEN_CONF_INPUT_FOLDER}/index.rst")
 
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/commands.rst"
-            "${DOCGEN_CONF_INPUT_FOLDER}/commands.rst")
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/commands.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/commands.rst")
 
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/parts.rst"
-            "${DOCGEN_CONF_INPUT_FOLDER}/parts.rst")
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/parts.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/parts.rst")
 
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/board.rst"
-            "${DOCGEN_CONF_INPUT_FOLDER}/board.rst")
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/board.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/board.rst")
 
 
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
-            "${DOCGEN_CONF_INPUT_FOLDER}/conf.py")
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
+        "${DOCGEN_CONF_INPUT_FOLDER}/conf.py")
 
 
         set (SPHINX_WARNINGS_FILE ./temp_sphinxWarnings)
+
 
         add_custom_target(${PROJNAME} ALL
                           COMMAND
                               echo "Executing py.test so it generates Sphinx files"
                           COMMAND
                               echo "Generating documentation with Sphinx"
+                          #COMMAND 
+                              #${CMAKE_COMMAND} -E create_symlink 
+                              #    ${CMAKE_CURRENT_SOURCE_DIR}/sphinx_rtd_theme/sphinx_rtd_theme
+                              #    ${DOCGEN_CONF_INPUT_FOLDER}/_themes 
                           COMMAND
                               #call sphinx
                               sphinx-build -w ${SPHINX_WARNINGS_FILE} ${DOCGEN_CONF_INPUT_FOLDER} ${DocumentationOut}

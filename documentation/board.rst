@@ -7,25 +7,72 @@ Features
 Ports
 ------
 
+    - **4 Digital Inputs**
+        - 2 opto isolated
+        - 4 raw logic (1 exchangeable with positive voltage detection, 2 shared with opto isolation)
+    - **4 Digital Outputs**
+        - 2 opto isolated (both exchangeable with open-drain or triac)
+        - 2 raw logic
+    - **4 Analogue Inputs**
+        - each with optional pull-up
+        - 1 exchangeable with build-in opto transistor circuitry
+        - 1 exchangeable with configurable op-amp circuitry
+    - **opto-transistor**
+        - An external opto transistor can connected. There is a build in circuitry for opto transistor
+    - **Dedicated one-wire**
+    - **Dedicated I2C**
+    - **Serial/Bluetooth module**
+        .. note::
+            There is no RS232 converter.
+    - **SPI programming interface**
+        - Arduino compatible
+
+Power supply
+------------
+
+    - **230VAC input**
+        - requires soldering in a 230VAC / 5VDC converter
+    - **4-24VDC input**
+        - requires soldering a 5V DC stabilizer 
+    - **raw 3-6 input/5V DC output**
+        - direct supply input or an output from 5V DC stabilizer.
+
+On board circuitry
+------------------
+    
+Each circuitry is optional e.g. by soldering in/out particular elements.
+Particular circuitry is exchangable. 
+
+    - quartz oscillator for ATMega
+    - one wire
+        - just a required pull-up resistor
+    - opto-transistor,
+        - used to assess lightening conditions
+        - connected to one of ADC inputs
+    - op-amp
+        - for high impedance, amplified ADC measurements
+    - positive voltage detection
+        - for detecting phase of ADC of mains power supply
+    - triac high current **OR** opto isolated output
+    - triac low current **OR** opto isolated output
+    - 2 opto isolated inputs
+    - 230VAC / 5VDC monolitic converter 
+    - 5V voltage stablizer
+
+Pin selection
+------------------
+
 Digital Inputs
-++++++++++++++
++++++++++++++++
 
-    2 opto isolated
-    2 raw (1 exchangable with positive voltage detection)
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    PD2    raw           -                            INT0
+    PD3    raw           positive voltage detection   INT1
+    PD4    opto or raw   -                            Timer T0 (8 bit)
+    PD5    opto or raw   -                            Timer T1 (16 bit)
+    ===== ============= ============================ ===================
 
-
-
-On board options
-----------------
-
-
-
-
-
-* Serial connectivity
-    * Bluetooth
-    * Raw logic (Bluetooth powered off)
-* 4 Digital inputs
-    * 2 of them opto-isolated
-    * 1 raw
-    * 1 raw exchangable with 
+Digital Outputs
+++++++++++++++++
