@@ -8,11 +8,24 @@ Ports
 ------
 
     - **4 Digital Inputs**
-        - 2 opto isolated
-        - 4 raw logic (1 exchangeable with positive voltage detection, 2 shared with opto isolation)
+        - 2 of them 
+            - opto isolated *OR*
+            - raw logic 
+        - 1 of them
+            - raw logic *OR*
+            - connected to on-board with positive voltage detection circuitry
+        - 1 of them 
+            - raw logic only
     - **4 Digital Outputs**
-        - 2 opto isolated (both exchangeable with open-drain or triac)
-        - 2 raw logic
+        - 2 of them
+            - raw logic *OR*
+            - opto isolated *OR*
+            - open-drain N-FET *OR*
+            - open-drain P-FET *OR*
+            - triac circuitry
+        - 2 of them
+            - raw logic *OR*
+            - open-drain N-FET
     - **4 Analogue Inputs**
         - each with optional pull-up
         - 1 exchangeable with build-in opto transistor circuitry
@@ -55,6 +68,7 @@ Particular circuitry is exchangable.
         - for detecting phase of ADC of mains power supply
     - triac high current **OR** opto isolated output
     - triac low current **OR** opto isolated output
+    - up to 4 open drain outputs
     - 2 opto isolated inputs
     - 230VAC / 5VDC monolitic converter 
     - 5V voltage stablizer
