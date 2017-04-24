@@ -17,15 +17,15 @@ Ports
         - 1 of them 
             - raw logic only
     - **4 Digital Outputs**
-        - 2 of them
-            - raw logic *OR*
-            - opto isolated *OR*
-            - open-drain N-FET *OR*
-            - open-drain P-FET *OR*
-            - triac circuitry
-        - 2 of them
-            - raw logic *OR*
+
+        Configurable options:
+            - raw logic on all
+            - 2 outputs opto isolated
             - open-drain N-FET
+            - 2 outputs open-drain P-FET
+            - 2 outputs triac circuitry
+        Some of the options are exclusive.
+
     - **4 Analogue Inputs**
         - each with optional pull-up
         - 1 exchangeable with build-in opto transistor circuitry
@@ -82,11 +82,42 @@ Digital Inputs
     ===== ============= ============================ ===================
     pin     type         alternative circuitry        Special function
     ===== ============= ============================ ===================
-    PD2    raw           -                            INT0
-    PD3    raw           positive voltage detection   INT1
+    PD2    raw           -                            INT0, PCINT18
+    PD3    raw           positive voltage detection   INT1, PCINT19
     PD4    opto or raw   -                            Timer T0 (8 bit)
     PD5    opto or raw   -                            Timer T1 (16 bit)
     ===== ============= ============================ ===================
 
 Digital Outputs
 ++++++++++++++++
+
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    PD6    raw           open drain N                  pwm 
+    PB0    opto          triac, open drain N or P                              
+    PB1    opto          open drain N                  pwm           
+    PB2    raw           triac, open drain N or P      pwm             
+    ===== ============= ============================ ===================
+
+Analog Inputs
++++++++++++++++
+
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    ADC6   raw           opto transistor, pull up     analog only pin 
+    ADC7   raw           op-amp,pull up               analog only pin
+    PC2    raw           digital raw, pull up         PCINT10
+    PC3    raw           ditigal raw, pull up         PCINT11
+    ===== ============= ============================ ===================
+
+One wire
++++++++++++++++
+
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    PC4    raw           
+    PC5    raw           
+    ===== ============= ============================ ===================
