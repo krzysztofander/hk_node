@@ -148,8 +148,22 @@ void HKSerial::BTinit()
     /*  
     //Query/Set Advertising interval 
     sendBTCommand("AT+ADVIF", 8,true); 
-        F: 7000ms 
-    
+        F: 0: 100ms
+        1: 152.5 ms
+        2: 211.25 ms
+        3: 318.75 ms
+        4: 417.5 ms
+        5: 546.25 ms
+        6: 760 ms
+        7: 852.5 ms
+        8: 1022.5 ms
+        9: 1285 ms
+        A: 2000ms
+        B: 3000ms
+        C: 4000ms
+        D: 5000ms
+        E: 6000ms
+        F: 7000ms     
     //Query/Set Module work type 
     AT+IMME? 
         1: When module is powered on, only respond the AT Command, don’t do anything.
@@ -223,7 +237,7 @@ void HKSerial::BTinit()
     //init bluetooth
     sendBTCommand("AT+RENEW", 8,true);
     sendBTCommand("AT+MODE0", 8,true);
-    sendBTCommand("AT+ADVIF", 8,true);
+    sendBTCommand("AT+ADVI8", 8,true);
     sendBTCommand("AT+NAME",  7,false);
         sendBTCommand(nameBuffer ,nameSize,true);
     sendBTCommand("AT+POWE3", 8,true);

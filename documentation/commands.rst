@@ -7,12 +7,12 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | Type        | Command         | Type       | Returns | Brief        | Description                         |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
-| - Optional  |                 | - QSR      |         |              |                                     |
-| - Mandatory |                 | - Querry   |         |              |                                     |
-| - Debug     |                 | - Responce |         |              |                                     |
+| - Optional  |                 | - [Q]uery  |         |              |                                     |
+| - Mandatory |                 | - [S]et    |         |              |                                     |
+| - Debug     |                 | - [R]esp.  |         |              |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | O           | CTR number      | QSR        |         | Configure    | Configures precision of temperature |
-+             +                 +            +         + Temperature  + measurements in bits                +
+|             |                 |            |         | Temperature  | measurements in bits                |
 |             |                 |            |         | Resolution   |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CTP number      | QSR        |         | Configure    | in seconds                          |
@@ -78,7 +78,7 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | D           | DL1             |            | //todo  |              | Debug led on                        |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
-| M           | VTH             |            |         |              | Delivers historical                 |
+| M           | VTH             | R          |         |              | Delivers historical                 |
 |             | (number,number) |            |         |              | values of temperature               |
 |             | (number,number) |            |         |              | measurements                        |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
