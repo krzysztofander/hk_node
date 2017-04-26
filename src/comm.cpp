@@ -165,7 +165,7 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
         }
     }
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSM));
-    bld.addInt(Sleeper::getPowerSaveMode());
+    bld.addInt(static_cast<uint8_t>(Sleeper::getPowerSaveMode()));
 }
 
 void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
