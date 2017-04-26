@@ -30,6 +30,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "blinker.h"
 #include "nv.h"
 #include "string.h"
+#include "adc.h"
 
 void HKComm::command_DER(OutBuilder & bld)
 {
@@ -171,6 +172,34 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
     bld.addInt(Sleeper::getPowerSaveMode());
 }
 
+void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    int16_t bandgapVoltage;
+
+    if (inCmd.hasData())
+    {
+        OutBuilder::ELogicErr err;
+        bandgapVoltage = inCmd.getUint16(err);
+
+        if (err != OutBuilder::ELogicErr::None)
+        {
+            bld.putErr(err);
+        }
+        else
+        {
+            NV::save(NV::NVData::nvBandgapVoltage, &bandgapVoltage);
+        }
+    }
+
+    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CRV));
+
+    NV::read(NV::NVData::nvBandgapVoltage, &bandgapVoltage);
+
+    bld.addInt(bandgapVoltage);
+}
+
+
+
 void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     if (inCmd.hasData())
@@ -216,7 +245,7 @@ void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
     NV::read(NV::NVData::nvBTName, buffer);
 
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
-    bld.addString(buffer, strlen(buffer) );
+    bld.addString(buffer, static_cast<uint16_t>(strlen(buffer)) );
     
 }
 

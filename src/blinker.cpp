@@ -84,9 +84,14 @@ void Blinker::blinkAction()
                 }
                 else
                 {
-                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_DER);
+                    HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_RPM);
                     HKComm::accessInCommandWrap().setIntData(0);
                     HKComm::jumpToAction();
+
+
+                    //HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_DER);
+                    //HKComm::accessInCommandWrap().setIntData(0);
+                    //HKComm::jumpToAction();
                 }
                 counter++;
             }

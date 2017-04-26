@@ -3,7 +3,7 @@ cmake_policy(SET CMP0012 NEW)
 
 project (home_control_node)
 
-    set (TOP ../)
+    set (TOP ${CMAKE_SOURCE_DIR})
 
 # Unit Tests
 #===========

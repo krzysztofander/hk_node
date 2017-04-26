@@ -21,6 +21,50 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_SLEEPER_H
 #define HK_SLEEPER_H
 
+#if defined __AVR_ATmega328P__
+
+#ifndef sleep_bod_disable
+//Comms probably from arduino\hardware\tools\avr\avr\include\avr\sleep.h
+#define sleep_bod_disable() 										\
+do { 																\
+  unsigned char tempreg; 											\
+  __asm__ __volatile__("in %[tempreg], %[mcucr]" "\n\t" 			\
+                       "ori %[tempreg], %[bods_bodse]" "\n\t" 		\
+                       "out %[mcucr], %[tempreg]" "\n\t" 			\
+                       "andi %[tempreg], %[not_bodse]" "\n\t" 		\
+                       "out %[mcucr], %[tempreg]" 					\
+                       : [tempreg] "=&d" (tempreg) 					\
+                       : [mcucr] "I" _SFR_IO_ADDR(MCUCR), 			\
+                         [bods_bodse] "i" (_BV(BODS) | _BV(BODSE)), \
+                         [not_bodse] "i" (~_BV(BODSE))); 			\
+} while (0)
+#endif
+#define	lowPowerBodOff(mode)\
+do { 						\
+      set_sleep_mode(mode); \
+      cli();				\
+      sleep_enable();		\
+			sleep_bod_disable(); \
+      sei();				\
+      sleep_cpu();			\
+      sleep_disable();		\
+      sei();				\
+} while (0);
+
+#define	lowPowerBodOn(mode)	\
+do { 						\
+      set_sleep_mode(mode); \
+      cli();				\
+      sleep_enable();		\
+      sei();				\
+      sleep_cpu();			\
+      sleep_disable();		\
+      sei();				\
+} while (0);
+
+#endif
+
+
 class Sleeper
 {
 public:

@@ -41,6 +41,14 @@ void NV::getDesrc(NV::NVData what, NV::NVDescr & dsr)
             dsr.stopAt0     = true;
             break;
 
+        case NV::NVData::nvBandgapVoltage:
+            dsr.size        = static_cast<uint8_t> (NV::NVDataSize::nvBandgapVoltage);
+            dsr.address     = static_cast<uint16_t>(NV::NVDataAddr::nvBandgapVoltage);
+            break;
+
+
+            
+
         default:
             //this is an error, do nothing
             break;
@@ -85,12 +93,18 @@ void NV::read(NV::NVData what, void * dataToLoad)
 
 }
 
-const uint32_t NV::g_testProgrammed = 0x12345678;
+const uint32_t NV::g_testProgrammed = 0x12345679;
 
 void NV::forceFactoryDefaults()
 {
     //need to put default values to eeprom
     NV::save(NV::NVData::nvBTName, "HCNode" );
+
+    
+    {
+        uint16_t bgmV = 1100;
+        NV::save(NV::NVData::nvBandgapVoltage, &bgmV);
+    }
 
 
     //finally the marker

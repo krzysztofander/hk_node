@@ -110,12 +110,14 @@ project (unit_tests)
         ${TOP}/hk_node/src/sleeper.cpp
         ${TOP}/hk_node/src/temp_sensor.cpp
         ${TOP}/hk_node/src/nv.cpp
+        ${TOP}/hk_node/src/adc.cpp
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/supp.h
         ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/sleeper.h
         ${TOP}/hk_node/src/nv.h
+        ${TOP}/hk_node/src/adc.h
         ${TOP}/hk_node/README.md
 
     )

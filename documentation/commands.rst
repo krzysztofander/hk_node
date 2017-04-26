@@ -7,12 +7,12 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | Type        | Command         | Type       | Returns | Brief        | Description                         |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
-| - Optional  |                 | - QSR      |         |              |                                     |
-| - Mandatory |                 | - Querry   |         |              |                                     |
-| - Debug     |                 | - Responce |         |              |                                     |
+| - Optional  |                 | - [Q]uery  |         |              |                                     |
+| - Mandatory |                 | - [S]et    |         |              |                                     |
+| - Debug     |                 | - [R]esp.  |         |              |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | O           | CTR number      | QSR        |         | Configure    | Configures precision of temperature |
-+             +                 +            +         + Temperature  + measurements in bits                +
+|             |                 |            |         | Temperature  | measurements in bits                |
 |             |                 |            |         | Resolution   |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CTP number      | QSR        |         | Configure    | in seconds                          |
@@ -43,6 +43,10 @@ ref `http://www.tablesgenerator.com/text_tables`
 |             |                 |            |         | Reset        | - 1 - BT reset                      |
 |             |                 |            |         | System       | - 2 - total factory reset           |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
+| M           | CRV numer       | QSR        |         | Configure    | Value of bandgap reference          |
+|             |                 |            |         | Reference    | voltage in milivolts.               |
+|             |                 |            |         | Voltage      | Used for ADC measuremnts e.g. batery|
++-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CSM number      | QSR        |         | Configure    | - 0 - low                           |
 |             |                 |            |         | Saving       | - 1 - medium                        |
 |             |                 |            |         | Mode         | - 2 - high                          |
@@ -64,13 +68,17 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | RTH number      | Q          | see VTH | --//--       | Return historical measurements      |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
+| M           | RPM             | Q          | see RPM | Read         | Makes a supply voltage measurement  |
+|             |                 |            |         | Power (bat)  | and add that to history             |
+|             |                 |            |         | History      | **TEMPORARILY** Returns single value|
++-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | D           | DE[a-Z]         |            | DR[a-Z] |              | Simple echo                         |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | D           | DL0             |            | //todo  |              | Debug led off                       |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | D           | DL1             |            | //todo  |              | Debug led on                        |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
-| M           | VTH             |            |         |              | Delivers historical                 |
+| M           | VTH             | R          |         |              | Delivers historical                 |
 |             | (number,number) |            |         |              | values of temperature               |
 |             | (number,number) |            |         |              | measurements                        |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+

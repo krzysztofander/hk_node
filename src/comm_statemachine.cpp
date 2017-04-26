@@ -147,6 +147,16 @@ bool  HKComm::respondSerial(void)
                 case  InCommandWrap::ECommands::command_DLS:
                     commandDLS(g_RecievedCmd, g_OutBuilder);
                     break;
+                case  InCommandWrap::ECommands::command_RPM:
+                    commandRPM(g_RecievedCmd, g_OutBuilder);
+                    break;
+                case  InCommandWrap::ECommands::command_CRV:
+                    commandCRV(g_RecievedCmd, g_OutBuilder);
+                    break;
+
+                    
+                    
+
                 default:
                 {
                     g_commState.setErrorState(

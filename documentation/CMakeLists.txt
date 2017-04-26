@@ -18,14 +18,18 @@ project (${PROJNAME})
     SET(DOCGEN_CONF_INPUT_FOLDER ${CMAKE_CURRENT_BINARY_DIR})
     set(DocumentationOut "${CMAKE_CURRENT_BINARY_DIR}/out" CACHE STRING "Where to generate documentation to")
 
+    set(GENERATE_DOXYGEN  TRUE CACHE BOOL "Enable doxygen generation")
 #sources
 
     set(DOC_CONF
-		${CMAKE_CURRENT_SOURCE_DIR}/doxygen-config.dxc.in
-		commands.rst
-		conf.py.in
-		index.rst.in
-		${TOP}/README.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/doxygen-config.dxc.in
+        commands.rst
+        parts.rst
+        board.rst
+        overview.rst
+        conf.py.in
+        index.rst.in
+        ${TOP}/README.md
         )
 
 
@@ -34,7 +38,7 @@ project (${PROJNAME})
         #if we do want documentation
 
 #doxygen
-        if (${DOXYGEN_FOUND})
+        if (${DOXYGEN_FOUND} AND ${GENERATE_DOXYGEN} )
             set (DOXYGEN_OUTPUT_DIRECTORY_APX doxygen_output)
             set (DOXYGEN_OUTPUT_DIRECTORY ${DocumentationOut}/${DOXYGEN_OUTPUT_DIRECTORY_APX})
             message (STATUS "Using doxygen to generate into ${DOXYGEN_OUTPUT_DIRECTORY}")
@@ -55,33 +59,51 @@ project (${PROJNAME})
                            )
 
         else()
-            message ("No doxygen found")
+            message ("No doxygen found or generation disabled")
         endif()
 
 
 #sphinx
+        set (THEMESFOLDER "${CMAKE_CURRENT_SOURCE_DIR}/sphinx_rtd_theme/sphinx_rtd_theme")
 
-
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/index.rst.in"
-            "${DOCGEN_CONF_INPUT_FOLDER}/index.rst")
-
-            configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/commands.rst"
-            "${DOCGEN_CONF_INPUT_FOLDER}/commands.rst")
 
         configure_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
-            "${DOCGEN_CONF_INPUT_FOLDER}/conf.py")
+        "${CMAKE_CURRENT_SOURCE_DIR}/index.rst.in"
+        "${DOCGEN_CONF_INPUT_FOLDER}/index.rst")
+
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/commands.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/commands.rst")
+
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/parts.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/parts.rst")
+
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/board.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/board.rst")
+
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/overview.rst"
+        "${DOCGEN_CONF_INPUT_FOLDER}/overview.rst")
+
+        configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
+        "${DOCGEN_CONF_INPUT_FOLDER}/conf.py")
 
 
         set (SPHINX_WARNINGS_FILE ./temp_sphinxWarnings)
+
 
         add_custom_target(${PROJNAME} ALL
                           COMMAND
                               echo "Executing py.test so it generates Sphinx files"
                           COMMAND
                               echo "Generating documentation with Sphinx"
+                          #COMMAND 
+                              #${CMAKE_COMMAND} -E create_symlink 
+                              #    ${CMAKE_CURRENT_SOURCE_DIR}/sphinx_rtd_theme/sphinx_rtd_theme
+                              #    ${DOCGEN_CONF_INPUT_FOLDER}/_themes 
                           COMMAND
                               #call sphinx
                               sphinx-build -w ${SPHINX_WARNINGS_FILE} ${DOCGEN_CONF_INPUT_FOLDER} ${DocumentationOut}

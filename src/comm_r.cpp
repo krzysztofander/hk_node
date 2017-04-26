@@ -28,6 +28,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_extra_records.h"
 #include "comm_extra_rec_handlers.h"
 #include "blinker.h"
+#include "adc.h"
 
 void HKComm::command_RTM(OutBuilder & bld)
 {
@@ -97,10 +98,41 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
     }
 }
 
+void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
+{
+    OutBuilder::ELogicErr err;
+    uint16_t measurementsToReturn ;
+    if (g_RecievedCmd.hasData())
+    {
+        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+    }
+    else
+    {
+        err = OutBuilder::ELogicErr::None;
+        measurementsToReturn = 0;
+    }
+
+    if (err != OutBuilder::ELogicErr::None )
+    {
+        bld.putErr(err);
+    }
+    else
+    {
+        if (measurementsToReturn == 0)
+        {
+            //special case, make a measurement now and store it.
+            int16_t val = ADCSupport::readBandgap();
+            measurementsToReturn = 1; //so we return the last one.
+            bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VPM));
+            bld.addInt(val);
+        }
+    }
+}
+
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','6','.','6' };
+    static const char v[] ={ ' ','0','.','7','.','1' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -146,6 +178,9 @@ void HKComm::command_AVI( OutBuilder & bld)
         But it seems to (getting some wake from serial) sent connection lost
     0.6.6 Timeout now is reset on any character recieved
         Setting up BT name
+    0.6.7 BT works
+    0.7.0 Measurement of batery, no history so far
+    0.7.1 Measurement of batery, improved reading, EEPROM holding ref value
 
     0.?.1
     + batery reading
