@@ -63,58 +63,46 @@ public:
         command_ERR = 0x455252,  //Return an error
     };
 
-
-    uint16_t getUint16(OutBuilder::ELogicErr & err) const
+    int64_t getInt(OutBuilder::ELogicErr & err,
+                   const bool isSigned,
+                   const uint8_t byteRange, 
+                   const bool positiveOnly)   const
     {
-        uint16_t ret = 0;
+        int64_t ret =0;
         if (outParamType != OutParamType_INT_DIGIT)
         {
             err = OutBuilder::ELogicErr ::NumberExpected;
         }
         else
-        {
-            if (numericValue < 0)
+        { 
+            ret = static_cast<int64_t>(numericValue);
+
+            if ( (!isSigned || positiveOnly )&& ret < 0)
             {
                 err = OutBuilder::ELogicErr ::UnsignedExpected;
             }
-            else if (numericValue >= 65536)
+            else 
+                #define BITMASK (~0ULL << ((byteRange * 8) - (isSigned ? 1 : 0)) )
+                if 
+                (
+                    (  (ret >= 0 )
+                        && (ret & BITMASK) != 0 )
+                ||
+                    (  (ret < 0 )
+                        && (ret & BITMASK) != BITMASK )
+                )
+                #undef BITMASK
             {
                 err = OutBuilder::ELogicErr::SettingToBig;
             }
             else
             {
                 err = OutBuilder::ELogicErr ::None;
-                ret = static_cast<uint16_t> (numericValue);
             }
         }
         return ret;
     }
-    int32_t getInt32(OutBuilder::ELogicErr & err) const
-    {
-        if (outParamType != OutParamType_INT_DIGIT)
-        {
-            err = OutBuilder::ELogicErr::NumberExpected;
-        }
-        else
-        {
-            err = OutBuilder::ELogicErr ::None;
-        }
-        return static_cast<int32_t> (numericValue);
-    }
-
-    int64_t getInt64(OutBuilder::ELogicErr & err) const
-    {
-        if (outParamType != OutParamType_INT_DIGIT)
-        {
-            err = OutBuilder::ELogicErr::NumberExpected;
-        }
-        else
-        {
-            err = OutBuilder::ELogicErr ::None;
-        }
-        return static_cast<int64_t> (numericValue);
-    }
-
+  
     const char * getString(OutBuilder::ELogicErr & err) const
     {
         if (outParamType != OutParamType_STRING)

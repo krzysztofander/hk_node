@@ -48,10 +48,10 @@ void HKComm::command_RTM(OutBuilder & bld)
 void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     OutBuilder::ELogicErr err;
-    uint16_t measurementsToReturn ;
+    int16_t measurementsToReturn ;
     if (g_RecievedCmd.hasData())
     {
-        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+        measurementsToReturn =  (int16_t)inCmd.getInt(err,true,sizeof(int16_t), true);
     }
     else
     {
@@ -72,10 +72,10 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
             measurementsToReturn = 1; //so we return the last one.
         }
 
-    //check for size correctness
+        //check for size correctness
         if (measurementsToReturn > TempMeasure::capacity())
         {
-            //if its zero return all.
+            //if its above max return all.
             measurementsToReturn = TempMeasure::capacity();
         }
         bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VTM));
@@ -101,10 +101,10 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     OutBuilder::ELogicErr err;
-    uint16_t measurementsToReturn ;
+    int16_t measurementsToReturn ;
     if (g_RecievedCmd.hasData())
     {
-        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+        measurementsToReturn = (int16_t)inCmd.getInt(err,true,sizeof(int16_t),true);
     }
     else
     {
@@ -122,7 +122,6 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
         {
             //special case, make a measurement now and store it.
             int16_t val = ADCSupport::readBandgap();
-            measurementsToReturn = 1; //so we return the last one.
             bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VPM));
             bld.addInt(val);
         }
@@ -132,7 +131,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','7','.','1' };
+    static const char v[] ={ ' ','0','.','8','.','0' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -181,6 +180,7 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.6.7 BT works
     0.7.0 Measurement of batery, no history so far
     0.7.1 Measurement of batery, improved reading, EEPROM holding ref value
+    0.8.0 Refactoring
 
     0.?.1
     + batery reading

@@ -32,7 +32,7 @@ class HKComm
 public:
     static bool respondSerial(void);
     //static void echoLetter(uint8_t l);
-    static uint8_t isActive(void);
+    static bool isActive(void);
 
     static void jumpToResp(void);     //@!Immediately set serial state to response
     static void jumpToAction(void);   //@!Immediately set serial state to action
