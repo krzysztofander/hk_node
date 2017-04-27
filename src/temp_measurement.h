@@ -53,7 +53,7 @@ public:
     static TempMeasurement getSingleTempMeasurement(void);                     
     static void getSingleTempMeasurement(TempRecord & out, const HKTime::SmallUpTime currentTime);
     static TempRecord getTempMeasurementRecord(uint16_t howManyRecordsBack);
-    static uint16_t capacity()
+    static int16_t capacity()
     {
         return maxMeasurements;
     }

@@ -39,7 +39,7 @@ volatile uint8_t Sleeper::gv_wdInterrupt = 0; //raised ones WD triggers an inter
 volatile uint8_t Sleeper::gv_wdInterrupt_B = 0; //raised ones WD triggers an interrupt.
 volatile uint8_t Sleeper::gv_NoPowerDownPeriod = 0;   //!counts down WD ticks how long to stay awake 
  uint8_t Sleeper::g_NoPowerDownPeriodSetting = 1;   //!counts down WD ticks how long to stay awake 
-Sleeper::PowerSaveMode Sleeper::g_PowerSaveMode = Sleeper::PowerSaveMedium;
+Sleeper::PowerSaveMode Sleeper::g_PowerSaveMode = Sleeper::PowerSaveMode::medium;
 
 //---------------------------------------------------------------
 /* Author: Lim Phang Moh
@@ -209,7 +209,7 @@ void Sleeper::goToSleep(void)
         gv_wdInterrupt = 0;                     // clear the indication flag
 
         //select sleep mode depending on WD
-        if (PowerSaveHigh == g_PowerSaveMode
+        if (PowerSaveMode::high  == g_PowerSaveMode
            && gv_wdInterrupt_B != 0  /* last time it was watchdog that woke up, serial calm, so entering here*/)
         {
             Supp::powerSaveHigh();
@@ -225,8 +225,8 @@ void Sleeper::goToSleep(void)
         }
         else
         {
-            if (    PowerSaveMedium == g_PowerSaveMode
-                ||  PowerSaveHigh   == g_PowerSaveMode /*in last wake I was not from WD*/ 
+            if (    PowerSaveMode::medium == g_PowerSaveMode
+                ||  PowerSaveMode::high   == g_PowerSaveMode /*in last wake I was not from WD*/ 
                 )
             {
                 Supp::powerSaveMedium();
@@ -325,7 +325,7 @@ void Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode powerSaveMode)
     g_PowerSaveMode = powerSaveMode;
 }
 
-uint8_t Sleeper::getPowerSaveMode()
+Sleeper::PowerSaveMode Sleeper::getPowerSaveMode()
 {
     return g_PowerSaveMode;
 }

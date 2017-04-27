@@ -18,15 +18,57 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-
-#include "hk_node.h"
-#include "executor.h"
-#include "serial.h"
-#include "comm.h"
-#include "supp.h"
-#include "temp_measurement.h"
-#include "comm_extra_records.h"
-#include "comm_extra_rec_handlers.h"
-#include "blinker.h"
-
 #include "in_command_wrap.h"
+
+int64_t InCommandWrap::getInt(OutBuilder::ELogicErr & err,
+               const bool isSigned,
+               const uint8_t byteRange, 
+               const bool positiveOnly)   const
+{
+    int64_t ret =0;
+    if (outParamType != OutParamType_INT_DIGIT)
+    {
+        err = OutBuilder::ELogicErr ::NumberExpected;
+    }
+    else
+    { 
+        ret = static_cast<int64_t>(numericValue);
+
+        if ( (!isSigned || positiveOnly )&& ret < 0)
+        {
+            err = OutBuilder::ELogicErr ::UnsignedExpected;
+        }
+        else 
+#define BITMASK (~0ULL << ((byteRange * 8) - (isSigned ? 1 : 0)) )
+            if 
+                (
+                (  (ret >= 0 )
+                && (ret & BITMASK) != 0 )
+                ||
+                (  (ret < 0 )
+                && (ret & BITMASK) != BITMASK )
+                )
+#undef BITMASK
+            {
+                err = OutBuilder::ELogicErr::SettingToBig;
+            }
+            else
+            {
+                err = OutBuilder::ELogicErr ::None;
+            }
+    }
+    return ret;
+}
+
+const char * InCommandWrap::getString(OutBuilder::ELogicErr & err) const
+{
+    if (outParamType != OutParamType_STRING)
+    {
+        err = OutBuilder::ELogicErr::StringExpected;
+    }
+    else
+    {
+        err = OutBuilder::ELogicErr ::None;
+    }
+    return stringValue;
+}

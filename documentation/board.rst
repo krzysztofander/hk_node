@@ -13,7 +13,8 @@ Ports
             - raw logic 
         - 1 of them
             - raw logic *OR*
-            - connected to on-board with positive voltage detection circuitry
+            - connected to on-board with positive voltage detection circuitry *OR*
+            - pushbutton
         - 1 of them 
             - raw logic only
     - **4 Digital Outputs**
@@ -72,6 +73,8 @@ Particular circuitry is exchangable.
     - 2 opto isolated inputs
     - 230VAC / 5VDC monolitic converter 
     - 5V voltage stablizer
+    - LED 
+    - Pushbutton
 
 Pin selection
 ------------------
@@ -79,26 +82,28 @@ Pin selection
 Digital Inputs
 +++++++++++++++
 
-    ===== ============= ============================ ===================
-    pin     type         alternative circuitry        Special function
-    ===== ============= ============================ ===================
-    PD2    raw           -                            INT0, PCINT18
-    PD3    raw           positive voltage detection   INT1, PCINT19
-    PD4    opto or raw   -                            Timer T0 (8 bit)
-    PD5    opto or raw   -                            Timer T1 (16 bit)
-    ===== ============= ============================ ===================
+    ===== ============= ======================================= ===================
+    pin     type         alternative circuitry                   Special function
+    ===== ============= ======================================= ===================
+    PD2    raw                                                   INT0, PCINT18
+    PD3    raw           positive voltage detection, pushbutton  INT1, PCINT19
+    PD4    opto or raw                                           Timer T0 (8 bit)
+    PD5    opto or raw                                           Timer T1 (16 bit)
+    ===== ============= ======================================= ===================
 
 Digital Outputs
 ++++++++++++++++
 
-    ===== ============= ============================ ===================
-    pin     type         alternative circuitry        Special function
-    ===== ============= ============================ ===================
-    PD6    raw           open drain N                  pwm 
-    PB0    opto          triac, open drain N or P                              
-    PB1    opto          open drain N                  pwm           
-    PB2    raw           triac, open drain N or P      pwm             
-    ===== ============= ============================ ===================
+    ===== ============= ================================ ===================
+    pin     type         alternative circuitry            Special function
+    ===== ============= ================================ ===================
+    PD6    raw           open drain N            , LED*    pwm 
+    PB0    opto          triac, open drain N or P, LED*     
+    PB1    opto          open drain N            , LED*    pwm           
+    PB2    raw           triac, open drain N or P, LED*    pwm             
+    ===== ============= ================================ ===================
+
+    *For debug purposes, may not be present on final board.
 
 Analog Inputs
 +++++++++++++++
@@ -112,12 +117,45 @@ Analog Inputs
     PC3    raw           ditigal raw, pull up         PCINT11
     ===== ============= ============================ ===================
 
+I2C
++++++++++++++++
+
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    PC4    raw                                         ADC4, PCINT12
+    PC5    raw                                         ADC5, PCINT13
+    ===== ============= ============================ ===================
+
+
 One wire
 +++++++++++++++
 
     ===== ============= ============================ ===================
     pin     type         alternative circuitry        Special function
     ===== ============= ============================ ===================
-    PC4    raw           
-    PC5    raw           
+    PC0    raw                                         ADC0
+    ===== ============= ============================ ===================
+
+LED
++++++++++++++++
+
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    PB5   no output     LED indicator                 SCK (SPI pin)
+    ===== ============= ============================ ===================
+
+SPI programming interface
++++++++++++++++++++++++++
+
+Same as for Arduino nano
+
+    ===== ============= ============================ ===================
+    pin     type         alternative circuitry        Special function
+    ===== ============= ============================ ===================
+    PB5                   LED indicator  
+    PB4 
+    PB3 
+    PC6 
     ===== ============= ============================ ===================

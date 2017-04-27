@@ -86,9 +86,9 @@ void Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode powerSaveMode)
     
 }
 
-uint8_t Sleeper::getPowerSaveMode()
+Sleeper::PowerSaveMode Sleeper::getPowerSaveMode()
 {
-    return 0;
+    return Sleeper::PowerSaveMode::low;
 }
 
 

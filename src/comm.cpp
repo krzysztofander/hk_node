@@ -52,7 +52,7 @@ void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        int32_t newPeriod = inCmd.getInt32(err);
+        int32_t newPeriod = (int32_t)inCmd.getInt(err,true,sizeof(int32_t), true);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -80,7 +80,7 @@ void HKComm::commandDLS(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint8_t newStat = (uint8_t)inCmd.getUint16(err);
+        uint8_t newStat = (uint8_t)inCmd.getInt(err,false,sizeof(uint8_t),true);
         if (err != OutBuilder::ELogicErr::None)
         {
             bld.putErr(err);
@@ -99,19 +99,15 @@ void HKComm::commandCBS(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint16_t newPattern = inCmd.getUint16(err);
+        uint8_t newPattern =  (uint8_t)inCmd.getInt(err,false,sizeof(uint8_t),true); 
 
         if (err != OutBuilder::ELogicErr::None)
         {
             bld.putErr(err);
         }
-        else if (newPattern >= 256)
-        {
-            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
-        }
         else
         {
-            Blinker::setBlinkPattern((uint8_t)newPattern);
+            Blinker::setBlinkPattern(newPattern);
         }
     }
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBS));
@@ -122,7 +118,7 @@ void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        int64_t newTime = inCmd.getInt64(err);
+        int64_t newTime = (int64_t)inCmd.getInt(err,true,sizeof(int64_t),true);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -149,7 +145,10 @@ void HKComm::commandCSC(const InCommandWrap & inCmd, OutBuilder & bld)
         //control of output     = 1U << 16
     };
 
-    bld.addInt(tempMeasurement);
+    bld.addInt(
+                  (int64_t)tempMeasurement 
+                | (int64_t)bateryMeasurement
+              );
 }
 
 void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
@@ -157,7 +156,7 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint16_t newPowerMode = inCmd.getUint16(err);
+        uint8_t newPowerMode = (uint8_t)inCmd.getInt(err,false,sizeof(uint8_t),true);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -169,17 +168,17 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
         }
     }
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSM));
-    bld.addInt(Sleeper::getPowerSaveMode());
+    bld.addInt(static_cast<uint8_t>(Sleeper::getPowerSaveMode()));
 }
 
 void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
 {
-    int16_t bandgapVoltage;
+    uint16_t bandgapVoltage;
 
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        bandgapVoltage = inCmd.getUint16(err);
+        bandgapVoltage = (uint16_t)inCmd.getInt(err,false,sizeof(uint16_t),true);
 
         if (err != OutBuilder::ELogicErr::None)
         {
@@ -205,19 +204,15 @@ void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
-        uint16_t newPowerDownPeriod = inCmd.getUint16(err);
+        uint8_t newPowerDownPeriod = (uint8_t)inCmd.getInt(err,false,sizeof(uint8_t),true);
 
         if (err != OutBuilder::ELogicErr::None)
         {
             bld.putErr(err);
         }
-        else if (newPowerDownPeriod >= 256)
-        {
-            bld.putErr(OutBuilder::ELogicErr::SettingToBig);
-        }
         else
         {
-            Sleeper::setNoPowerDownPeriod( uint8_t( newPowerDownPeriod) );
+            Sleeper::setNoPowerDownPeriod( newPowerDownPeriod );
         }
     }
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSA));

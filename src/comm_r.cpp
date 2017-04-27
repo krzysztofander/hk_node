@@ -48,10 +48,10 @@ void HKComm::command_RTM(OutBuilder & bld)
 void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     OutBuilder::ELogicErr err;
-    uint16_t measurementsToReturn ;
+    int16_t measurementsToReturn ;
     if (g_RecievedCmd.hasData())
     {
-        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+        measurementsToReturn =  (int16_t)inCmd.getInt(err,true,sizeof(int16_t), true);
     }
     else
     {
@@ -72,10 +72,10 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
             measurementsToReturn = 1; //so we return the last one.
         }
 
-    //check for size correctness
+        //check for size correctness
         if (measurementsToReturn > TempMeasure::capacity())
         {
-            //if its zero return all.
+            //if its above max return all.
             measurementsToReturn = TempMeasure::capacity();
         }
         bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VTM));
@@ -101,10 +101,10 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     OutBuilder::ELogicErr err;
-    uint16_t measurementsToReturn ;
+    int16_t measurementsToReturn ;
     if (g_RecievedCmd.hasData())
     {
-        measurementsToReturn =  g_RecievedCmd.getUint16(err);
+        measurementsToReturn = (int16_t)inCmd.getInt(err,true,sizeof(int16_t),true);
     }
     else
     {
@@ -122,7 +122,6 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
         {
             //special case, make a measurement now and store it.
             int16_t val = ADCSupport::readBandgap();
-            measurementsToReturn = 1; //so we return the last one.
             bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VPM));
             bld.addInt(val);
         }
@@ -132,7 +131,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','7','.','1' };
+    static const char v[] ={ ' ','0','.','8','.','0' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -181,6 +180,7 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.6.7 BT works
     0.7.0 Measurement of batery, no history so far
     0.7.1 Measurement of batery, improved reading, EEPROM holding ref value
+    0.8.0 Refactoring
 
     0.?.1
     + batery reading
@@ -200,39 +200,3 @@ void HKComm::command_AVI( OutBuilder & bld)
 }
 
 //------------------------------------------------------------------
-
-/*
-Dobra, to teraz bêdzie co i jak:
-
-1. Po wys³aniu komendy do BT musisz odczytaæ jego odpowiedŸ, jeœli tego nie zrobisz, nie bêdzie dzia³aæ.
-2. Niektóre komendy aktywuj¹ siê dopiero po AT+RESET
-
-Teraz co chcemy, na pewno chcemy taki ci¹g:
-
-AT+RENEW, AT+MODE1, AT+PIO11, AT+RESET (Po ka¿dej komendzie czytamy odpowiedŸ…)
-Po renew warto odczekaæ ze 100ms albo ponowiæ AT+MODE1 a¿ odpowie ci ok.
-
-Sekwencja powy¿ej spowoduje ¿e led na BT zgaœnie i œwieciæ nie bêdzie.
-
-Teraz coœ co w teorii powinno zmniejszyæ zu¿ycie energii ale to trzeba pomierzyæ czy rzeczywiœcie siê tak dzieje:
-AT+ADVI4 - parameters mog¹ byæ od 0 do F, organoleptycznie sprawdzone ¿e do 4 jest w miarê ok jeœli chodzi o pracê z po³¹czeniem, mo¿na jeszcze poeksperymentowaæ ale wartoœci powy¿ej 6-7 s¹ bardzo czasoch³onne.
-
-W zale¿noœci jak daleko jesteœmy od sensora mo¿na przeprowadziæ dodatkow¹ optymalizacjê:
-AT+POWEx - gdzie x mo¿e byæ 0-3 przy czym 0-1 to obni¿enie mocy BT, 2-praca ze standardow¹ moc¹, 3-wiêcej mocy w sygna³. Tutaj mo¿na pokminiæ aby baza sobie pogada³a z wêz³em i korzstaj¹c z RSSI mo¿e dopasowaæ t¹ wartoœæ. Wymaga dalszego rozpoznania.
-
-AT+NAMExxxx - nadanie nazwy sensorowi, do 12 znaków nazwa
-
-Teraz coœ bardziej zaawansowanego ale daj¹ce lepsze rezultaty wg mnie:
-AT+SLEEP - po tym HM10 wchodzi w sleepa ale jest widoczny dla innych, jeœli chcesz go wybudziæ z arduino wysy³asz mu 80 losowych znaków ale nie s¹dzê aby to nam by³o do czegokolwiek potrzebne. HM-10 automatycznie siê wybudza jak ktoœ siê przy³¹czy. Wiêc chcemy tego u¿ywaæ, ale po za³¹czeniu siê gdy nast¹pi roz³¹czenie zdalnego po³¹czenia HM10 pozostaje w trybie wybudzonym. Mo¿na niby w³¹czyæ autosleep przez komendê AT+PWRM0 ale to s³abo dzia³a, wiêc olewamy j¹. Proponuje inne podejœcie. U¿yjemy komendy AT+NOTI1 w efekcie gdy ktoœ siê do nas przy³¹czy dostajemy na UART linie “OK+CON” póŸniej s¹ dane itd. gdy ktoœ siê roz³¹czy dostajesz “OK+LOST” po wykryciu tego komunikatu powinieneœ wykonaæ od razu AT+SLEEP.
-
-Docelowo wydaje mi siê ¿e chcemy u¿yæ nastêpuj¹cego zaklêcia przy boocie noda:
-AT+RENEW [100-200ms wait], AT+MODE1, AT+PIO11, AT+NOTI1, AT+ADVI4, AT+NAMExxxx, AT+RESET [100-200ms wait], AT+SLEEP
-W drugim milestone mo¿emy zrobiæ pêtle do próbkowania zasiêgu i dorzuciæ jeszcze AT+POWEx.
-
-Mam nadzieje ¿e cokolwiek zrozumia³eœ z tego co napisa³em :D
-Bart³omiej ¯arnowski
-Senior Software Design Engineer
-Imagination Technologies
-www.imgtec.com
-
-*/

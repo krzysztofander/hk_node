@@ -13,7 +13,7 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | O           | CTR number      | QSR        |         | Configure    | Configures precision of temperature |
 |             |                 |            |         | Temperature  | measurements in bits                |
-|             |                 |            |         | Resolution   |                                     |
+|  **N/A YET**|  **N/A YET**    |            |         | Resolution   |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CTP number      | QSR        |         | Configure    | in seconds                          |
 |             |                 |            |         | Temperature  |                                     |
@@ -25,7 +25,7 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CPP number      | QSR        |         | Configure    | Sets period of supply voltage       |
 |             |                 |            |         | Power        | measurement (in seconds)            |
-|             |                 |            |         | Period       |                                     |
+|  **N/A YET**|  **N/A YET**    |            |         | Period       |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CST number      | QSR        |         | Configure    |                                     |
 |             |                 |            |         | System       |                                     |
@@ -68,9 +68,13 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | RTH number      | Q          | see VTH | --//--       | Return historical measurements      |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
-| M           | RPM             | Q          | see RPM | Read         | Makes a supply voltage measurement  |
+| O           | RPM             | Q          | see VPM | Read         | Makes a supply voltage measurement  |
+|             |                 |            |         | Power (bat)  |                                     |
+|             |                 |            |         | Measurement  |                                     |
++-------------+-----------------+------------+---------+--------------+-------------------------------------+
+| M           | RPH             | Q          | see VPM | Read         | Makes a supply voltage measurement  |
 |             |                 |            |         | Power (bat)  | and add that to history             |
-|             |                 |            |         | History      | **TEMPORARILY** Returns single value|
+| **N/A YET** | **N/A YET**     |            |         | History      | **NOT AVAILABLE YET**               |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | D           | DE[a-Z]         |            | DR[a-Z] |              | Simple echo                         |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
@@ -81,4 +85,8 @@ ref `http://www.tablesgenerator.com/text_tables`
 | M           | VTH             | R          |         |              | Delivers historical                 |
 |             | (number,number) |            |         |              | values of temperature               |
 |             | (number,number) |            |         |              | measurements                        |
++-------------+-----------------+------------+---------+--------------+-------------------------------------+
+| M           | VPM             | R          |         |              | Delivers historical                 |
+|             | (number,number) |            |         |              | values of power supply              |
+|             | (number,number) |            |         |              | measurements.                       |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+

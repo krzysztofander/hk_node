@@ -98,17 +98,17 @@ public:
     //@Gets no power down time (after wake up from serial or button)
     static uint8_t getNoPowerDownPeriod();
 
-    enum PowerSaveMode
+    ENUM ( PowerSaveMode )
     {
-        PowerSaveLow = 0,
-        PowerSaveMedium = 1,
-        PowerSaveHigh =2
+        low = 0,
+        medium = 1,
+        high = 2
     };
 
-    //@Set power down mode
+    //@Set power save mode
     static void setPowerSaveMode(PowerSaveMode powerSaveMode);
 
-    static uint8_t getPowerSaveMode();
+    static PowerSaveMode getPowerSaveMode();
 private:
 
     static void initWD(void);

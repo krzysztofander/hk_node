@@ -27,9 +27,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm_state.h"
 
 
-
-
-
 HKCommState::HKCommState()
     : m_state       (ESerialState::serialState_Preable)
     , m_errorType   (ESerialErrorType::serialErr_None)

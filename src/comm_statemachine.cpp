@@ -34,15 +34,14 @@ OutBuilder       HKComm::g_OutBuilder;
 
 //------------------------------------------------------------------
 
-uint8_t HKComm::isActive(void)
+bool HKComm::isActive(void)
 {
     if (g_commState.getState () != HKCommState::ESerialState::serialState_Preable
         || HKSerial::isActive() )
-        return 1;
+        return true;
     else
-        return 0;
+        return false;
 }
-
 
 void HKComm::jumpToAction()
 {
@@ -59,7 +58,6 @@ void HKComm::jumpToResp()
 
 // @brief Main function responding to serial data
 // @returns True if switched state and shall be called immediately.
-
 bool  HKComm::respondSerial(void)
 {
     switch (g_commState.getState())
@@ -88,9 +86,8 @@ bool  HKComm::respondSerial(void)
                     }
                     else
                     {
-                        g_commState.setErrorState( parseResult  );
-
-                     }
+                        g_commState.setErrorState(parseResult);
+                    }
                     return true;
                 }
             }

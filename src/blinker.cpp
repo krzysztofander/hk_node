@@ -87,11 +87,6 @@ void Blinker::blinkAction()
                     HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_RPM);
                     HKComm::accessInCommandWrap().setIntData(0);
                     HKComm::jumpToAction();
-
-
-                    //HKComm::accessInCommandWrap().setCommand(InCommandWrap::ECommands::command_DER);
-                    //HKComm::accessInCommandWrap().setIntData(0);
-                    //HKComm::jumpToAction();
                 }
                 counter++;
             }
@@ -99,13 +94,13 @@ void Blinker::blinkAction()
             break;
             case 7: 
                 //some action can be added here e.g. reset BT & stuff to default
-                if (Sleeper::getPowerSaveMode() == (uint8_t)Sleeper::PowerSaveHigh)
+                if (Sleeper::getPowerSaveMode() == Sleeper::PowerSaveMode::high)
                 {
-                    Sleeper::setPowerSaveMode(Sleeper::PowerSaveMedium);
+                    Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode::medium);
                 }
                 else
                 {
-                    Sleeper::setPowerSaveMode(Sleeper::PowerSaveHigh);
+                    Sleeper::setPowerSaveMode(Sleeper::PowerSaveMode::high);
                 }
                 g_blinkSetting = 1;   
                 break; 

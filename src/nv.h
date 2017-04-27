@@ -37,7 +37,7 @@ public:
     {
         nvTestProgrammed    = sizeof(uint32_t),
         nvBTName            = 12 + 1 /*for \x0*/,
-        nvBandgapVoltage    = sizeof(int16_t),
+        nvBandgapVoltage    = sizeof(uint16_t),
     };
 private:
 
