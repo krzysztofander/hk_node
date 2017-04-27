@@ -145,7 +145,10 @@ void HKComm::commandCSC(const InCommandWrap & inCmd, OutBuilder & bld)
         //control of output     = 1U << 16
     };
 
-    bld.addInt(tempMeasurement);
+    bld.addInt(
+                  (int64_t)tempMeasurement 
+                | (int64_t)bateryMeasurement
+              );
 }
 
 void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)

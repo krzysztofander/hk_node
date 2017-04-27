@@ -13,7 +13,7 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | O           | CTR number      | QSR        |         | Configure    | Configures precision of temperature |
 |             |                 |            |         | Temperature  | measurements in bits                |
-|             |                 |            |         | Resolution   |                                     |
+|  **N/A YET**|  **N/A YET**    |            |         | Resolution   |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CTP number      | QSR        |         | Configure    | in seconds                          |
 |             |                 |            |         | Temperature  |                                     |
@@ -25,7 +25,7 @@ ref `http://www.tablesgenerator.com/text_tables`
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CPP number      | QSR        |         | Configure    | Sets period of supply voltage       |
 |             |                 |            |         | Power        | measurement (in seconds)            |
-|             |                 |            |         | Period       |                                     |
+|  **N/A YET**|  **N/A YET**    |            |         | Period       |                                     |
 +-------------+-----------------+------------+---------+--------------+-------------------------------------+
 | M           | CST number      | QSR        |         | Configure    |                                     |
 |             |                 |            |         | System       |                                     |
