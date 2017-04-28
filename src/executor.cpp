@@ -27,14 +27,14 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Sleeper::SleepTime Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much time has left to next call
 Sleeper::SleepTime Executor::g_ExecutorsPeriods[Executor::executorsNumber];  //how often each exec is called
-ExecutingFn Executor::g_ExecutingFunctions[Executor::executorsNumber];
+Executor::Executor::ExecutingFn Executor::g_ExecutingFunctions[Executor::executorsNumber];
 
 uint8_t Executor::isExecutorActive(uint8_t executor)
 {
     return  (executor < executorsNumber && g_ExecutingFunctions[executor] !=  0) ? 1 : 0;
 }
 
-void Executor::setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime, ExecutingFn f)
+void Executor::setupExecutingFn(uint8_t executor, Sleeper::SleepTime defaultTime, Executor::ExecutingFn f)
 {
     if (executor < (uint8_t)executorsNumber)
     {
@@ -74,7 +74,7 @@ ExecutorBase::EExecutors Executor::giveExecutorToCall(void)
     return executorNone;
 }
 
-ExecutingFn Executor::giveExecutorHandleToCall(ExecutorBase::EExecutors executor)
+Executor::ExecutingFn Executor::giveExecutorHandleToCall(ExecutorBase::EExecutors executor)
 {
     if (isExecutorActive (executor)  )
     {

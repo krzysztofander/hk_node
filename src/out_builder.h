@@ -21,7 +21,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HK_OUT_BUILDER_H
 
 #include "hk_node_utils.h"
-#include "hk_node.h"
+#include "hk_time.h"
 #include "MiniInParser.h"
 #include "hk_node_config.h"
 class OutBuilder

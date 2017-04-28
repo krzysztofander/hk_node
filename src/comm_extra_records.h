@@ -20,7 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_COMM_EXTRA_RECORDS_H
 #define HK_COMM_EXTRA_RECORDS_H
 
-#include "hk_node.h"
+#include "hk_time.h"
 #include "hk_node_utils.h"
 #include "comm_defs.h"
 #include "comm_extra_rec_handlers.h"

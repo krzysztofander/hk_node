@@ -7,6 +7,7 @@
 #include "temp_measurement.h"
 #include "mock.h"
 #include "supp.h"
+#include "hk_time.h"
 
 using ::testing::AtLeast;  
 using ::testing::Return;

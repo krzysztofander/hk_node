@@ -21,7 +21,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_SLEEPER_H
 #define HK_SLEEPER_H
 #include "hk_node_utils.h"
-#include "hk_node.h"
+#include "Arduino.h"
+#include "hk_time.h"
 
 #if defined __AVR_ATmega328P__
 

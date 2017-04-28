@@ -22,6 +22,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HK_NODE_UTILS_H
 
 //common utils
+#include <stdint.h>
 #define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
 #define ENUM(name) enum class name : uint8_t
 #define SHORTENUM(name) enum class name : uint16_t

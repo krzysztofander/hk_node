@@ -21,7 +21,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HK_COMM_EXTRA_REC_HANDLERS_H
 
 #include "hk_node_utils.h"
-
+#include "hk_time.h"
 class HKCommExtraHLRs
 {
 public:

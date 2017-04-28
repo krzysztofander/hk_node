@@ -3,6 +3,7 @@
 #include "gtest/gtest.h" 
 #include "gmock/gmock.h"
 #include "Arduino.h"
+#include "hk_time.h"
 
 class MockSleeper
 {

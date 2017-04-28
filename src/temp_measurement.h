@@ -20,8 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef HK_TEMP_MEASUREMENT_H
 #define HK_TEMP_MEASUREMENT_H
-#include "hk_node.h"
-
+#include "hk_time.h"
 //--------------------------------------------------
 
 class TempMeasure

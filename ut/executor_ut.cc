@@ -65,7 +65,7 @@ TEST(ExecutorTst, singleExecutor)
         {
             Executor::rescheduleExecutor(executor);
             //execute the executor now... 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             f();
 
             nextSleepTime = Executor::getNextSleepTime();
@@ -119,7 +119,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor1], fake1SleepTime);
             
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake1()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -146,7 +146,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor2], fake2SleepTime);
             
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake2()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -172,7 +172,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor3], fake3SleepTime);
 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake3()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -201,7 +201,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor3], fake3SleepTime);
 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake3()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -230,7 +230,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor1], fake1SleepTime);
 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake1()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -259,7 +259,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor2], fake2SleepTime);
 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake2()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -288,7 +288,7 @@ TEST(ExecutorTst, moreExecutors)
             Executor::rescheduleExecutor(executor);
             ASSERT_EQ(Executor::g_ExecutorsTimeLeft[Executor::fakeExecutor3], fake3SleepTime);
 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             EXPECT_CALL(mlf, fake3()).Times(1);
             f();
             nextSleepTime = Executor::getNextSleepTime();
@@ -366,7 +366,7 @@ TEST(ExecutorTst, periodicInterrupts)
         {
             Executor::rescheduleExecutor(executor);
             //execute the executor now... 
-            ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+            Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
             f();
 
             nextSleepTime = Executor::getNextSleepTime();

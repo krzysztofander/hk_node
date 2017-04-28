@@ -5,7 +5,7 @@
 #include "temp_measurement.h"
 #include "executor_ut.h"
 #include "temp_sensor.h"
-
+#include "hk_time.h"
 using ::testing::AtLeast;  
 using ::testing::Return;
 using ::testing::InSequence;

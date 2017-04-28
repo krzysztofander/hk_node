@@ -17,54 +17,54 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef HK_SERIAL_H
-#define HK_SERIAL_H
 
-#include <stddef.h>
-#include "hk_node_utils.h"
+#ifndef HK_TIME_H
+#define HK_TIME_H
 
-class HKSerial
+#include <stdint.h>
+//Todo move that to separate file
+class HKTime
 {
-#ifdef INUNITTEST
 public:
-#endif
-    ENUM(PreableState)
+    typedef int64_t UpTime;             //signed!
+    //typedef uint32_t TimeDiff;
+    typedef int32_t SmallUpTime;
+    typedef int16_t ShortTimeDiff;      //signed!
+
+
+    //@brief returns time difference in ShortTimeDiff (int16_t)
+    //In case the actual difference is higher returns it saturated up to ShortTimeDiff range
+    static ShortTimeDiff getShortDiff(const UpTime & current, const UpTime & last)
     {
-        none,
-            nonRecognizedChar,
-            exclamation,
-            finished,
-            okLost_O,
-            okLost_S,
-            okLost_T,
-
-    };
-
-    static PreableState  g_preableState;
-    static int8_t g_preableFinishTime;
-    static int8_t g_preambleInactivityTime;    //!time since recieving 
-                                               // last character in preamble state;
-
-    static void traverseSM(char charRead);
-    static void resetSM();
-    static void sendBTCommand(const char * command, int8_t size, bool waitResponse);
-public:
-    static bool preambleRecieved();
-    static void activate();
-    static void nextLoop(uint8_t tickCnt);
-    static void init();
-    static void BTinit();
-    static uint8_t read();
-    static uint8_t available();
-    static bool isActive();      //! Indicates that transmission, e.g. preable started
-    static void commandProcessed(); //! Information from upper layer that it finished
-    static uint8_t peek();
-    static uint8_t write(const uint8_t * buff, size_t size);
-
-    static void flush();
-    static void end();
-    static void begin(int speed);
-
+        UpTime diff = current - last;
+        if (diff >= 0)
+        {
+            if ((diff >> (sizeof(ShortTimeDiff) * 8)) != 0)
+            {
+                //does not fit
+                return 0x7FFF;
+            }
+            else
+            {
+                return ShortTimeDiff(diff);  //will truncate MSB which are 0 anyway
+            }
+        }
+        else
+        {
+           if (diff <= UpTime( -0x8000 ) )
+           {
+                 //does not fit
+                 return int16_t(-0x8000);
+           }
+           else
+           {
+                return ShortTimeDiff(diff);  //will truncate MSB which are 1s anyway
+           }
+        }
+    }
 
 };
+
+
 #endif
+

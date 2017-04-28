@@ -75,7 +75,7 @@ void loopBody()
     {
         Executor::rescheduleExecutor(executor);
         //execute the executor now... 
-        ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
+        Executor::ExecutingFn f = Executor::giveExecutorHandleToCall(executor);
         Supp::executorPreAction(executor);
         f();
         Supp::executorPostAction(executor);

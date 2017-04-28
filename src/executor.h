@@ -24,9 +24,15 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node.h"
 #include "sleeper.h"
 #include "executor_base.h"
+
+
+
 class Executor : public ExecutorBase
 {
 public:
+
+    typedef void (*ExecutingFn)(void);
+
 
     static void init (void);
 
