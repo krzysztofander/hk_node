@@ -23,6 +23,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node_utils.h"
 #include "hk_node.h"
 #include "MiniInParser.h"
+#include "hk_node_config.h"
 class OutBuilder
 {
 public:

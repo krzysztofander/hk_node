@@ -71,6 +71,7 @@ project (unit_tests)
         Arduino.h
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/hk_node_utils.h
+        ${TOP}/hk_node/src/hk_node_config.h
         ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/comm.h
         ${TOP}/hk_node/src/out_builder.h

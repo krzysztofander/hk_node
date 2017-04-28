@@ -23,7 +23,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_node_utils.h"
 #include "MiniInParser.h"
 #include "out_builder.h"
-
+#include "hk_node_config.h"
 class InCommandWrap : public Command
 {
 public:

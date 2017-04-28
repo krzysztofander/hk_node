@@ -23,6 +23,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "out_builder.h"
 #include "comm_state.h"
 #include "in_command_wrap.h"
+#include "hk_node_config.h"
+
 
 class HKComm
 {

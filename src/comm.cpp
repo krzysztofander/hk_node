@@ -20,6 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "hk_node.h"
+#include "hk_node_config.h"
 #include "executor.h"
 #include "serial.h"
 #include "comm.h"

@@ -18,14 +18,14 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_UTILS_H
-#define HK_NODE_UTILS_H
+#ifndef HK_NODE_CONFIG_H
+#define HK_NODE_CONFIG_H
 
-//common utils
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
-#define ENUM(name) enum class name : uint8_t
-#define SHORTENUM(name) enum class name : uint16_t
-#define BIGENUM(name) enum class name : uint32_t
+
+//configuring macros
+
+///Adds AHR commands that makes output more human readable
+#define HAVE_HUMAN_READABLE 1
 
 
 #endif
