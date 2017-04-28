@@ -21,15 +21,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_NODE_H
 #define HK_NODE_H
 #include "Arduino.h"
-#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
-
-#define HAVE_HUMAN_READABLE 1
-
-#define ENUM(name) enum class name : uint8_t
-#define SHORTENUM(name) enum class name : uint16_t
-#define BIGENUM(name) enum class name : uint32_t
 
 
+//Todo move that to separate file
 class HKTime
 {
 public:
@@ -77,6 +71,7 @@ void setupBody();
 void loopBody();
 
 //--------------------------------------------------
+//@TODO Move that to executor
 typedef void (*ExecutingFn)(void);
 
 void initAllFunctions(void);

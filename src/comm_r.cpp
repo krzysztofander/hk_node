@@ -131,7 +131,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 void HKComm::command_AVI( OutBuilder & bld)
 {
     bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
-    static const char v[] ={ ' ','0','.','8','.','0' };
+    static const char v[] ={ ' ','0','.','8','.','1' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -180,7 +180,8 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.6.7 BT works
     0.7.0 Measurement of batery, no history so far
     0.7.1 Measurement of batery, improved reading, EEPROM holding ref value
-    0.8.0 Refactoring
+    0.8.0 Refactoring, updated doc about commamds
+    0.8.1 Refactoring
 
     0.?.1
     + batery reading

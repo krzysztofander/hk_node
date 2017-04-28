@@ -139,7 +139,7 @@ void HKSerial::BTinit()
 {
     char nameBuffer[static_cast<int>(NV::NVDataSize::nvBTName)];
     NV::read(NV::NVData::nvBTName, nameBuffer);
-    uint8_t nameSize = strlen(nameBuffer);
+    uint8_t nameSize = static_cast<uint8_t>(strlen(nameBuffer));
 
     /*
     http://fab.cba.mit.edu/classes/863.15/doc/tutorials/programming/bluetooth/bluetooth40_en.pdf

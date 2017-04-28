@@ -20,7 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_COMM_DEFS_H
 #define HK_COMM_DEFS_H
 
-#include "hk_node.h"
+#include <stdint.h>
 
 
 

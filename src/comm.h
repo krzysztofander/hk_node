@@ -20,9 +20,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_COMM_H
 #define HK_COMM_H
 
-#include "hk_node.h"
-#include "comm_defs.h"
-#include "MiniInParser.h"
 #include "out_builder.h"
 #include "comm_state.h"
 #include "in_command_wrap.h"

@@ -20,8 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_COMM_EXTRA_REC_HANDLERS_H
 #define HK_COMM_EXTRA_REC_HANDLERS_H
 
-#include "hk_node.h"
-#include "comm_defs.h"
+#include "hk_node_utils.h"
 
 class HKCommExtraHLRs
 {

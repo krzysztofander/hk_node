@@ -20,7 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_IN_COMMAND_WRAP_H
 #define HK_IN_COMMAND_WRAP_H
 
-#include "hk_node.h"
+#include "hk_node_utils.h"
 #include "MiniInParser.h"
 #include "out_builder.h"
 

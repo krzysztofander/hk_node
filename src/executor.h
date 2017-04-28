@@ -20,7 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_EXECUTORS_H
 #define HK_EXECUTORS_H
 
-#include <Arduino.h>
+
 #include "hk_node.h"
 #include "sleeper.h"
 #include "executor_base.h"

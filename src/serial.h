@@ -20,7 +20,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_SERIAL_H
 #define HK_SERIAL_H
 
-#include "hk_node.h"
+#include "hk_node_utils.h"
 
 class HKSerial
 {

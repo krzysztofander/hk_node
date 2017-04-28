@@ -20,7 +20,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_COMM_STATE_H
 #define HK_COMM_STATE_H
 
-#include "hk_node.h"
+#include "hk_node_utils.h"
+#include <stdint.h>
 
 #include "MiniInParser.h"
 #include "out_builder.h"

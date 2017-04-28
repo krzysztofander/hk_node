@@ -17,69 +17,25 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
-#ifndef NV_H
-#define NV_H
-#include <Arduino.h>
-#include "hk_node_utils.h"
-//------------------------------------------------------------------
 
-class NV
-{
-public:
-    ENUM( NVData )
-    {
-        nvTestProgrammed = 0,
-        nvBTName         = 1,
-        nvBandgapVoltage = 2
+#ifndef HK_NODE_UTILS_H
+#define HK_NODE_UTILS_H
 
-    };
-    ENUM( NVDataSize )
-    {
-        nvTestProgrammed    = sizeof(uint32_t),
-        nvBTName            = 12 + 1 /*for \x0*/,
-        nvBandgapVoltage    = sizeof(uint16_t),
-    };
-private:
-
-    SHORTENUM(NVDataAddr)
-    {
-       base = 0,
-       nvTestProgrammed = static_cast<uint16_t>(base),
-
-       nvBTName  =   static_cast<uint16_t>(nvTestProgrammed)
-                   + static_cast<uint16_t>(NVDataSize::nvTestProgrammed),
-
-       nvBandgapVoltage =    static_cast<uint16_t>(nvBTName)
-                           + static_cast<uint16_t>(NVDataSize::nvBTName),
-
-       //next =    
-       //          
-       
-    };
-
-    struct NVDescr
-    {
-        NVDescr()
-            : size(0),
-            address(0),
-            stopAt0(false)
-        {}
-        uint8_t size ;
-        uint16_t address;
-        bool stopAt0 ;
-    };
-
-    static void getDesrc(NVData what, NVDescr & dsr);
-    static const uint32_t g_testProgrammed;
-
-public:
-
-    static void save(NVData what, const void * dataToSave);
-    static void read(NVData what, void * dataToLoad);
-    static void init();
-    static void forceFactoryDefaults();
-};
+//commot utils
+#define NUM_ELS(tab) (sizeof(tab)/sizeof(tab[0]))
+#define ENUM(name) enum class name : uint8_t
+#define SHORTENUM(name) enum class name : uint16_t
+#define BIGENUM(name) enum class name : uint32_t
 
 
-//---------------------------------------------------------------
+//configuring macros
+
+///Adds AHR commands that makes output more human readable
+#define HAVE_HUMAN_READABLE 1
+
+
 #endif
+
+//--------------------------------------------------
+
+

@@ -20,6 +20,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef HK_EXECUTOR_BASE_H
 #define HK_EXECUTOR_BASE_H
 
+#include "hk_node_utils.h"
+
 class ExecutorBase
 {
 public:

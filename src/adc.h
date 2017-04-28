@@ -20,8 +20,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef ADC_H
 #define ADC_H
 
-#include <Arduino.h>
-#include "hk_node.h"
+#include <stdint.h>
+#include "hk_node_utils.h"
+
 //------------------------------------------------------------------
 
 class ADCSupport

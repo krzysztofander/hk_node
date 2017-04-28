@@ -19,7 +19,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 #include <Arduino.h>
-#include "hk_node.h"
+#include "hk_node_utils.h"
 #include "temp_measurement.h"
 #include "sleeper.h"
 #include "supp.h"
