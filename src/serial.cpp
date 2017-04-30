@@ -19,7 +19,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 #include <Arduino.h>
-#include "hk_node.h"
 #include "serial.h"
 #include "string.h"
 #include "nv.h"

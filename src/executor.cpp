@@ -22,7 +22,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Arduino.h>
 
 #include "executor.h"
-#include "hk_node.h"
 #include "supp.h"
 
 Sleeper::SleepTime Executor::g_ExecutorsTimeLeft[Executor::executorsNumber];  // how much time has left to next call

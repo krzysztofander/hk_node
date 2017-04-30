@@ -21,7 +21,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define HK_EXECUTORS_H
 
 
-#include "hk_node.h"
 #include "sleeper.h"
 #include "executor_base.h"
 

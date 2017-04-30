@@ -25,7 +25,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <avr/wdt.h>
 
 
-#include "hk_node.h"
 #include "sleeper.h"
 #include "executor.h"
 #include "serial.h"

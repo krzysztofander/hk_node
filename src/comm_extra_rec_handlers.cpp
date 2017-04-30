@@ -19,7 +19,6 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 
-#include "hk_node.h"
 #include "temp_measurement.h"
 #include "comm_extra_rec_handlers.h"
 

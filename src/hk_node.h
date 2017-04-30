@@ -31,8 +31,6 @@ void loopBody();
 //--------------------------------------------------
 
 void initAllFunctions(void);
-void setupDoWhatYouShouldTab(void);
-void doWhatYouShould(void);
 
 //--------------------------------------------------
 

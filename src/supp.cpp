@@ -18,7 +18,6 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 #include <Arduino.h>
-#include "hk_node.h"
 #include "supp.h"
 
 //------------------------------------------------------------------
