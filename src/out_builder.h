@@ -24,6 +24,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hk_time.h"
 #include "MiniInParser.h"
 #include "hk_node_config.h"
+#include "commands.h"
 class OutBuilder
 {
 public:
@@ -52,8 +53,8 @@ public:
 
     bool isErr();
 
-    void putCMD(uint32_t cmdCode);
 
+    void putCMD(ECommands command);
     void addData(const char * data, const uint16_t size);
     void addInt(int64_t newInt);
     void addString(const char * data, const uint16_t size);

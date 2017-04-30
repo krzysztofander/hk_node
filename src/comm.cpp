@@ -34,21 +34,18 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void HKComm::command_DER(OutBuilder & bld)
 {
-    bld.reset();
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_DER));
+    //By default output with same command. 
+    //Ignore extra parameters
 }
 #if HAVE_HUMAN_READABLE
 void HKComm::command_AHR(OutBuilder & bld)
 {
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AHR) );
-
     bld.addInt(1);
     bld.setHumanReadable();
 }
 #endif
 void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
 {
-  
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
@@ -65,18 +62,16 @@ void HKComm::commandCTP(const InCommandWrap & inCmd, OutBuilder & bld)
                 newPeriod);
         }
     }
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CTP));
     bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::temperatureMeasurer));
 }
 
 void HKComm::commandCBP(const InCommandWrap & inCmd, OutBuilder & bld)
-{  //This command is read only
-
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBP));
+{  
+    //This command is read only
     bld.addInt(Executor::giveExecutionTime((uint8_t)Executor::blinker));
 }
 void HKComm::commandDLS(const InCommandWrap & inCmd, OutBuilder & bld)
-{  //This command is read only
+{  
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
@@ -87,8 +82,6 @@ void HKComm::commandDLS(const InCommandWrap & inCmd, OutBuilder & bld)
         }
         Supp::extLEDMasterCtrl((uint8_t)newStat);
     }
-
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_DLS));
     bld.addInt(Supp::getExtLEDMasterCtrl());
 }
 
@@ -110,7 +103,6 @@ void HKComm::commandCBS(const InCommandWrap & inCmd, OutBuilder & bld)
             Blinker::setBlinkPattern(newPattern);
         }
     }
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CBS));
     bld.addInt( Blinker::getBlinkPattern());
 }
 void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
@@ -129,13 +121,10 @@ void HKComm::commandCST(const InCommandWrap & inCmd, OutBuilder & bld)
             Sleeper::setTime(newTime);
         }
     }
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CST));
     bld.addInt( Sleeper::getUpTime());
 }
 void HKComm::commandCSC(const InCommandWrap & inCmd, OutBuilder & bld)
 {
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSC));
-
     enum SystemCapabilities
     {
         tempMeasurement         = 1U << 0,
@@ -167,14 +156,12 @@ void HKComm::commandCSM(const InCommandWrap & inCmd, OutBuilder & bld)
             Sleeper::setPowerSaveMode( Sleeper::PowerSaveMode( newPowerMode) );
         }
     }
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSM));
     bld.addInt(static_cast<uint8_t>(Sleeper::getPowerSaveMode()));
 }
 
 void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     uint16_t bandgapVoltage;
-
     if (inCmd.hasData())
     {
         OutBuilder::ELogicErr err;
@@ -189,16 +176,9 @@ void HKComm::commandCRV(const InCommandWrap & inCmd, OutBuilder & bld)
             NV::save(NV::NVData::nvBandgapVoltage, &bandgapVoltage);
         }
     }
-
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CRV));
-
     NV::read(NV::NVData::nvBandgapVoltage, &bandgapVoltage);
-
     bld.addInt(bandgapVoltage);
 }
-
-
-
 void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
 {
     if (inCmd.hasData())
@@ -215,9 +195,7 @@ void HKComm::commandCSA(const InCommandWrap & inCmd, OutBuilder & bld)
             Sleeper::setNoPowerDownPeriod( newPowerDownPeriod );
         }
     }
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CSA));
     bld.addInt(Sleeper::getNoPowerDownPeriod());
-
 }
 
 void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
@@ -239,9 +217,7 @@ void HKComm::commandCNN(const InCommandWrap & inCmd, OutBuilder & bld)
     char buffer[static_cast<int>(NV::NVDataSize::nvBTName)];
     NV::read(NV::NVData::nvBTName, buffer);
 
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_CNN));
     bld.addString(buffer, static_cast<uint16_t>(strlen(buffer)) );
-    
 }
 
 /*

@@ -32,18 +32,15 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void HKComm::command_RTM(OutBuilder & bld)
 {
-
     TempMeasure::TempMeasurement singleTempMeasurement = TempMeasure::getSingleTempMeasurement();
 
     HKCommExtraRecordsHDL::setNumRecords(0);
     HKCommExtraRecordsHDL::setDataReciever(&HKCommExtraHLRs::RTHdataReciever);
 
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VTM));
-
+    bld.putCMD(ECommands::command_VTM);
     bld.addMeasurement(0, singleTempMeasurement);
 
 }
-
 
 void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
 {
@@ -78,7 +75,7 @@ void HKComm::command_RTH(const InCommandWrap & inCmd, OutBuilder & bld)
             //if its above max return all.
             measurementsToReturn = TempMeasure::capacity();
         }
-        bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VTM));
+        bld.putCMD(ECommands::command_VTM);
 
         //measurementsToReturn contains how many. First one returns difference of current to timestamp
         HKTime::UpTime diff = Sleeper::getUpTime();
@@ -122,7 +119,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
         {
             //special case, make a measurement now and store it.
             int16_t val = ADCSupport::readBandgap();
-            bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_VPM));
+            bld.putCMD(ECommands::command_VPM);
             bld.addInt(val);
         }
     }
@@ -130,7 +127,6 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 
 void HKComm::command_AVI( OutBuilder & bld)
 {
-    bld.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_AVI));
     static const char v[] ={ ' ','0','.','8','.','1' };
 
     bld.addString(v, NUM_ELS(v));

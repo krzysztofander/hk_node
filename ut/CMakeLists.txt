@@ -76,6 +76,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/comm.h
         ${TOP}/hk_node/src/out_builder.h
         ${TOP}/hk_node/src/in_command_wrap.h
+        ${TOP}/hk_node/src/commands.h
 
         ${TOP}/hk_node/src/comm_extra_records.h
         ${TOP}/hk_node/src/comm_extra_rec_handlers.h

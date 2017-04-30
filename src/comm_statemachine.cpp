@@ -95,59 +95,62 @@ bool  HKComm::respondSerial(void)
         }
         case HKCommState::ESerialState::serialState_Action:
         {
+            //clear any error flags:
             g_OutBuilder.reset();
+            //by default respond with same command:
+            g_OutBuilder.putCMD(g_RecievedCmd.getCommand());
             switch (g_RecievedCmd.getCommand())
             {
-                case InCommandWrap::ECommands::command_DER:
+                case ECommands::command_DER:
                     command_DER(g_OutBuilder);
                     break;
-                case InCommandWrap::ECommands::command_RTH:
+                case ECommands::command_RTH:
                     command_RTH(g_RecievedCmd, g_OutBuilder);
                     break;
-                case InCommandWrap::ECommands::command_RTM:
+                case ECommands::command_RTM:
                     command_RTM(g_OutBuilder);
                     break;
-                case InCommandWrap::ECommands::command_RVI:
+                case ECommands::command_RVI:
                     //fall through
-                case InCommandWrap::ECommands::command_AVI:
+                case ECommands::command_AVI:
                     command_AVI(g_OutBuilder);
                     break;
 #if HAVE_HUMAN_READABLE
-                case InCommandWrap::ECommands::command_AHR:
+                case ECommands::command_AHR:
                     command_AHR(g_OutBuilder);
                     break;
 #endif
-                case  InCommandWrap::ECommands::command_CTP:
+                case  ECommands::command_CTP:
                     commandCTP(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CBP:
+                case  ECommands::command_CBP:
                     commandCBP(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CBS:
+                case  ECommands::command_CBS:
                     commandCBS(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CST:
+                case  ECommands::command_CST:
                     commandCST(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CSC:
+                case  ECommands::command_CSC:
                     commandCSC(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CSM:
+                case  ECommands::command_CSM:
                     commandCSM(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CSA:
+                case  ECommands::command_CSA:
                     commandCSA(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CNN:
+                case  ECommands::command_CNN:
                     commandCNN(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_DLS:
+                case  ECommands::command_DLS:
                     commandDLS(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_RPM:
+                case  ECommands::command_RPM:
                     commandRPM(g_RecievedCmd, g_OutBuilder);
                     break;
-                case  InCommandWrap::ECommands::command_CRV:
+                case  ECommands::command_CRV:
                     commandCRV(g_RecievedCmd, g_OutBuilder);
                     break;
 
@@ -234,7 +237,7 @@ bool  HKComm::respondSerial(void)
     
 
             g_OutBuilder.reset();
-            g_OutBuilder.putCMD(static_cast<uint32_t>(InCommandWrap::ECommands::command_ERR));
+            g_OutBuilder.putCMD(ECommands::command_ERR);
             g_OutBuilder.addData(" code:",6);
  
             errorcode += static_cast <uint8_t>(err);

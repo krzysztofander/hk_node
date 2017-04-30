@@ -81,8 +81,9 @@ const uint8_t * OutBuilder::getStrToWrite() const
     return &m_buffer[0];
 }
 ///@brief overwrites the output buffer with given command
-void OutBuilder::putCMD(uint32_t cmdCode)
+void OutBuilder::putCMD(ECommands command)
 {
+    uint32_t cmdCode = static_cast<uint32_t> (command);
     m_dataSize  = 3;
     m_buffer[2] = (uint8_t)(cmdCode & 0xFF);
     cmdCode >>= 8;
