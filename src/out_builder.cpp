@@ -80,7 +80,7 @@ const uint8_t * OutBuilder::getStrToWrite() const
 {
     return &m_buffer[0];
 }
-
+///@brief overwrites the output buffer with given command
 void OutBuilder::putCMD(uint32_t cmdCode)
 {
     m_dataSize  = 3;
@@ -99,7 +99,7 @@ void OutBuilder::putErr(ELogicErr err)
 
 void OutBuilder::addData(const char * data, const uint16_t size)
 {
-    if (m_dataSize + size > static_cast<int>(Consts::BufferSize))
+    if (m_dataSize + size > static_cast<uint16_t>(Consts::BufferSize))
     {
         putErr(ELogicErr::BufferOverrun);
     }
