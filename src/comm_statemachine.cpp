@@ -53,8 +53,85 @@ void HKComm::jumpToResp()
     g_commState.setState(HKCommState::ESerialState::serialState_Respond);
 }
 
+//action state handler. 
+//It could be inlined. It is a separate function for readability
+void HKComm::actionState(void)
+{
+    //clear any error flags:
+    g_OutBuilder.reset();
+    //by default respond with same command:
+    g_OutBuilder.putCMD(g_RecievedCmd.getCommand());
+    switch (g_RecievedCmd.getCommand())
+    {
+        case ECommands::command_DER:
+            command_DER(g_OutBuilder);
+            break;
+        case ECommands::command_RTH:
+            command_RTH(g_RecievedCmd, g_OutBuilder);
+            break;
+        case ECommands::command_RTM:
+            command_RTM(g_OutBuilder);
+            break;
+        case ECommands::command_RVI:
+            //fall through
+        case ECommands::command_AVI:
+            command_AVI(g_OutBuilder);
+            break;
+#if HAVE_HUMAN_READABLE
+        case ECommands::command_AHR:
+            command_AHR(g_OutBuilder);
+            break;
+#endif
+        case  ECommands::command_CTP:
+            commandCTP(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CBP:
+            commandCBP(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CBS:
+            commandCBS(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CST:
+            commandCST(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CSC:
+            commandCSC(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CSM:
+            commandCSM(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CSA:
+            commandCSA(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CNN:
+            commandCNN(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_DLS:
+            commandDLS(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_RPM:
+            commandRPM(g_RecievedCmd, g_OutBuilder);
+            break;
+        case  ECommands::command_CRV:
+            commandCRV(g_RecievedCmd, g_OutBuilder);
+            break;
 
+        default:
+        {
+            g_commState.setErrorState(
+                HKCommState::ESerialErrorType::serialErr_LogicNoSuchCommand);
+        }
 
+    }
+    if (g_OutBuilder.isErr())
+    {
+        g_commState.setErrorState( g_OutBuilder.getError() );
+    }
+    if (! g_commState.isError())
+    {
+        g_commState.setState(HKCommState::ESerialState::serialState_Respond);
+    }
+}
 
 // @brief Main function responding to serial data
 // @returns True if switched state and shall be called immediately.
@@ -95,83 +172,7 @@ bool  HKComm::respondSerial(void)
         }
         case HKCommState::ESerialState::serialState_Action:
         {
-            //clear any error flags:
-            g_OutBuilder.reset();
-            //by default respond with same command:
-            g_OutBuilder.putCMD(g_RecievedCmd.getCommand());
-            switch (g_RecievedCmd.getCommand())
-            {
-                case ECommands::command_DER:
-                    command_DER(g_OutBuilder);
-                    break;
-                case ECommands::command_RTH:
-                    command_RTH(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case ECommands::command_RTM:
-                    command_RTM(g_OutBuilder);
-                    break;
-                case ECommands::command_RVI:
-                    //fall through
-                case ECommands::command_AVI:
-                    command_AVI(g_OutBuilder);
-                    break;
-#if HAVE_HUMAN_READABLE
-                case ECommands::command_AHR:
-                    command_AHR(g_OutBuilder);
-                    break;
-#endif
-                case  ECommands::command_CTP:
-                    commandCTP(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CBP:
-                    commandCBP(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CBS:
-                    commandCBS(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CST:
-                    commandCST(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CSC:
-                    commandCSC(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CSM:
-                    commandCSM(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CSA:
-                    commandCSA(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CNN:
-                    commandCNN(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_DLS:
-                    commandDLS(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_RPM:
-                    commandRPM(g_RecievedCmd, g_OutBuilder);
-                    break;
-                case  ECommands::command_CRV:
-                    commandCRV(g_RecievedCmd, g_OutBuilder);
-                    break;
-
-                    
-                    
-
-                default:
-                {
-                    g_commState.setErrorState(
-                        HKCommState::ESerialErrorType::serialErr_LogicNoSuchCommand);
-                }
-
-            }
-            if (g_OutBuilder.isErr())
-            {
-                g_commState.setErrorState( g_OutBuilder.getError() );
-            }
-            if (! g_commState.isError())
-            {
-                g_commState.setState(HKCommState::ESerialState::serialState_Respond);
-            }
+            actionState();
             return true;
         }
         case HKCommState::ESerialState::serialState_Respond:

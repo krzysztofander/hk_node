@@ -30,6 +30,7 @@ class HKComm
 {
 public:
     static bool respondSerial(void);
+    static void actionState(void);
     //static void echoLetter(uint8_t l);
     static bool isActive(void);
 
