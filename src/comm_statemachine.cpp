@@ -71,7 +71,7 @@ bool  HKComm::respondSerial(void)
                 g_commState.setState(HKCommState::ESerialState::serialState_ParseCommand);
                 return true;
             }
-            break;
+            return false;
         case HKCommState::ESerialState::serialState_ParseCommand:
         {
             if (HKSerial::available() > 0)
@@ -91,7 +91,7 @@ bool  HKComm::respondSerial(void)
                     return true;
                 }
             }
-            break;
+            return false;
         }
         case HKCommState::ESerialState::serialState_Action:
         {
@@ -183,14 +183,14 @@ bool  HKComm::respondSerial(void)
                 g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
           
              //write extra records if any
-            bool valid = 0;
-            do
+            bool valid = true;
+            while (valid && toWrite == written )
             {   
                 g_OutBuilder.reset();
                 auto ret = HKCommExtraRecordsHDL::formatedMeasurement(valid,g_OutBuilder);
                 if (ret == HKCommExtraRecordsHDL::exitCodes::noMoreData)
                 {
-                    valid = 0;
+                    valid = false;
                 }
                 else if (ret ==  HKCommExtraRecordsHDL::exitCodes::ok)
                 {
@@ -200,54 +200,59 @@ bool  HKComm::respondSerial(void)
                         written += HKSerial::write(g_OutBuilder.getStrToWrite(), g_OutBuilder.getStrLenght());
                     }
                 }
-                else//                if (ret == HKCommExtraRecordsHDL::exitCodes::generalError)
+                else// if (ret == HKCommExtraRecordsHDL::exitCodes::generalError)
                 {
                     g_commState.setErrorState(
                         HKCommState::ESerialErrorType::serialErr_WriteFail );
-
-                    return 1;
+                    return true;
                 }
-            } while (valid);
+            };
 
+            toWrite += NUM_ELS(HKCommDefs::commandEOLOnResponceSequence);
             written += HKSerial::write(HKCommDefs::commandEOLOnResponceSequence,NUM_ELS(HKCommDefs::commandEOLOnResponceSequence));
 
             //check if ammount written matches to what was expected
-            if (written != toWrite + NUM_ELS(HKCommDefs::commandEOLOnResponceSequence))
+            if (written != toWrite)
             {
                 g_commState.setErrorState(
                     HKCommState::ESerialErrorType::serialErr_WriteFail);
             }
             else
             {
+                //all fine, response was send back. To the beginning
                 HKSerial::commandProcessed();
                 g_commState.setState(HKCommState::ESerialState::serialState_Preable);
             }
-            return 1;
-            break;
+            return true;
         }
         default:
         case HKCommState::ESerialState::serialState_Error:
         {
-            HKCommState::ESerialErrorType  err  =  g_commState.getErrorType();
-            uint8_t                        serr = g_commState.getErrSUBType();
-            int64_t errorcode = 0;
-            uint32_t lastCmd = 0;
+            HKCommState::ESerialErrorType  err    = g_commState.getErrorType();
+            uint8_t                        subErr = g_commState.getErrSUBType();
+            int64_t  errorcode ;
+            uint32_t lastCmd;
  
             lastCmd = static_cast<uint32_t>(g_RecievedCmd.getCommand());
     
-
+            //constructing error response
             g_OutBuilder.reset();
             g_OutBuilder.putCMD(ECommands::command_ERR);
             g_OutBuilder.addData(" code:",6);
- 
-            errorcode += static_cast <uint8_t>(err);
+            
+            //Major error code is multiplied by 1000
+            errorcode =  static_cast <uint8_t>(err);
             errorcode *= 1000;
-            errorcode += serr;
+
+            //Sub type is added on top
+            errorcode += subErr;
 
             g_OutBuilder.addInt(errorcode);
 
+            //Some extra info after errorcode
             g_OutBuilder.addData(",lstcmd:",8);
 
+            //3 letter command, or whatever was seen as command
             for (int8_t i =2; i >=0 ; i--)
             {
                 uint8_t c = (char)(lastCmd >> (i * 8) );
@@ -262,16 +267,16 @@ bool  HKComm::respondSerial(void)
                 }
             }
 
+            //all we can do is just send it. State is set to respond.
             miniInParserReset();
+            //TODO: when the error was serialErr_WriteFail attempt to reset serial up front
             g_commState.setState(HKCommState::ESerialState::serialState_Respond);
 
-            return 1;
-
-            break;
+            return true;
         }
 
     }
-    return 0;
+    return false;
 }
 
 
