@@ -71,34 +71,34 @@ do { 						\
 class Sleeper
 {
 public:
-    typedef int32_t SleepTime;  //signed
+    typedef HKTime::SmallUpTime SleepTime;  //signed
 
-    //@sets next sleep time. 
+    //sets next sleep time. 
     //N.B. It is not used right now as the device will sleep to next WD kick anyway
     static void setNextSleep(SleepTime  st);
 
-    //@actually returns the time slept
+    //actually returns the time slept
     //wake up may be from watchdog or something else
     //in a later case it will likely return 0
     static SleepTime howMuchDidWeSleep(void);   //has a state...
 
-    //@puts device to sleep if next sleep time is    
+    //puts device to sleep if next sleep time is    
     static void goToSleep(void);
 
     static void init(void);
 
-    //@returns current up time
+    //Returns current up time
     static HKTime::UpTime getUpTime(void);
     
-    //@Increments the up time. Should be called in WD's ISR only
+    //Increments the up time. Should be called in WD's ISR only
     static void incUpTimeInISR(void);
     
-    //@Sets up time to sme specific value
+    //Sets up time to sme specific value
     static void setTime(const volatile HKTime::UpTime newTime);
 
-    //@Sets no power down time (after wake up from serial or button)
+    //Sets no power down time (after wake up from serial or button)
     static void setNoPowerDownPeriod(uint8_t noPowerDownTicks);
-    //@Gets no power down time (after wake up from serial or button)
+    //Gets no power down time (after wake up from serial or button)
     static uint8_t getNoPowerDownPeriod();
 
     ENUM ( PowerSaveMode )
@@ -108,29 +108,29 @@ public:
         high = 2
     };
 
-    //@Set power save mode
+    //Set power save mode
     static void setPowerSaveMode(PowerSaveMode powerSaveMode);
 
     static PowerSaveMode getPowerSaveMode();
 private:
 
     static void initWD(void);
-    //@Sets the WD tick time
+    //Sets the WD tick time
     static void setWDScale(int8_t scale);
 
-    //@gets the WD tick time 
+    //gets the WD tick time 
     static int8_t getWDScale();
 
 private:
-    static SleepTime g_sleepTime;                   //!time for next sleep
-    static volatile HKTime::UpTime g_upTime ;       //!system up time 
-    static HKTime::UpTime          g_lastUpTime ;   //!helper variable used to calculate how much we slept
-public:    
-    static volatile uint8_t gv_wdInterrupt;         //!indicates that WD happened
-    static volatile uint8_t gv_wdInterrupt_B;       //!indicates that WD happened
-    static uint8_t g_NoPowerDownPeriodSetting;   //!Setting for how long to stay awake 
-    static volatile uint8_t gv_NoPowerDownPeriod;   //!counts down WD ticks how long to stay awake 
-    static PowerSaveMode g_PowerSaveMode;
+    static SleepTime g_sleepTime;                   //!>time for next sleep
+    static volatile HKTime::UpTime g_upTime ;       //!>system up time 
+    static HKTime::UpTime          g_lastUpTime ;   //!>helper variable used to calculate how much we slept
+public:                                                
+    static volatile uint8_t gv_wdInterrupt;         //!>indicates that WD happened
+    static volatile uint8_t gv_wdInterrupt_B;       //!>indicates that WD happened
+    static uint8_t g_NoPowerDownPeriodSetting;      //!>Setting for how long to stay awake 
+    static volatile uint8_t gv_NoPowerDownPeriod;   //!>counts down WD ticks how long to stay awake 
+    static PowerSaveMode g_PowerSaveMode;              
 };
 //--------------------------------------------------
 

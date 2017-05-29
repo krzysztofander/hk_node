@@ -33,6 +33,8 @@ public:
         fakeExecutor2,
         fakeExecutor3,
 
+        monostable1,
+
         executorsNumber,
 
         executorNone = 255

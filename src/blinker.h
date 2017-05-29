@@ -19,7 +19,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
 #ifndef HK_BLINKER_H
-#define HK_SUPP_H
+#define HK_BLINKER_H
 
 //--------------------------------------------------
 

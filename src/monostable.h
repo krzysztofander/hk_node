@@ -18,15 +18,39 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
+#ifndef HK_MONOSTABLE_H
+#define HK_MONOSTABLE_H
+#include "hk_node_utils.h"
+#include "hk_time.h"
+//--------------------------------------------------
+/** 
+Handled for monostable operations
 
-void setupBody();
-void loopBody();
+The `switchToDefault` supposed to be set periodically
+EVEN WHEN ALREADY IN DEFAULT STATE!
+
+When setting up time for the executor it starts counting
+If right after that value gets changed the monstable
+operation would take place
+*/
+class Monostable
+{
+public:
+    ENUM(ErrCodes)
+    {
+        ok,
+    };
+    static void switchToDefault(void); //!< Called periodically to set to bring back to default state
+    static ErrCodes setValue(int32_t value); //!< Sets the value, will be brought to default with switchToDefault
+    static ErrCodes setup (HKTime::SmallUpTime timeSec, int32_t newValue); //!<Sets up new value for given time
+private:
+    static int32_t getDefault();
+
+};
 
 //--------------------------------------------------
-void initAllFunctions(void);
-//--------------------------------------------------
+
+
 
 #endif
 

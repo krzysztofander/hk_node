@@ -56,6 +56,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/out_builder.cpp
         ${TOP}/hk_node/src/comm_r.cpp
         ${TOP}/hk_node/src/blinker.cpp
+        ${TOP}/hk_node/src/monostable.cpp
         ${TOP}/hk_node/src/comm_extra_records.cpp
         ${TOP}/hk_node/src/comm_extra_rec_handlers.cpp
         ${TOP}/hk_node/src/comm_defs.cpp
@@ -72,6 +73,7 @@ project (unit_tests)
         ${TOP}/hk_node/src/hk_node.h
         ${TOP}/hk_node/src/hk_node_utils.h
         ${TOP}/hk_node/src/hk_node_config.h
+        ${TOP}/hk_node/src/monostable.h
         ${TOP}/hk_node/src/blinker.h
         ${TOP}/hk_node/src/comm.h
         ${TOP}/hk_node/src/out_builder.h

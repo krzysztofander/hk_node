@@ -28,7 +28,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "temp_sensor.h"
 #include "blinker.h"
 #include "nv.h"
-
+#include "monostable.h"
 
 void setupBody() 
 {
@@ -83,11 +83,15 @@ void initAllFunctions(void)
     TempMeasure::initMeasureTemperature();
  
     Executor::init();
+    //@todo read default values for times from NV
+
     Executor::setupExecutingFn((uint8_t)Executor::blinker, 3, Blinker::blinkAction );
-        //@todo read that from NV
     Executor::setupExecutingFn((uint8_t)Executor::temperatureMeasurer, 30 , TempMeasure::measureTemperature); 
-        //@todo read value from NV
-    
+    //In the very fresh system the default may not be set (unless hardcoded)
+    //In any other case it is better to set it from the right start
+    //rather than leaving it in some random state (depends, it may be e.g. some output periph).
+    Executor::setupExecutingFn((uint8_t)Executor::monostable1, 60 , Monostable::switchToDefault); 
+
     Sleeper::init();
 
 }

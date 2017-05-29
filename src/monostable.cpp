@@ -17,16 +17,48 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSE
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE 
 USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ************************************************************************************************************************/
+#include <Arduino.h>
+#include "supp.h"
+#include "monostable.h"
+#include "executor.h"
 
-#ifndef HK_NODE_H
-#define HK_NODE_H
+//------------------------------------------------------------------
+void Monostable::switchToDefault(void)
+{
+    setValue(getDefault());
+    //actually here we could disable the executor.
+    //but we leave it running anyway
+}
+    
+Monostable::ErrCodes Monostable::setValue(int32_t value)
+{
+    return Monostable::ErrCodes::ok;
+}
 
-void setupBody();
-void loopBody();
+int32_t Monostable::getDefault()
+{
+    return 0;
+}
+Monostable::ErrCodes Monostable::setup(HKTime::SmallUpTime timeSec, int32_t newValue)
+{
+    uint8_t myExecutor = Executor::monostable1;
+    if (! Executor::isExecutorActive(myExecutor))
+    {
+        Executor::setupExecutingFn(myExecutor,
+                                   timeSec,
+                                   Monostable::switchToDefault);
+        //Normally the setupExecutingFn causes the executor to be called
+        //in the next main loop 
+        //This is why the setExecutionTime is called regardless.
+    }
+    Executor::setExecutionTime(myExecutor, timeSec);
+    
+    //ones we have schedule to bringing it back to default
+    //we can set the default value
+    setValue(newValue);
 
-//--------------------------------------------------
-void initAllFunctions(void);
-//--------------------------------------------------
+}
 
-#endif
 
+
+//------------------------------------------------------------------
