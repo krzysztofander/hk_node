@@ -127,7 +127,7 @@ void HKComm::commandRPM(const InCommandWrap & inCmd, OutBuilder & bld)
 
 void HKComm::command_AVI( OutBuilder & bld)
 {
-    static const char v[] ={ ' ','0','.','9','.','0' };
+    static const char v[] ={ ' ','0','.','9','.','1' };
 
     bld.addString(v, NUM_ELS(v));
 
@@ -180,7 +180,7 @@ void HKComm::command_AVI( OutBuilder & bld)
     0.8.1 Refactoring
 
     0.9.0 Initial work on monostable functionality
-    0.?.1
+    0.9.1 Error message is now in quoted string
     + batery reading
     // see https://forum.arduino.cc/index.php?topic=38119.0
     0.?.1

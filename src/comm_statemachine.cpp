@@ -239,35 +239,38 @@ bool  HKComm::respondSerial(void)
             //constructing error response
             g_OutBuilder.reset();
             g_OutBuilder.putCMD(ECommands::command_ERR);
-            g_OutBuilder.addData(" code:",6);
-            
-            //Major error code is multiplied by 1000
-            errorcode =  static_cast <uint8_t>(err);
-            errorcode *= 1000;
-
-            //Sub type is added on top
-            errorcode += subErr;
-
-            g_OutBuilder.addInt(errorcode);
-
-            //Some extra info after errorcode
-            g_OutBuilder.addData(",lstcmd:",8);
-
-            //3 letter command, or whatever was seen as command
-            for (int8_t i =2; i >=0 ; i--)
+            g_OutBuilder.addQuote();  //opening quote
             {
-                uint8_t c = (char)(lastCmd >> (i * 8) );
-                if (c < uint8_t(' ') || c > 127)
+                g_OutBuilder.addData(" code:", 6);
+
+                //Major error code is multiplied by 1000
+                errorcode =  static_cast <uint8_t>(err);
+                errorcode *= 1000;
+
+                //Sub type is added on top
+                errorcode += subErr;
+
+                g_OutBuilder.addInt(errorcode);
+
+                //Some extra info after errorcode
+                g_OutBuilder.addData(",lstcmd:", 8);
+
+                //3 letter command, or whatever was seen as command
+                for (int8_t i =2; i >= 0; i--)
                 {
-                    g_OutBuilder.addData("\\",1);
-                    g_OutBuilder.addInt(c);
-                }
-                else
-                {
-                    g_OutBuilder.addData((char * )(&c),1);
+                    uint8_t c = (char)(lastCmd >> (i * 8));
+                    if (c < uint8_t(' ') || c > 127)
+                    {
+                        g_OutBuilder.addData("\\", 1);
+                        g_OutBuilder.addInt(c);
+                    }
+                    else
+                    {
+                        g_OutBuilder.addData((char *)(&c), 1);
+                    }
                 }
             }
-
+            g_OutBuilder.addQuote(); //closing quote
             //all we can do is just send it. State is set to respond.
             miniInParserReset();
             //TODO: when the error was serialErr_WriteFail attempt to reset serial up front

@@ -55,6 +55,7 @@ public:
 
 
     void putCMD(ECommands command);
+    void addQuote(void);
     void addData(const char * data, const uint16_t size);
     void addInt(int64_t newInt);
     void addString(const char * data, const uint16_t size);
